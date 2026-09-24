@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 
-const socialsSchema = new Schema(
+const socialLinksSchema = new Schema(
   {
     website: { type: String, default: "" },
     facebook: { type: String, default: "" },
@@ -21,7 +21,7 @@ const notificationPreferencesSchema = new Schema(
     lectureComments: { type: Boolean, default: true },
     lectureNotesDownloads: { type: Boolean, default: true },
     commentReplies: { type: Boolean, default: true },
-    dailyProfileVisits: { type: Boolean, default: true },
+    dailyProfileVisits: { type: Boolean, default: false },
     lectureFileDownloads: { type: Boolean, default: true },
   },
   { _id: false }
@@ -85,12 +85,59 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    biography: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     bio: {
       type: String,
       default: "",
+      trim: true,
+    },
+    title: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    areaOfExpertise: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    university: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    level: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    certifications: {
+      type: [String],
+      default: [],
+    },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+    socialLinks: {
+      type: socialLinksSchema,
+      default: () => ({}),
     },
     socials: {
-      type: socialsSchema,
+      type: socialLinksSchema,
       default: () => ({}),
     },
     notificationPreferences: {
@@ -105,26 +152,48 @@ const userSchema = new Schema(
   {
     timestamps: true,
     toJSON: {
+      virtuals: true,
       transform: function (doc, ret) {
         delete ret.password;
         delete ret.__v;
+        ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
+        ret.biography = ret.biography || ret.bio || "";
+        ret.socialLinks = ret.socialLinks || ret.socials || {};
+        if (!ret.certifications) ret.certifications = [];
+        if (!ret.skills) ret.skills = [];
         return ret;
       },
     },
     toObject: {
+      virtuals: true,
       transform: function (doc, ret) {
         delete ret.password;
         delete ret.__v;
+        ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
+        ret.biography = ret.biography || ret.bio || "";
+        ret.socialLinks = ret.socialLinks || ret.socials || {};
+        if (!ret.certifications) ret.certifications = [];
+        if (!ret.skills) ret.skills = [];
         return ret;
       },
     },
   }
 );
 
-// Pre-save hook: auto-compute full name and default approvalStatus for instructors
+// Pre-save hook: auto-compute full name, sync biography/bio, and default approvalStatus for instructors
 userSchema.pre("save", async function () {
   if (this.isModified("firstName") || this.isModified("lastName") || !this.name) {
     this.name = `${this.firstName || ""} ${this.lastName || ""}`.trim();
+  }
+
+  if (this.isModified("biography") && !this.bio) {
+    this.bio = this.biography;
+  } else if (this.isModified("bio") && !this.biography) {
+    this.biography = this.bio;
+  }
+
+  if (this.isModified("socialLinks") && (!this.socials || Object.keys(this.socials).length === 0)) {
+    this.socials = this.socialLinks;
   }
 
   if (this.isNew && this.role === "instructor" && !this.isModified("approvalStatus")) {

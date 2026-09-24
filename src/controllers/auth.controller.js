@@ -1,20 +1,38 @@
+import crypto from "crypto";
 import { User } from "../models/User.model.js";
 import { Otp } from "../models/Otp.model.js";
 import { hashValue, compareValue } from "../utils/hash.js";
-import { signToken } from "../utils/jwt.js";
+import { signToken, verifyToken } from "../utils/jwt.js";
 import { sendEmailVerificationOtp, sendPasswordResetOtp } from "../utils/email.js";
 
 /**
  * 1. signup (POST /api/auth/signup)
- * Register student or instructor
+ * Register student or instructor, issue 4-digit OTP to all, and return session token
  */
 export const signup = async (req, res, next) => {
   try {
-    const { email, password, firstName, lastName, role } = req.body;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      username: customUsername,
+      role,
+      areaOfExpertise,
+      university,
+      level,
+      skills,
+    } = req.body;
 
     if (!firstName || !email || !password) {
       return res.status(400).json({
         error: "First name, email, and password are required",
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters long",
       });
     }
 
@@ -23,17 +41,30 @@ export const signup = async (req, res, next) => {
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      return res.status(409).json({
-        error: "User with this email or username already exists",
+      return res.status(400).json({
+        error: "Email already in use",
       });
     }
 
-    // Generate unique username if not provided
-    const baseUsername = normalizedEmail.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
-    let username = baseUsername;
-    let counter = 1;
-    while (await User.findOne({ username })) {
-      username = `${baseUsername}${counter++}`;
+    // Determine unique username
+    let finalUsername;
+    if (customUsername && customUsername.trim()) {
+      const normalizedCustom = customUsername.trim().toLowerCase();
+      const existingUsername = await User.findOne({ username: normalizedCustom });
+      if (existingUsername) {
+        return res.status(400).json({
+          error: "Username already taken",
+        });
+      }
+      finalUsername = normalizedCustom;
+    } else {
+      const baseUsername = normalizedEmail.split("@")[0].replace(/[^a-zA-Z0-9]/g, "");
+      let candidate = baseUsername || "user";
+      let counter = 1;
+      while (await User.findOne({ username: candidate })) {
+        candidate = `${baseUsername}${counter++}`;
+      }
+      finalUsername = candidate;
     }
 
     const user = new User({
@@ -41,40 +72,46 @@ export const signup = async (req, res, next) => {
       password,
       firstName: firstName.trim(),
       lastName: lastName ? lastName.trim() : "",
-      username,
+      username: finalUsername,
       role: assignedRole,
       approvalStatus: assignedRole === "instructor" ? "pending" : "approved",
       isVerified: false,
+      areaOfExpertise: areaOfExpertise ? areaOfExpertise.trim() : "",
+      university: university ? university.trim() : "",
+      level: level ? level.trim() : "",
+      skills: Array.isArray(skills) ? skills : [],
+      certifications: [],
+      tokenVersion: 0,
     });
 
     await user.save();
 
-    // If instructor, generate 4-digit OTP and send email verification
-    if (assignedRole === "instructor") {
-      const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
-      const hashedOtp = await hashValue(otpCode, 10);
+    // Generate CSPRNG 4-digit OTP for ALL newly registered accounts (students & instructors)
+    const otpCode = crypto.randomInt(1000, 10000).toString();
+    const hashedOtp = await hashValue(otpCode, 10);
 
-      await Otp.create({
-        email: normalizedEmail,
-        code: hashedOtp,
-        type: "email_verification",
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
-        consumed: false,
-      });
+    await Otp.create({
+      email: normalizedEmail,
+      code: hashedOtp,
+      type: "email_verification",
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+      consumed: false,
+      attempts: 0,
+      maxAttempts: 5,
+    });
 
-      await sendEmailVerificationOtp(normalizedEmail, otpCode);
-    }
+    await sendEmailVerificationOtp(normalizedEmail, otpCode);
+
+    // Issue JWT session token with tokenVersion
+    const token = signToken({
+      sub: user._id,
+      role: user.role,
+      tokenVersion: user.tokenVersion || 0,
+    });
 
     return res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        _id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        isVerified: user.isVerified,
-      },
+      token,
+      user,
     });
   } catch (error) {
     next(error);
@@ -120,20 +157,12 @@ export const signin = async (req, res, next) => {
     const token = signToken({
       sub: user._id,
       role: user.role,
+      tokenVersion: user.tokenVersion || 0,
     });
 
     return res.status(200).json({
       token,
-      user: {
-        _id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        approvalStatus: user.approvalStatus,
-        isVerified: user.isVerified,
-        avatarUrl: user.avatarUrl,
-      },
+      user,
     });
   } catch (error) {
     next(error);
@@ -156,10 +185,23 @@ export const getMe = async (req, res, next) => {
 
 /**
  * 4. signout (POST /api/auth/signout)
- * Client-side session acknowledgment
+ * Invalidate server-side session by bumping tokenVersion
  */
 export const signout = async (req, res, next) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      try {
+        const decoded = verifyToken(token);
+        if (decoded && decoded.sub) {
+          await User.findByIdAndUpdate(decoded.sub, { $inc: { tokenVersion: 1 } });
+        }
+      } catch (e) {
+        // Token was already invalid, acknowledgment response still proceeds
+      }
+    }
+
     return res.status(200).json({
       message: "Successfully signed out",
     });
@@ -170,7 +212,7 @@ export const signout = async (req, res, next) => {
 
 /**
  * 5. verifyEmail (POST /api/auth/verify-email)
- * 4-digit OTP email verification
+ * 4-digit OTP email verification with updated user object return
  */
 export const verifyEmail = async (req, res, next) => {
   try {
@@ -192,27 +234,45 @@ export const verifyEmail = async (req, res, next) => {
 
     if (!otpRecord || otpRecord.expiresAt < new Date()) {
       return res.status(400).json({
-        error: "Invalid or expired OTP code",
+        error: "Invalid or expired verification code",
+      });
+    }
+
+    if (otpRecord.attempts >= otpRecord.maxAttempts) {
+      otpRecord.consumed = true;
+      await otpRecord.save();
+      return res.status(400).json({
+        error: "Too many failed attempts. Please request a new verification code.",
       });
     }
 
     const isMatch = await compareValue(otp, otpRecord.code);
     if (!isMatch) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
       return res.status(400).json({
-        error: "Invalid or expired OTP code",
+        error: "Invalid or expired verification code",
       });
     }
 
     otpRecord.consumed = true;
     await otpRecord.save();
 
-    await User.findOneAndUpdate(
+    const user = await User.findOneAndUpdate(
       { email: normalizedEmail },
-      { isVerified: true }
+      { isVerified: true },
+      { returnDocument: "after" }
     );
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
 
     return res.status(200).json({
       message: "Email verified successfully",
+      user,
     });
   } catch (error) {
     next(error);
@@ -220,7 +280,142 @@ export const verifyEmail = async (req, res, next) => {
 };
 
 /**
- * 6. forgotPassword (POST /api/auth/forget-passwd)
+ * 6. resendVerification (POST /api/auth/resend-verification)
+ * Generate fresh 4-digit OTP for unverified accounts with generic anti-enumeration response
+ */
+export const resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: "Email is required",
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Only issue new code if user exists and is not yet verified
+    if (user && !user.isVerified) {
+      // Invalidate existing active verification OTPs
+      await Otp.updateMany(
+        { email: normalizedEmail, type: "email_verification", consumed: false },
+        { consumed: true }
+      );
+
+      const otpCode = crypto.randomInt(1000, 10000).toString();
+      const hashedOtp = await hashValue(otpCode, 10);
+
+      await Otp.create({
+        email: normalizedEmail,
+        code: hashedOtp,
+        type: "email_verification",
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
+        consumed: false,
+        attempts: 0,
+        maxAttempts: 5,
+      });
+
+      await sendEmailVerificationOtp(normalizedEmail, otpCode);
+    }
+
+    // Always return generic 200 to avoid user enumeration
+    return res.status(200).json({
+      message: "If this account needs verification, a new code has been sent.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 7. updateProfile (PUT /api/auth/update-profile)
+ * Partial profile update for authenticated user
+ */
+export const updateProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const {
+      firstName,
+      lastName,
+      username,
+      avatarUrl,
+      avatar,
+      university,
+      level,
+      skills,
+      biography,
+      bio,
+      title,
+      phoneNumber,
+      socialLinks,
+      notificationPreferences,
+    } = req.body;
+
+    // Handle username update with collision check
+    if (username && username.trim()) {
+      const normalizedUsername = username.trim().toLowerCase();
+      if (normalizedUsername !== user.username) {
+        const existing = await User.findOne({
+          username: normalizedUsername,
+          _id: { $ne: user._id },
+        });
+        if (existing) {
+          return res.status(400).json({
+            error: "Username already taken",
+          });
+        }
+        user.username = normalizedUsername;
+      }
+    }
+
+    if (firstName !== undefined) user.firstName = firstName.trim();
+    if (lastName !== undefined) user.lastName = lastName.trim();
+    if (avatarUrl !== undefined || avatar !== undefined) {
+      user.avatarUrl = avatarUrl || avatar || "";
+    }
+    if (university !== undefined) user.university = university.trim();
+    if (level !== undefined) user.level = level.trim();
+    if (skills !== undefined && Array.isArray(skills)) user.skills = skills;
+    if (biography !== undefined || bio !== undefined) {
+      const newBio = biography !== undefined ? biography.trim() : bio.trim();
+      user.biography = newBio;
+      user.bio = newBio;
+    }
+    if (title !== undefined) user.title = title.trim();
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber.trim();
+
+    if (socialLinks && typeof socialLinks === "object") {
+      const currentSocials = user.socialLinks ? user.socialLinks.toObject() : {};
+      user.socialLinks = { ...currentSocials, ...socialLinks };
+      user.socials = user.socialLinks;
+    }
+
+    if (notificationPreferences && typeof notificationPreferences === "object") {
+      const currentPrefs = user.notificationPreferences ? user.notificationPreferences.toObject() : {};
+      user.notificationPreferences = { ...currentPrefs, ...notificationPreferences };
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 8. forgotPassword (POST /api/auth/forget-passwd)
  * Request 5-digit password recovery OTP
  */
 export const forgotPassword = async (req, res, next) => {
@@ -243,7 +438,12 @@ export const forgotPassword = async (req, res, next) => {
       });
     }
 
-    const otpCode = Math.floor(10000 + Math.random() * 90000).toString();
+    await Otp.updateMany(
+      { email: normalizedEmail, type: "password_reset", consumed: false },
+      { consumed: true }
+    );
+
+    const otpCode = crypto.randomInt(10000, 100000).toString();
     const hashedOtp = await hashValue(otpCode, 10);
 
     await Otp.create({
@@ -252,6 +452,8 @@ export const forgotPassword = async (req, res, next) => {
       type: "password_reset",
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
       consumed: false,
+      attempts: 0,
+      maxAttempts: 5,
     });
 
     await sendPasswordResetOtp(normalizedEmail, otpCode);
@@ -265,7 +467,7 @@ export const forgotPassword = async (req, res, next) => {
 };
 
 /**
- * 7. verifyOtp (POST /api/auth/verify-otp)
+ * 9. verifyOtp (POST /api/auth/verify-otp)
  * Validate 5-digit OTP without consuming it
  */
 export const verifyOtp = async (req, res, next) => {
@@ -291,8 +493,18 @@ export const verifyOtp = async (req, res, next) => {
       });
     }
 
+    if (otpRecord.attempts >= otpRecord.maxAttempts) {
+      otpRecord.consumed = true;
+      await otpRecord.save();
+      return res.status(400).json({
+        error: "Too many failed attempts. Please request a new verification code.",
+      });
+    }
+
     const isMatch = await compareValue(otp, otpRecord.code);
     if (!isMatch) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
       return res.status(400).json({
         error: "Invalid or expired OTP code",
       });
@@ -308,8 +520,8 @@ export const verifyOtp = async (req, res, next) => {
 };
 
 /**
- * 8. resetPassword (POST /api/auth/reset-passwd)
- * Consume 5-digit OTP and reset password
+ * 10. resetPassword (POST /api/auth/reset-passwd)
+ * Consume 5-digit OTP and reset password + revoke old sessions
  */
 export const resetPassword = async (req, res, next) => {
   try {
@@ -318,6 +530,12 @@ export const resetPassword = async (req, res, next) => {
     if (!email || !otp || !newPassword) {
       return res.status(400).json({
         error: "Email, OTP, and new password are required",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters long",
       });
     }
 
@@ -334,8 +552,18 @@ export const resetPassword = async (req, res, next) => {
       });
     }
 
+    if (otpRecord.attempts >= otpRecord.maxAttempts) {
+      otpRecord.consumed = true;
+      await otpRecord.save();
+      return res.status(400).json({
+        error: "Too many failed attempts. Please request a new verification code.",
+      });
+    }
+
     const isMatch = await compareValue(otp, otpRecord.code);
     if (!isMatch) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
       return res.status(400).json({
         error: "Invalid or expired OTP code",
       });
@@ -352,6 +580,7 @@ export const resetPassword = async (req, res, next) => {
     await otpRecord.save();
 
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate all prior sessions
     await user.save();
 
     return res.status(200).json({
@@ -363,8 +592,8 @@ export const resetPassword = async (req, res, next) => {
 };
 
 /**
- * 9. updatePassword (POST /api/auth/update-password)
- * Authenticated password update
+ * 11. updatePassword (POST /api/auth/update-password)
+ * Authenticated password update + session revocation
  */
 export const updatePassword = async (req, res, next) => {
   try {
@@ -373,6 +602,12 @@ export const updatePassword = async (req, res, next) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         error: "Current password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: "Password must be at least 8 characters long",
       });
     }
 
@@ -391,6 +626,7 @@ export const updatePassword = async (req, res, next) => {
     }
 
     user.password = newPassword;
+    user.tokenVersion = (user.tokenVersion || 0) + 1; // Invalidate all other sessions
     await user.save();
 
     return res.status(200).json({
@@ -407,6 +643,8 @@ export default {
   getMe,
   signout,
   verifyEmail,
+  resendVerification,
+  updateProfile,
   forgotPassword,
   verifyOtp,
   resetPassword,

@@ -27,6 +27,14 @@ const otpSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    attempts: {
+      type: Number,
+      default: 0,
+    },
+    maxAttempts: {
+      type: Number,
+      default: 5,
+    },
   },
   {
     timestamps: true,

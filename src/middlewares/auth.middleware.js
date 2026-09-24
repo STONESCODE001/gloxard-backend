@@ -33,6 +33,15 @@ export const authGuard = async (req, res, next) => {
       });
     }
 
+    // Enforce server-side token revocation via tokenVersion
+    if (decoded.tokenVersion !== undefined && user.tokenVersion !== undefined) {
+      if (decoded.tokenVersion !== user.tokenVersion) {
+        return res.status(401).json({
+          error: "Session expired or revoked. Please sign in again.",
+        });
+      }
+    }
+
     req.user = user;
     next();
   } catch (error) {

@@ -945,6 +945,11 @@
             </a>
           </li>
           <li>
+            <a href="#ep-resend-verification" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Resend Verification
+            </a>
+          </li>
+          <li>
             <a href="#ep-forget-passwd" class="nav-link">
               <span class="nav-method-pill pill-post">POST</span> Forgot Password
             </a>
@@ -962,6 +967,11 @@
           <li>
             <a href="#ep-update-password" class="nav-link">
               <span class="nav-method-pill pill-post">POST</span> Update Password
+            </a>
+          </li>
+          <li>
+            <a href="#ep-update-profile" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Profile
             </a>
           </li>
         </ul>
@@ -1248,14 +1258,23 @@
                 <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
               </div>
               <pre><code>{
-  "message": "User registered successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "_id": "673f8a92b234fa001234abcd",
     "email": "student@gloxad.com",
     "firstName": "Alex",
     "lastName": "Johnson",
+    "username": "alexj",
     "role": "student",
-    "isVerified": false
+    "isEmailVerified": false,
+    "approvalStatus": "approved",
+    "certifications": [],
+    "avatarUrl": "",
+    "biography": "",
+    "title": "",
+    "phoneNumber": "",
+    "socialLinks": {},
+    "notificationPreferences": {}
   }
 }</code></pre>
             </div>
@@ -1435,7 +1454,58 @@
                 <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
               </div>
               <pre><code>{
-  "message": "Email verified successfully"
+  "message": "Email verified successfully",
+  "user": {
+    "_id": "673f8a92b234fa001234abcd",
+    "email": "student@gloxad.com",
+    "firstName": "Alex",
+    "lastName": "Johnson",
+    "username": "alexj",
+    "role": "student",
+    "isEmailVerified": true,
+    "approvalStatus": "approved",
+    "certifications": [],
+    "avatarUrl": "",
+    "biography": "",
+    "title": "",
+    "phoneNumber": "",
+    "socialLinks": {},
+    "notificationPreferences": {}
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5b. POST /api/auth/resend-verification -->
+      <div class="endpoint-card" id="ep-resend-verification" data-search="resend verification otp email code post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/resend-verification</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Issues a fresh 4-digit verification OTP and emails it. Returns a generic 200 message regardless of whether the account exists or is already verified.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "student@gloxad.com"
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "If this account needs verification, a new code has been sent."
 }</code></pre>
             </div>
           </div>
@@ -1583,6 +1653,55 @@
         </div>
       </div>
 
+      <!-- 10. PUT /api/auth/update-profile -->
+      <div class="endpoint-card" id="ep-update-profile" data-search="update profile put settings user avatar bio social">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/auth/update-profile</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Performs a partial update on the authenticated user's profile fields (avatar, biography, title, phone, skills, socials, and notification preferences).
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload (Partial)</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "biography": "Senior Design Lead",
+  "title": "Lead Instructor",
+  "skills": ["UI/UX", "Figma"],
+  "socialLinks": {
+    "website": "https://alex.design"
+  }
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Profile updated successfully",
+  "user": {
+    "_id": "673f8a92b234fa001234abcd",
+    "email": "student@gloxad.com",
+    "firstName": "Alex",
+    "lastName": "Johnson",
+    "username": "alexj",
+    "biography": "Senior Design Lead",
+    "title": "Lead Instructor",
+    "isEmailVerified": true
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -1609,10 +1728,12 @@
         <li><a href="#ep-me" class="toc-link">GET /me</a></li>
         <li><a href="#ep-signout" class="toc-link">POST /signout</a></li>
         <li><a href="#ep-verify-email" class="toc-link">POST /verify-email</a></li>
+        <li><a href="#ep-resend-verification" class="toc-link">POST /resend-verification</a></li>
         <li><a href="#ep-forget-passwd" class="toc-link">POST /forget-passwd</a></li>
         <li><a href="#ep-verify-otp" class="toc-link">POST /verify-otp</a></li>
         <li><a href="#ep-reset-passwd" class="toc-link">POST /reset-passwd</a></li>
         <li><a href="#ep-update-password" class="toc-link">POST /update-password</a></li>
+        <li><a href="#ep-update-profile" class="toc-link">PUT /update-profile</a></li>
       </ul>
     </aside>
 

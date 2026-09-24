@@ -20,6 +20,14 @@
   - [x] **Unit 01**: Core Foundation & Centralized Error Infrastructure
   - [x] **Unit 02**: Authentication Core & JWT Access Guards
   - [x] **Unit 03**: Email OTP Verification & Password Recovery System
+  - [x] **Phase 1 Alignment (Handoff P0/P1 Blockers)**:
+    - [x] Student & Tutor OTP dispatch on signup (4-digit CSPRNG).
+    - [x] Session token return on signup (`201 { token, user }`).
+    - [x] Verify email updated user return (`200 { message, user }`).
+    - [x] `POST /api/auth/resend-verification` implemented.
+    - [x] `PUT /api/auth/update-profile` implemented.
+    - [x] Server-side session revocation via `tokenVersion`.
+    - [x] Isolated rate-limit buckets with `Retry-After`.
 - [ ] **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading
 - [ ] **Unit 05**: Course Taxonomy & Category Management
 - [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)
