@@ -1,139 +1,144 @@
 import mongoose, { Schema } from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
-const socialLinksSchema = new Schema(
-    {
-        website: { type: String, default: "" },
-        facebook: { type: String, default: "" },
-        instagram: { type: String, default: "" },
-        linkedin: { type: String, default: "" },
-        twitter: { type: String, default: "" },
-        whatsapp: { type: String, default: "" },
-        youtube: { type: String, default: "" },
-    },
-    { _id: false }
+const socialsSchema = new Schema(
+  {
+    website: { type: String, default: "" },
+    facebook: { type: String, default: "" },
+    instagram: { type: String, default: "" },
+    linkedin: { type: String, default: "" },
+    twitter: { type: String, default: "" },
+    whatsapp: { type: String, default: "" },
+    youtube: { type: String, default: "" },
+  },
+  { _id: false }
 );
 
 const notificationPreferencesSchema = new Schema(
-    {
-        coursePurchases: { type: Boolean, default: true },
-        courseReviews: { type: Boolean, default: true },
-        lectureComments: { type: Boolean, default: true },
-        lectureNotesDownloads: { type: Boolean, default: true },
-        commentReplies: { type: Boolean, default: true },
-        dailyProfileVisits: { type: Boolean, default: true },
-        lectureFileDownloads: { type: Boolean, default: true },
-    },
-    { _id: false }
+  {
+    coursePurchases: { type: Boolean, default: true },
+    courseReviews: { type: Boolean, default: true },
+    lectureComments: { type: Boolean, default: true },
+    lectureNotesDownloads: { type: Boolean, default: true },
+    commentReplies: { type: Boolean, default: true },
+    dailyProfileVisits: { type: Boolean, default: true },
+    lectureFileDownloads: { type: Boolean, default: true },
+  },
+  { _id: false }
 );
 
 const userSchema = new Schema(
-    {
-        name: {
-            type: String,
-            trim: true,
-        },
-        firstName: {
-            type: String,
-            required: [true, "First name is required"],
-            trim: true,
-        },
-        lastName: {
-            type: String,
-            trim: true,
-            default: "",
-        },
-        username: {
-            type: String,
-            required: [true, "Username is required"],
-            unique: true,
-            lowercase: true,
-            trim: true,
-            index: true,
-        },
-        email: {
-            type: String,
-            required: [true, "Email is required"],
-            unique: true,
-            lowercase: true,
-            trim: true,
-            index: true,
-        },
-        passwordHash: {
-            type: String,
-            required: [true, "Password is required"],
-        },
-        avatar: {
-            type: String,
-            default: "",
-        },
-        bio: {
-            type: String,
-            default: "",
-        },
-        role: {
-            type: String,
-            enum: ["student", "instructor", "admin"],
-            default: "student",
-        },
-        certifications: {
-            type: [String],
-            default: [],
-        },
-        isVerified: {
-            type: Boolean,
-            default: false,
-        },
-        isActive: {
-            type: Boolean,
-            default: true,
-        },
-        socialLinks: {
-            type: socialLinksSchema,
-            default: () => ({}),
-        },
-        notificationPreferences: {
-            type: notificationPreferencesSchema,
-            default: () => ({}),
-        },
-        lastLoginAt: {
-            type: Date,
-            default: null,
-        },
+  {
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
     },
-    {
-        timestamps: true,
-        toJSON: { virtuals: true },
-        toObject: { virtuals: true },
-    }
+    lastName: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    name: {
+      type: String,
+      trim: true,
+    },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+    },
+    role: {
+      type: String,
+      enum: ["student", "instructor", "admin"],
+      default: "student",
+    },
+    approvalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved",
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    avatarUrl: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+    },
+    socials: {
+      type: socialsSchema,
+      default: () => ({}),
+    },
+    notificationPreferences: {
+      type: notificationPreferencesSchema,
+      default: () => ({}),
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
 );
 
-// Pre-save hook to auto-populate full name
-userSchema.pre("save", function () {
-    if (this.isModified("firstName") || this.isModified("lastName") || !this.name) {
-        this.name = `${this.firstName || ""} ${this.lastName || ""}`.trim();
-    }
-});
-
-// Virtual for avatarUrl alias
-userSchema.virtual("avatarUrl")
-    .get(function () {
-        return this.avatar;
-    })
-    .set(function (url) {
-        this.avatar = url;
-    });
-
-// Hash password before saving if modified
+// Pre-save hook: auto-compute full name and default approvalStatus for instructors
 userSchema.pre("save", async function () {
-    if (this.isModified("passwordHash")) {
-        this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
-    }
+  if (this.isModified("firstName") || this.isModified("lastName") || !this.name) {
+    this.name = `${this.firstName || ""} ${this.lastName || ""}`.trim();
+  }
+
+  if (this.isNew && this.role === "instructor" && !this.isModified("approvalStatus")) {
+    this.approvalStatus = "pending";
+  }
+
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
 });
 
-// Method to compare entered password with passwordHash
+// Method to compare entered password with hashed password
 userSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.passwordHash);
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 export const User = mongoose.model("User", userSchema);

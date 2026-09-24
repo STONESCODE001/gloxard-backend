@@ -1,0 +1,30 @@
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const requiredEnvVars = ["MONGODB_URI", "JWT_SECRET"];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.warn(`[WARN] Missing required environment variable: ${envVar}`);
+  }
+}
+
+if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+  console.warn("[WARN] JWT_SECRET should ideally be at least 32 characters long for production security.");
+}
+
+export const env = {
+  PORT: process.env.PORT || 3001,
+  MONGODB_URI: process.env.MONGODB_URI,
+  JWT_SECRET: process.env.JWT_SECRET || "gloxad_academy_super_secret_jwt_key_2026_xyz123!",
+  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
+  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
+  SMTP_HOST: process.env.SMTP_HOST || "",
+  SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+  SMTP_USER: process.env.SMTP_USER || "",
+  SMTP_PASS: process.env.SMTP_PASS || "",
+  SMTP_FROM: process.env.SMTP_FROM || "no-reply@gloxad.com",
+};
+
+export default env;

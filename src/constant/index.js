@@ -1,1 +1,2 @@
-export const DB_NAME = "gloxard";
+export * from "../constants/index.js";
+export { default } from "../constants/index.js";
