@@ -28,6 +28,7 @@
     - [x] `PUT /api/auth/update-profile` implemented.
     - [x] Server-side session revocation via `tokenVersion`.
     - [x] Isolated rate-limit buckets with `Retry-After`.
+    - [x] Multi-provider email integration (Brevo REST API, SMTP Relay, Resend, and Dev Logger fallback).
 - [ ] **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading
 - [ ] **Unit 05**: Course Taxonomy & Category Management
 - [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)

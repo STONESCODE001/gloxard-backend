@@ -24,7 +24,8 @@ export const env = {
   SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
   SMTP_USER: process.env.SMTP_USER || "",
   SMTP_PASS: process.env.SMTP_PASS || "",
-  SMTP_FROM: process.env.SMTP_FROM || "no-reply@gloxad.com",
+  SMTP_FROM: process.env.SMTP_FROM || "Gloxad Academy <onboarding@resend.dev>",
+  RESEND_APIKEY: process.env.RESEND_APIKEY || process.env.RESEND_API_KEY || "",
 };
 
 export default env;
