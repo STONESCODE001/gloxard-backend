@@ -3,51 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gloxad Academy Backend API - Documentation Portal</title>
+  <title>Gloxard API Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --color-method-get-text: #15803d;
-      --color-method-get-bg: #dcfce7;
-      --color-method-get-border: #86efac;
-      --color-method-post-text: #1d4ed8;
-      --color-method-post-bg: #dbeafe;
-      --color-method-post-border: #93c5fd;
-      --color-method-put-text: #b45309;
-      --color-method-put-bg: #fef3c7;
-      --color-method-put-border: #fde68a;
-      --color-method-delete-text: #b91c1c;
-      --color-method-delete-bg: #fee2e2;
-      --color-method-delete-border: #fca5a5;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
 
-      --color-status-2xx-text: #166534;
-      --color-status-2xx-bg: #f0fdf4;
-      --color-status-4xx-text: #9a3412;
-      --color-status-4xx-bg: #ffedd5;
-      --color-status-auth-text: #6b21a8;
-      --color-status-auth-bg: #f3e8ff;
-      --color-status-5xx-text: #991b1b;
-      --color-status-5xx-bg: #fef2f2;
+      /* Sheybi Design Tokens */
+      --bg-page: #F7F8FC;
+      --bg-surface: #FFFFFF;
+      --bg-subtle: #F2F4FA;
+      --bg-code: #111827;
+      --bg-code-header: #1F2937;
 
-      --color-surface-base: #f8fafc;
-      --color-surface-card: #ffffff;
-      --color-surface-code: #0f172a;
-      --color-surface-table-header: #f1f5f9;
-      --color-border-subtle: #e2e8f0;
-      --color-border-focus: #4f46e5;
-      --color-text-primary: #0f172a;
-      --color-text-secondary: #475569;
-      --color-text-muted: #94a3b8;
-      --color-text-code: #f8fafc;
-      --color-accent-brand: #4f46e5;
-      --color-accent-badge: #eef2ff;
+      --border-color: #D9DDE8;
+      --border-subtle: #E5E7EB;
 
-      --radius-sm: 4px;
-      --radius-md: 6px;
-      --radius-lg: 8px;
+      --text-primary: #111827;
+      --text-secondary: #4B5563;
+      --text-muted: #6B7280;
+      --text-footer: #374151;
+
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --primary-light: #EEF2FF;
+
+      --accent-orange: #FF6A3D;
+      --accent-orange-bg: #FFF5F1;
+
+      --success-text: #166534;
+      --success-bg: #DCFCE7;
+      --success-border: #86EFAC;
+
+      --error-text: #991B1B;
+      --error-bg: #FEE2E2;
+      --error-border: #FCA5A5;
+
+      --warning-text: #854D0E;
+      --warning-bg: #FEF9C3;
+      --warning-border: #FDE047;
+
+      --info-text: #1E40AF;
+      --info-bg: #DBEAFE;
+      --info-border: #93C5FD;
+
+      --auth-text: #6B21A8;
+      --auth-bg: #F3E8FF;
+      --auth-border: #D8B4FE;
+
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
       --radius-full: 9999px;
 
-      --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sidebar-width: 250px;
+      --toc-width: 210px;
+      --header-height: 64px;
     }
 
     * {
@@ -56,462 +70,626 @@
       padding: 0;
     }
 
-    body {
-      font-family: var(--font-sans);
-      background-color: var(--color-surface-base);
-      color: var(--color-text-primary);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
+    html {
+      scroll-behavior: smooth;
     }
 
-    /* Top Navigation */
-    header {
-      background-color: var(--color-surface-card);
-      border-bottom: 1px solid var(--color-border-subtle);
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Paragraph readable line-length rule: strictly < 80 characters */
+    p, .readable-text {
+      max-width: 68ch;
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    /* Top Sticky Header */
+    header.top-header {
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
-
-    .header-bar {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px 24px;
+      height: var(--header-height);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      padding: 0 28px;
     }
 
-    .brand {
+    .brand-section {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      width: calc(var(--sidebar-width) - 28px);
     }
 
     .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-md);
-      background-color: var(--color-accent-brand);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 16px;
-    }
-
-    .brand-title {
       font-size: 20px;
-      font-weight: 700;
-      color: var(--color-text-primary);
-      letter-spacing: -0.02em;
-    }
-
-    .header-meta {
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+      text-decoration: none;
+      text-transform: uppercase;
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 13px;
+      gap: 8px;
     }
 
-    .badge-pill {
+    .brand-logo span.dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-orange);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .header-center {
+      flex: 1;
+      max-width: 520px;
+      padding: 0 16px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 44px 0 38px;
+      background: var(--bg-subtle);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      background: var(--bg-surface);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .search-kbd {
+      position: absolute;
+      right: 12px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: #E5E7EB;
+      color: var(--text-secondary);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .badge-status {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
       border-radius: var(--radius-full);
-      font-family: var(--font-mono);
+      background-color: var(--success-bg);
+      color: var(--success-text);
       font-size: 12px;
       font-weight: 600;
-      background-color: var(--color-accent-badge);
-      color: var(--color-accent-brand);
-      border: 1px solid #c7d2fe;
     }
 
     .badge-status-dot {
-      width: 8px;
-      height: 8px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background-color: #22c55e;
+      background: #16A34A;
+      animation: pulse 2s infinite;
     }
 
-    .base-url-pill {
-      background-color: var(--color-surface-table-header);
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-md);
-      padding: 4px 10px;
-      font-family: var(--font-mono);
-      font-size: 12px;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.15); }
     }
 
-    /* Main Container */
-    main {
-      max-width: 1100px;
+    /* Layout: 3 Columns */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - var(--header-height));
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 32px 24px 64px 24px;
+      background: var(--bg-surface);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.03);
     }
 
-    /* Hero / Overview */
-    .hero {
-      margin-bottom: 28px;
+    /* Left Sidebar */
+    aside.sidebar-nav {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-color);
+      padding: 24px 0 40px;
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
     }
 
-    .hero h1 {
+    .nav-group {
+      margin-bottom: 24px;
+    }
+
+    .nav-heading {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 24px 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 8px 24px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background-color: var(--bg-subtle);
+    }
+
+    .nav-link.active {
+      color: var(--text-primary);
+      font-weight: 600;
+      background: #FFF9F6;
+    }
+
+    /* Left Accent Indicator matching reference image */
+    .nav-link.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background-color: var(--accent-orange);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-method-pill {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-right: 8px;
+      text-transform: uppercase;
+    }
+
+    .pill-post { background: var(--info-bg); color: var(--info-text); }
+    .pill-get { background: var(--success-bg); color: var(--success-text); }
+
+    /* Main Content Column */
+    main.content-area {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px 80px;
+      background: var(--bg-surface);
+    }
+
+    /* Right Sidebar (On this page TOC) */
+    aside.toc-nav {
+      width: var(--toc-width);
+      flex-shrink: 0;
+      padding: 40px 24px 40px 16px;
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
+    }
+
+    .toc-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .toc-list {
+      list-style: none;
+      border-left: 2px solid var(--border-subtle);
+    }
+
+    .toc-link {
+      display: block;
+      padding: 6px 0 6px 14px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      text-decoration: none;
+      line-height: 1.4;
+      transition: color 0.15s ease;
+      position: relative;
+    }
+
+    .toc-link:hover, .toc-link.active {
+      color: var(--accent-orange);
+      font-weight: 500;
+    }
+
+    .toc-link.active::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent-orange);
+    }
+
+    /* Content Typography & Sections */
+    section.doc-section {
+      margin-bottom: 48px;
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+
+    .section-header {
+      margin-bottom: 16px;
+    }
+
+    h1.doc-title {
       font-size: 26px;
       font-weight: 700;
-      color: var(--color-text-primary);
-      margin-bottom: 8px;
+      color: var(--text-primary);
       letter-spacing: -0.02em;
+      margin-bottom: 10px;
     }
 
-    .hero p {
-      color: var(--color-text-secondary);
-      font-size: 15px;
-      max-width: 850px;
+    h2.section-heading {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
     }
 
-    /* Controls / Filter */
-    .controls {
+    h3.sub-heading {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 20px 0 10px;
+    }
+
+    hr.section-divider {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      margin: 40px 0;
+    }
+
+    /* Inline Code and Tags */
+    code.inline-code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: #C026D3;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Base URL Banner */
+    .base-url-card {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin: 20px 0;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 24px;
       align-items: center;
       justify-content: space-between;
-    }
-
-    .search-box {
-      flex: 1;
-      min-width: 260px;
-      position: relative;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-family: var(--font-sans);
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-md);
-      background-color: var(--color-surface-card);
-      color: var(--color-text-primary);
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-
-    .search-box input:focus {
-      border-color: var(--color-border-focus);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    .action-links {
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-btn {
-      padding: 8px 14px;
-      background: var(--color-surface-card);
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-md);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      transition: all 0.15s ease;
-      text-decoration: none;
-    }
-
-    .action-btn:hover {
-      background: var(--color-surface-table-header);
-      color: var(--color-text-primary);
-    }
-
-    /* Section Styling */
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--color-text-primary);
-    }
-
-    .section-count {
-      font-size: 12px;
-      font-weight: 500;
-      padding: 2px 8px;
-      border-radius: var(--radius-full);
-      background-color: var(--color-surface-table-header);
-      color: var(--color-text-secondary);
-    }
-
-    /* Endpoint Card Details */
-    .endpoint-card {
-      background-color: var(--color-surface-card);
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-lg);
-      margin-bottom: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .endpoint-card:hover {
-      border-color: #cbd5e1;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .endpoint-card[open] {
-      border-color: #cbd5e1;
-    }
-
-    summary.endpoint-header {
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
       gap: 12px;
-      cursor: pointer;
-      user-select: none;
-      list-style: none;
-      position: relative;
     }
 
-    summary.endpoint-header::-webkit-details-marker {
-      display: none;
-    }
-
-    .badge-method {
-      display: inline-block;
-      font-family: var(--font-mono);
+    .base-url-label {
       font-size: 12px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: var(--radius-sm);
-      text-align: center;
-      min-width: 54px;
-      border: 1px solid transparent;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .badge-post {
-      background-color: var(--color-method-post-bg);
-      color: var(--color-method-post-text);
-      border-color: var(--color-method-post-border);
-    }
-
-    .badge-get {
-      background-color: var(--color-method-get-bg);
-      color: var(--color-method-get-text);
-      border-color: var(--color-method-get-border);
-    }
-
-    .badge-put {
-      background-color: var(--color-method-put-bg);
-      color: var(--color-method-put-text);
-      border-color: var(--color-method-put-border);
-    }
-
-    .badge-delete {
-      background-color: var(--color-method-delete-bg);
-      color: var(--color-method-delete-text);
-      border-color: var(--color-method-delete-border);
-    }
-
-    .endpoint-path {
+    .base-url-value {
       font-family: var(--font-mono);
       font-size: 14px;
       font-weight: 600;
-      color: var(--color-text-primary);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .tag-auth {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
+    .copy-icon-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      margin-left: auto;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      transition: all 0.15s ease;
     }
 
-    .tag-public {
-      background-color: var(--color-surface-table-header);
-      color: var(--color-text-secondary);
-      border: 1px solid var(--color-border-subtle);
+    .copy-icon-btn:hover {
+      background: #FFFFFF;
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
-    .tag-bearer {
-      background-color: var(--color-status-auth-bg);
-      color: var(--color-status-auth-text);
-      border: 1px solid #e9d5ff;
-    }
-
-    .endpoint-summary-desc {
-      font-size: 13px;
-      color: var(--color-text-muted);
-      margin-left: 8px;
-      display: none;
-    }
-
-    @media (min-width: 768px) {
-      .endpoint-summary-desc {
-        display: inline;
-      }
-    }
-
-    .chevron {
-      margin-left: 8px;
-      font-size: 11px;
-      color: var(--color-text-muted);
-      transition: transform 0.2s ease;
-    }
-
-    .endpoint-card[open] .chevron {
-      transform: rotate(90deg);
-    }
-
-    /* Endpoint Body */
-    .endpoint-body {
-      padding: 20px;
-      border-top: 1px solid var(--color-border-subtle);
-      background-color: #fafbfc;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .body-desc {
-      font-size: 14px;
-      color: var(--color-text-secondary);
-      line-height: 1.6;
-    }
-
+    /* Tables (Fixed Cramped Padding Finding) */
     .table-container {
-      border: 1px solid var(--color-border-subtle);
-      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
       overflow-x: auto;
-      background-color: var(--color-surface-card);
+      background: var(--bg-surface);
+      margin: 18px 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      padding: 0;
     }
 
-    .params-table {
+    table.data-table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       text-align: left;
-      font-size: 13px;
+      font-size: 13.5px;
     }
 
-    .params-table th {
-      background-color: var(--color-surface-table-header);
-      color: var(--color-text-secondary);
+    table.data-table th {
+      background-color: var(--bg-subtle);
+      color: var(--text-secondary);
       font-weight: 600;
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--color-border-subtle);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    .params-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--color-border-subtle);
-      color: var(--color-text-primary);
+    table.data-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      vertical-align: middle;
     }
 
-    .params-table tr:last-child td {
+    table.data-table tr:last-child td {
       border-bottom: none;
     }
 
-    .params-table code {
+    table.data-table tr:hover td {
+      background-color: #FAFAFD;
+    }
+
+    .badge-code {
       font-family: var(--font-mono);
-      font-size: 12px;
-      background-color: var(--color-surface-base);
+      font-weight: 700;
+      font-size: 12.5px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    .code-2xx { background: var(--success-bg); color: var(--success-text); }
+    .code-4xx { background: var(--warning-bg); color: var(--warning-text); }
+    .code-auth { background: var(--auth-bg); color: var(--auth-text); }
+    .code-5xx { background: var(--error-bg); color: var(--error-text); }
+
+    .tag-req {
+      font-size: 11px;
+      font-weight: 600;
+      color: #DC2626;
+      background: #FEE2E2;
       padding: 2px 6px;
       border-radius: var(--radius-sm);
-      border: 1px solid var(--color-border-subtle);
     }
 
-    .required-tag {
-      color: #dc2626;
+    .tag-opt {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Endpoint Detailed Cards */
+    .endpoint-card {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      scroll-margin-top: calc(var(--header-height) + 20px);
+    }
+
+    .endpoint-header-row {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+    }
+
+    .method-badge {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .method-post {
+      background: var(--info-bg);
+      color: var(--info-text);
+      border: 1px solid var(--info-border);
+    }
+
+    .method-get {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+    }
+
+    .endpoint-uri {
+      font-family: var(--font-mono);
+      font-size: 14.5px;
       font-weight: 600;
-      font-size: 11px;
+      color: var(--text-primary);
     }
 
-    .optional-tag {
-      color: var(--color-text-muted);
+    .endpoint-tag-pill {
       font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      margin-left: auto;
     }
 
-    .payload-grid {
+    .tag-public {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+    }
+
+    .tag-bearer {
+      background: var(--auth-bg);
+      color: var(--auth-text);
+      border: 1px solid var(--auth-border);
+    }
+
+    .endpoint-content {
+      padding: 20px;
+    }
+
+    .endpoint-desc {
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    /* Code Snippets Grid */
+    .code-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
+      margin-top: 16px;
     }
 
-    @media (min-width: 860px) {
-      .payload-grid {
+    @media (min-width: 992px) {
+      .code-grid {
         grid-template-columns: 1fr 1fr;
       }
     }
 
-    .code-card {
-      background-color: var(--color-surface-code);
-      border-radius: var(--radius-lg);
+    .code-block {
+      background: var(--bg-code);
+      border-radius: var(--radius-md);
       overflow: hidden;
-      border: 1px solid #1e293b;
+      border: 1px solid #1F2937;
     }
 
-    .code-card-header {
-      padding: 8px 14px;
-      background-color: #1e293b;
+    .code-header {
+      padding: 9px 14px;
+      background: var(--bg-code-header);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: #94a3b8;
+      color: #9CA3AF;
       font-size: 12px;
       font-family: var(--font-mono);
     }
 
-    .status-pill {
+    .code-status-pill {
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: var(--radius-sm);
+      padding: 2px 7px;
+      border-radius: 4px;
       font-family: var(--font-mono);
     }
 
-    .status-200, .status-201 {
-      background-color: var(--color-status-2xx-bg);
-      color: var(--color-status-2xx-text);
-      border: 1px solid #bbf7d0;
+    .status-badge-200, .status-badge-201 {
+      background: #064E3B;
+      color: #6EE7B7;
     }
 
-    .status-400, .status-404, .status-409 {
-      background-color: var(--color-status-4xx-bg);
-      color: var(--color-status-4xx-text);
-      border: 1px solid #fed7aa;
+    .status-badge-400, .status-badge-404 {
+      background: #78350F;
+      color: #FCD34D;
     }
 
-    .status-401, .status-403 {
-      background-color: var(--color-status-auth-bg);
-      color: var(--color-status-auth-text);
-      border: 1px solid #e9d5ff;
-    }
-
-    .copy-btn {
+    .copy-code-btn {
       background: transparent;
       border: none;
-      color: #94a3b8;
-      cursor: pointer;
+      color: #9CA3AF;
       font-size: 12px;
-      font-family: var(--font-sans);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.15s ease;
     }
 
-    .copy-btn:hover {
-      color: #f8fafc;
+    .copy-code-btn:hover {
+      color: #F3F4F6;
     }
 
     pre code {
@@ -519,198 +697,541 @@
       padding: 14px;
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--color-text-code);
+      color: #E2E8F0;
       overflow-x: auto;
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
-    /* Footer */
-    footer {
-      max-width: 1100px;
-      margin: 32px auto 0;
+    /* Footer - High Contrast (>7:1 on #F7F8FC) */
+    footer.doc-footer {
+      margin-top: 60px;
       padding-top: 24px;
-      border-top: 1px solid var(--color-border-subtle);
-      font-size: 13px;
-      color: var(--color-text-muted);
+      border-top: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 16px;
+      font-size: 13.5px;
+      color: var(--text-footer); /* High contrast #374151 */
+    }
+
+    footer.doc-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer.doc-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Mobile toggle */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-color);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    @media (max-width: 1080px) {
+      aside.toc-nav {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+      aside.sidebar-nav {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: var(--header-height);
+        width: 100%;
+        height: calc(100vh - var(--header-height));
+        background: #FFFFFF;
+        z-index: 99;
+      }
+      aside.sidebar-nav.open {
+        display: block;
+      }
+      main.content-area {
+        padding: 24px 16px 60px;
+      }
+      .brand-section {
+        width: auto;
+      }
+      .header-center {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Header Bar -->
-  <header>
-    <div class="header-bar">
-      <div class="brand">
-        <div class="brand-logo">GA</div>
-        <div class="brand-title">Gloxad Academy Backend API</div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header">
+    <div class="brand-section">
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+      <a href="#" class="brand-logo">
+        GLOXARD<span class="dot"></span>
+      </a>
+    </div>
+
+    <div class="header-center">
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="globalSearch"
+          class="search-input"
+          placeholder="Search endpoints, status codes, parameters..."
+          oninput="handleSearch(this.value)"
+        />
+        <span class="search-kbd">⌘K</span>
       </div>
-      <div class="header-meta">
-        <span class="badge-pill">
-          <span class="badge-status-dot"></span>
-          development / port 3001
-        </span>
-        <span class="base-url-pill">⚡ http://localhost:3001/api</span>
-      </div>
+    </div>
+
+    <div class="header-right">
+      <span class="badge-status">
+        <span class="badge-status-dot"></span>
+        API Docs v1.0
+      </span>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main>
-    <div class="hero">
-      <h1>Developer API Reference & Documentation</h1>
-      <p>
-        Clean, technical REST API specification and interactive endpoint reference for Gloxad Academy.
-        All client errors strictly observe the <code>{ "error": "&lt;message&gt;" }</code> standard and retain <code>_id</code> identifiers.
-      </p>
-    </div>
+  <!-- Main Application Layout -->
+  <div class="app-layout">
 
-    <!-- Controls -->
-    <div class="controls">
-      <div class="search-box">
-        <input type="text" id="endpointSearch" placeholder="Search endpoints by path, description, or method..." onkeyup="filterEndpoints()" />
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar-nav" id="sidebarNav">
+      <div class="nav-group">
+        <div class="nav-heading">Get Started</div>
+        <ul class="nav-list">
+          <li><a href="#introduction" class="nav-link active">Introduction</a></li>
+          <li><a href="#base-url" class="nav-link">Base URL & Server</a></li>
+          <li><a href="#authentication" class="nav-link">Authentication</a></li>
+          <li><a href="#http-status-codes" class="nav-link">HTTP Status Codes</a></li>
+        </ul>
       </div>
-      <div class="action-links">
-        <button class="action-btn" onclick="toggleAllCards(true)">Expand All</button>
-        <button class="action-btn" onclick="toggleAllCards(false)">Collapse All</button>
+
+      <div class="nav-group">
+        <div class="nav-heading">Endpoints</div>
+        <ul class="nav-list">
+          <li>
+            <a href="#ep-health" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Health Check
+            </a>
+          </li>
+          <li>
+            <a href="#ep-signup" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Register User
+            </a>
+          </li>
+          <li>
+            <a href="#ep-signin" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Sign In (JWT)
+            </a>
+          </li>
+          <li>
+            <a href="#ep-me" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Current User
+            </a>
+          </li>
+          <li>
+            <a href="#ep-signout" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Sign Out
+            </a>
+          </li>
+          <li>
+            <a href="#ep-verify-email" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Verify Email (OTP)
+            </a>
+          </li>
+          <li>
+            <a href="#ep-forget-passwd" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Forgot Password
+            </a>
+          </li>
+          <li>
+            <a href="#ep-verify-otp" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Validate OTP
+            </a>
+          </li>
+          <li>
+            <a href="#ep-reset-passwd" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reset Password
+            </a>
+          </li>
+          <li>
+            <a href="#ep-update-password" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Update Password
+            </a>
+          </li>
+        </ul>
       </div>
-    </div>
+    </aside>
 
-    <!-- Section: Authentication -->
-    <div class="section-title">
-      <span>🔒 Authentication & Account Recovery (<code>/api/auth</code>)</span>
-      <span class="section-count">9 Endpoints</span>
-    </div>
+    <!-- Main Content Area -->
+    <main class="content-area">
 
-    <!-- 1. POST /api/auth/signup -->
-    <details class="endpoint-card" data-search="post /api/auth/signup user registration student instructor otp">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/signup</span>
-        <span class="endpoint-summary-desc">— User Registration (Student or Instructor)</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Registers a new user account. Students are automatically approved. Instructors are registered with <code>approvalStatus: "pending"</code> and trigger a 4-digit OTP email verification dispatch.
+      <!-- SECTION: Introduction -->
+      <section class="doc-section" id="introduction">
+        <div class="section-header">
+          <h1 class="doc-title">Introduction</h1>
         </div>
+        <p>
+          Welcome to the Gloxard Academy REST API documentation. This API powers secure student and instructor authentication, account onboarding, role authorization, and password recovery workflows.
+        </p>
+        <p style="margin-top: 12px;">
+          All requests accept standard JSON payloads with <code>Content-Type: application/json</code>. Every response returns JSON with consistent error envelopes formatted as <code class="inline-code">{ "error": "&lt;message&gt;" }</code>.
+        </p>
+      </section>
+
+      <hr class="section-divider" />
+
+      <!-- SECTION: Base URL -->
+      <section class="doc-section" id="base-url">
+        <h2 class="section-heading">Base URL & Server</h2>
+        <p>
+          All API requests must be directed to the live Render deployment endpoint below.
+        </p>
+
+        <div class="base-url-card">
+          <div>
+            <div class="base-url-label">Production Base URL (Render)</div>
+            <div class="base-url-value" id="liveBaseUrl">https://gloxard-backend.onrender.com/api</div>
+          </div>
+          <button class="copy-icon-btn" onclick="copyText('https://gloxard-backend.onrender.com/api', this)">
+            Copy URL
+          </button>
+        </div>
+
+        <p>
+          For local development when running via <code>npm run dev</code>, the API is available at <code class="inline-code">http://localhost:3001/api</code>.
+        </p>
+      </section>
+
+      <hr class="section-divider" />
+
+      <!-- SECTION: Authentication -->
+      <section class="doc-section" id="authentication">
+        <h2 class="section-heading">Authentication</h2>
+        <p>
+          Protected endpoints require a signed JSON Web Token (JWT) provided in the HTTP <code>Authorization</code> header using the standard Bearer scheme:
+        </p>
+
+        <div class="code-block" style="margin: 16px 0; max-width: 68ch;">
+          <div class="code-header">
+            <span>HTTP Header</span>
+            <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+          </div>
+          <pre><code>Authorization: Bearer &lt;your_jwt_access_token&gt;</code></pre>
+        </div>
+
+        <p>
+          Obtain this token by authenticating with your credentials via <a href="#ep-signin" style="color: var(--primary); font-weight: 500;">POST /api/auth/signin</a>. Tokens remain valid for 7 days.
+        </p>
+      </section>
+
+      <hr class="section-divider" />
+
+      <!-- SECTION: HTTP Status Codes (Requested by User) -->
+      <section class="doc-section" id="http-status-codes">
+        <h2 class="section-heading">HTTP Status Codes</h2>
+        <p>
+          The Gloxard API returns conventional HTTP response codes to indicate the success or failure of requests. Below is the complete catalog of status codes used across all endpoints:
+        </p>
+
         <div class="table-container">
-          <table class="params-table">
+          <table class="data-table">
             <thead>
               <tr>
-                <th>Field</th>
-                <th>Type</th>
-                <th>Required</th>
-                <th>Description</th>
+                <th style="width: 100px;">Status</th>
+                <th style="width: 160px;">Name</th>
+                <th>Meaning</th>
+                <th>When Returned</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><code>firstName</code></td>
-                <td>string</td>
-                <td><span class="required-tag">Required</span></td>
-                <td>User's first name</td>
+                <td><span class="badge-code code-2xx">200</span></td>
+                <td><strong>OK</strong></td>
+                <td>Standard response for successful HTTP requests.</td>
+                <td>Successful login, profile retrieval (<code class="inline-code">/me</code>), OTP pre-check, and password resets.</td>
               </tr>
               <tr>
-                <td><code>lastName</code></td>
-                <td>string</td>
-                <td><span class="optional-tag">Optional</span></td>
-                <td>User's last name (defaults to empty string)</td>
+                <td><span class="badge-code code-2xx">201</span></td>
+                <td><strong>Created</strong></td>
+                <td>Request fulfilled and resulted in a new resource being created.</td>
+                <td>Successful user registration (<code class="inline-code">POST /api/auth/signup</code>).</td>
               </tr>
               <tr>
-                <td><code>email</code></td>
-                <td>string</td>
-                <td><span class="required-tag">Required</span></td>
-                <td>Unique user email address</td>
+                <td><span class="badge-code code-4xx">400</span></td>
+                <td><strong>Bad Request</strong></td>
+                <td>Server cannot process request due to client error or missing required fields.</td>
+                <td>Missing email/password, malformed input, invalid OTP, or expired OTP.</td>
               </tr>
               <tr>
-                <td><code>password</code></td>
-                <td>string</td>
-                <td><span class="required-tag">Required</span></td>
-                <td>Account password (salted & hashed via bcrypt)</td>
+                <td><span class="badge-code code-auth">401</span></td>
+                <td><strong>Unauthorized</strong></td>
+                <td>Request lacks valid authentication credentials.</td>
+                <td>Missing, expired, or malformed Bearer token on protected endpoints, or invalid login credentials.</td>
               </tr>
               <tr>
-                <td><code>role</code></td>
-                <td>string</td>
-                <td><span class="optional-tag">Optional</span></td>
-                <td>Either <code>student</code> (default) or <code>instructor</code></td>
+                <td><span class="badge-code code-auth">403</span></td>
+                <td><strong>Forbidden</strong></td>
+                <td>Server understands request but refuses to authorize access.</td>
+                <td>Attempting access without verified role or with pending instructor approval.</td>
+              </tr>
+              <tr>
+                <td><span class="badge-code code-4xx">404</span></td>
+                <td><strong>Not Found</strong></td>
+                <td>The requested endpoint or resource does not exist.</td>
+                <td>User account not found, or invalid URL path.</td>
+              </tr>
+              <tr>
+                <td><span class="badge-code code-4xx">409</span></td>
+                <td><strong>Conflict</strong></td>
+                <td>Request cannot be completed due to a conflict with existing state.</td>
+                <td>Attempting to register with an email that is already in use.</td>
+              </tr>
+              <tr>
+                <td><span class="badge-code code-4xx">422</span></td>
+                <td><strong>Unprocessable Entity</strong></td>
+                <td>Request body is syntactically correct but semantically invalid.</td>
+                <td>Weak password that fails validation criteria, or invalid email format.</td>
+              </tr>
+              <tr>
+                <td><span class="badge-code code-4xx">429</span></td>
+                <td><strong>Too Many Requests</strong></td>
+                <td>Client has sent too many requests in a given amount of time (rate limit).</td>
+                <td>Exceeding rate limit windows on authentication attempts or OTP verification dispatches.</td>
+              </tr>
+              <tr>
+                <td><span class="badge-code code-5xx">500</span></td>
+                <td><strong>Internal Server Error</strong></td>
+                <td>Server encountered an unexpected condition that prevented request fulfillment.</td>
+                <td>Unexpected database errors, SMTP dispatch failures, or unhandled server exceptions.</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+
+        <h3 class="sub-heading">Standard Error Response Format</h3>
+        <p>
+          All 4xx and 5xx responses strictly adhere to the unified error envelope structure:
+        </p>
+        <div class="code-block" style="margin: 14px 0; max-width: 68ch;">
+          <div class="code-header">
+            <span>JSON Error Envelope</span>
+            <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+          </div>
+          <pre><code>{
+  "error": "Detailed explanation of the error condition"
+}</code></pre>
+        </div>
+      </section>
+
+      <hr class="section-divider" />
+
+      <!-- SECTION: Endpoints Reference -->
+      <section class="doc-section" id="endpoints">
+        <h2 class="section-heading">Endpoints Reference</h2>
+        <p>
+          Complete reference of available REST endpoints, required parameters, and response structures.
+        </p>
+      </section>
+
+      <!-- 0. GET /api/health -->
+      <div class="endpoint-card" id="ep-health" data-search="health check get uptime status ok">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/health</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Returns system operational status and process uptime. Used by Render health monitors and uptime checkers.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request</span>
+              </div>
+              <pre><code>curl -X GET https://gloxard-backend.onrender.com/api/health</code></pre>
             </div>
-            <pre><code>{
-  "email": "student@gloxad.com",
-  "password": "Password123!",
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "status": "ok",
+  "uptime": 14285.34
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. POST /api/auth/signup -->
+      <div class="endpoint-card" id="ep-signup" data-search="signup register user student instructor otp post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/signup</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Registers a new user account. Students are automatically approved. Instructors are registered with <code>approvalStatus: "pending"</code> and sent a 4-digit verification OTP via email.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>firstName</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>User's first name</td>
+                </tr>
+                <tr>
+                  <td><code>lastName</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>User's last name (defaults to empty string)</td>
+                </tr>
+                <tr>
+                  <td><code>email</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Valid email address (must be unique)</td>
+                </tr>
+                <tr>
+                  <td><code>password</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Account password (salted & hashed via bcrypt)</td>
+                </tr>
+                <tr>
+                  <td><code>role</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td><code>student</code> (default) or <code>instructor</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload (JSON)</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "firstName": "Alex",
   "lastName": "Johnson",
+  "email": "student@gloxard.com",
+  "password": "Password123!",
   "role": "student"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-201">201 Created</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-201">201 Created</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "message": "User registered successfully",
   "user": {
     "_id": "673f8a92b234fa001234abcd",
-    "email": "student@gloxad.com",
+    "email": "student@gloxard.com",
     "firstName": "Alex",
     "lastName": "Johnson",
     "role": "student",
     "isVerified": false
   }
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 2. POST /api/auth/signin -->
-    <details class="endpoint-card" data-search="post /api/auth/signin user login jwt bearer token authentication">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/signin</span>
-        <span class="endpoint-summary-desc">— User Authentication & JWT Issuance</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Authenticates user credentials (email or username with password) and returns a stateless signed JWT token valid for 7 days.
+      <!-- 2. POST /api/auth/signin -->
+      <div class="endpoint-card" id="ep-signin" data-search="signin login jwt token authenticate post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/signin</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
-  "email": "student@gloxad.com",
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Authenticates credentials (email and password) and issues a signed stateless JWT token valid for 7 days.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>email</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Registered account email</td>
+                </tr>
+                <tr>
+                  <td><code>password</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Account password</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "student@gloxard.com",
   "password": "Password123!"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
     "_id": "673f8a92b234fa001234abcd",
-    "email": "student@gloxad.com",
+    "email": "student@gloxard.com",
     "firstName": "Alex",
     "lastName": "Johnson",
     "role": "student",
@@ -719,46 +1240,44 @@
     "avatarUrl": ""
   }
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 3. GET /api/auth/me -->
-    <details class="endpoint-card" data-search="get /api/auth/me current user context profile token">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-get">GET</span>
-        <span class="endpoint-path">/api/auth/me</span>
-        <span class="endpoint-summary-desc">— Get Current User Context</span>
-        <span class="tag-auth tag-bearer">Bearer Token</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Returns the fully-hydrated user profile for the caller associated with the validated Bearer token. Strips sensitive fields like <code>password</code> and internal <code>__v</code>.
+      <!-- 3. GET /api/auth/me -->
+      <div class="endpoint-card" id="ep-me" data-search="me current user profile token get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/auth/me</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Headers</span>
-            </div>
-            <pre><code>Authorization: Bearer &lt;JWT_TOKEN&gt;</code></pre>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Returns the current authenticated user's complete profile object. Sensitive attributes like password hashes are excluded.
           </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Headers</span>
+              </div>
+              <pre><code>Authorization: Bearer &lt;JWT_TOKEN&gt;</code></pre>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "user": {
     "_id": "673f8a92b234fa001234abcd",
     "firstName": "Alex",
     "lastName": "Johnson",
     "name": "Alex Johnson",
-    "email": "student@gloxad.com",
+    "email": "student@gloxard.com",
     "role": "student",
     "approvalStatus": "approved",
-    "isVerified": false,
+    "isVerified": true,
     "avatarUrl": "",
     "bio": "",
     "socials": {},
@@ -769,259 +1288,330 @@
     "lastLoginAt": "2026-09-24T08:00:00.000Z"
   }
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 4. POST /api/auth/signout -->
-    <details class="endpoint-card" data-search="post /api/auth/signout logout sign out session termination">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/signout</span>
-        <span class="endpoint-summary-desc">— Sign Out & Invalidate Client Session</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Acknowledges client-side token discard and session termination.
+      <!-- 4. POST /api/auth/signout -->
+      <div class="endpoint-card" id="ep-signout" data-search="signout logout exit post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/signout</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="code-card">
-          <div class="code-card-header">
-            <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-            <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Acknowledges client session termination. The client application should discard the stored JWT token.
           </div>
-          <pre><code>{
+          <div class="code-block" style="max-width: 68ch;">
+            <div class="code-header">
+              <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+              <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
   "message": "Successfully signed out"
 }</code></pre>
+          </div>
         </div>
       </div>
-    </details>
 
-    <!-- 5. POST /api/auth/verify-email -->
-    <details class="endpoint-card" data-search="post /api/auth/verify-email verify email 4-digit otp instructor student">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/verify-email</span>
-        <span class="endpoint-summary-desc">— Verify Email with 4-Digit OTP</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Validates a 4-digit numeric OTP sent upon instructor registration or email verification request. Marks <code>isVerified: true</code> and consumes the OTP record.
+      <!-- 5. POST /api/auth/verify-email -->
+      <div class="endpoint-card" id="ep-verify-email" data-search="verify email otp 4-digit code post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/verify-email</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
-  "email": "instructor@gloxad.com",
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Validates a 4-digit numeric OTP sent via email. Sets <code>isVerified: true</code> and consumes the verification record.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "instructor@gloxard.com",
   "otp": "4821"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "message": "Email verified successfully"
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 6. POST /api/auth/forget-passwd -->
-    <details class="endpoint-card" data-search="post /api/auth/forget-passwd forgot password request reset 5-digit otp recovery">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/forget-passwd</span>
-        <span class="endpoint-summary-desc">— Request 5-Digit Password Recovery OTP</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Initiates the password recovery flow by generating a 5-digit numeric OTP with a 15-minute TTL index and dispatching it to the user's email. Includes anti-enumeration protection.
+      <!-- 6. POST /api/auth/forget-passwd -->
+      <div class="endpoint-card" id="ep-forget-passwd" data-search="forget forgot password reset 5-digit otp post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/forget-passwd</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
-  "email": "student@gloxad.com"
-}</code></pre>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Initiates password recovery by dispatching a 5-digit numeric OTP with a 15-minute expiration to the user's email. Features anti-enumeration security.
           </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "student@gloxard.com"
+}</code></pre>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "message": "Password reset OTP dispatched to email"
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 7. POST /api/auth/verify-otp -->
-    <details class="endpoint-card" data-search="post /api/auth/verify-otp validate 5-digit otp check password reset">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/verify-otp</span>
-        <span class="endpoint-summary-desc">— Validate Password Reset OTP (Pre-Check)</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Validates that the 5-digit recovery OTP is active and correct without consuming it, allowing frontend UI wizards to advance to the new password entry step.
+      <!-- 7. POST /api/auth/verify-otp -->
+      <div class="endpoint-card" id="ep-verify-otp" data-search="verify otp validate check 5-digit post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/verify-otp</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
-  "email": "student@gloxad.com",
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Pre-validates that a 5-digit recovery OTP is active and correct without consuming it. Allows UI multi-step wizards to proceed to the new password step safely.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "student@gloxard.com",
   "otp": "72941"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "valid": true,
   "message": "OTP is valid"
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 8. POST /api/auth/reset-passwd -->
-    <details class="endpoint-card" data-search="post /api/auth/reset-passwd consume otp reset new password recovery">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/reset-passwd</span>
-        <span class="endpoint-summary-desc">— Reset Password with Validated OTP</span>
-        <span class="tag-auth tag-public">Public</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Consumes the 5-digit OTP record, updates the user's account password with a new bcrypt hash, and enables immediate sign-in with the new credentials.
+      <!-- 8. POST /api/auth/reset-passwd -->
+      <div class="endpoint-card" id="ep-reset-passwd" data-search="reset password new credentials post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/reset-passwd</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
-  "email": "student@gloxad.com",
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Consumes the 5-digit recovery OTP and updates the account password with a new salted hash.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "email": "student@gloxard.com",
   "otp": "72941",
   "newPassword": "NewSecurePassword123!"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "message": "Password reset successfully. You can now sign in with your new password."
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <!-- 9. POST /api/auth/update-password -->
-    <details class="endpoint-card" data-search="post /api/auth/update-password authenticated update password change credentials">
-      <summary class="endpoint-header">
-        <span class="badge-method badge-post">POST</span>
-        <span class="endpoint-path">/api/auth/update-password</span>
-        <span class="endpoint-summary-desc">— Authenticated Password Update</span>
-        <span class="tag-auth tag-bearer">Bearer Token</span>
-        <span class="chevron">▶</span>
-      </summary>
-      <div class="endpoint-body">
-        <div class="body-desc">
-          Allows an authenticated user to update their account password by verifying their existing password and hashing the new password.
+      <!-- 9. POST /api/auth/update-password -->
+      <div class="endpoint-card" id="ep-update-password" data-search="update password authenticated change credentials post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/update-password</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
         </div>
-        <div class="payload-grid">
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📋 Request Payload (JSON)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
-            </div>
-            <pre><code>{
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Allows an authenticated user to change their password by validating their current password against the stored bcrypt hash.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "currentPassword": "OldPassword123!",
   "newPassword": "NewSecurePassword456!"
 }</code></pre>
-          </div>
-          <div class="code-card">
-            <div class="code-card-header">
-              <span>📤 Success Response <span class="status-pill status-200">200 OK</span></span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
-            <pre><code>{
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
   "message": "Password updated successfully"
 }</code></pre>
+            </div>
           </div>
         </div>
       </div>
-    </details>
 
-    <footer>
-      <div>Gloxad Academy &copy; 2026 • REST API Specification v1.0</div>
-      <div>Standard Error Envelope: <code>{ "error": "&lt;message&gt;" }</code></div>
-    </footer>
-  </main>
+      <!-- Footer with High Contrast text #374151 (>7:1 on #F7F8FC) -->
+      <footer class="doc-footer">
+        <div>
+          <strong>Gloxard Academy API</strong> &bull; REST API Specification v1.0
+        </div>
+        <div>
+          Production Host: <a href="https://gloxard-backend.onrender.com" target="_blank" rel="noopener">gloxard-backend.onrender.com</a>
+        </div>
+      </footer>
+
+    </main>
+
+    <!-- Right Sidebar Table Of Contents -->
+    <aside class="toc-nav">
+      <div class="toc-title">On this page</div>
+      <ul class="toc-list">
+        <li><a href="#introduction" class="toc-link active">Introduction</a></li>
+        <li><a href="#base-url" class="toc-link">Base URL & Server</a></li>
+        <li><a href="#authentication" class="toc-link">Authentication</a></li>
+        <li><a href="#http-status-codes" class="toc-link">HTTP Status Codes</a></li>
+        <li><a href="#ep-health" class="toc-link">GET /api/health</a></li>
+        <li><a href="#ep-signup" class="toc-link">POST /signup</a></li>
+        <li><a href="#ep-signin" class="toc-link">POST /signin</a></li>
+        <li><a href="#ep-me" class="toc-link">GET /me</a></li>
+        <li><a href="#ep-signout" class="toc-link">POST /signout</a></li>
+        <li><a href="#ep-verify-email" class="toc-link">POST /verify-email</a></li>
+        <li><a href="#ep-forget-passwd" class="toc-link">POST /forget-passwd</a></li>
+        <li><a href="#ep-verify-otp" class="toc-link">POST /verify-otp</a></li>
+        <li><a href="#ep-reset-passwd" class="toc-link">POST /reset-passwd</a></li>
+        <li><a href="#ep-update-password" class="toc-link">POST /update-password</a></li>
+      </ul>
+    </aside>
+
+  </div>
 
   <script>
-    function filterEndpoints() {
-      const query = document.getElementById("endpointSearch").value.toLowerCase().trim();
-      const cards = document.querySelectorAll(".endpoint-card");
-      cards.forEach((card) => {
-        const text = card.getAttribute("data-search").toLowerCase();
-        if (text.includes(query)) {
-          card.style.display = "";
-        } else {
-          card.style.display = "none";
+    // Automatically detect host URL
+    (function detectHost() {
+      const baseUrlEl = document.getElementById('liveBaseUrl');
+      if (baseUrlEl && window.location.origin) {
+        // If loaded from onrender or domain, use the current origin
+        const currentOrigin = window.location.origin;
+        if (!currentOrigin.includes('localhost') && !currentOrigin.includes('127.0.0.1')) {
+          baseUrlEl.textContent = `${currentOrigin}/api`;
         }
-      });
-    }
+      }
+    })();
 
-    function toggleAllCards(open) {
-      document.querySelectorAll(".endpoint-card").forEach((card) => {
-        card.open = open;
+    // Copy helper
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+          btn.textContent = originalText;
+        }, 1500);
       });
     }
 
     function copySnippet(btn) {
-      const card = btn.closest(".code-card");
-      const code = card.querySelector("code").innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        const originalText = btn.innerText;
-        btn.innerText = "Copied!";
-        setTimeout(() => {
-          btn.innerText = originalText;
-        }, 1500);
+      const parent = btn.closest('.code-block');
+      const code = parent.querySelector('code').innerText;
+      copyText(code, btn);
+    }
+
+    // Search filter across cards and status codes
+    function handleSearch(query) {
+      const q = query.toLowerCase().trim();
+      const cards = document.querySelectorAll('.endpoint-card');
+      cards.forEach(card => {
+        const text = (card.getAttribute('data-search') || '') + ' ' + card.innerText;
+        if (text.toLowerCase().includes(q)) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
       });
     }
+
+    // Keyboard shortcut ⌘K / Ctrl+K
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    });
+
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const nav = document.getElementById('sidebarNav');
+      nav.classList.toggle('open');
+    }
+
+    // Active link highlighting on scroll
+    const sections = document.querySelectorAll('section.doc-section, .endpoint-card');
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let currentId = '';
+      const scrollPosition = window.scrollY + 120;
+
+      sections.forEach(section => {
+        if (section.offsetTop <= scrollPosition) {
+          currentId = section.getAttribute('id');
+        }
+      });
+
+      if (currentId) {
+        tocLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
+        });
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
+        });
+      }
+    });
   </script>
 </body>
 </html>
