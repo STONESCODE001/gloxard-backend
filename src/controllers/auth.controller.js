@@ -3,7 +3,11 @@ import { User } from "../models/User.model.js";
 import { Otp } from "../models/Otp.model.js";
 import { hashValue, compareValue } from "../utils/hash.js";
 import { signToken, verifyToken } from "../utils/jwt.js";
-import { sendEmailVerificationOtp, sendPasswordResetOtp } from "../utils/email.js";
+import {
+  sendEmailVerificationOtp,
+  sendPasswordResetOtp,
+  sendWelcomeEmail,
+} from "../utils/email.js";
 
 /**
  * 1. signup (POST /api/auth/signup)
@@ -269,6 +273,11 @@ export const verifyEmail = async (req, res, next) => {
         error: "User not found",
       });
     }
+
+    // Dispatch onboarding welcome email
+    sendWelcomeEmail(user.email, user.firstName).catch((err) => {
+      console.warn("[WELCOME EMAIL NOTICE]", err.message);
+    });
 
     return res.status(200).json({
       message: "Email verified successfully",

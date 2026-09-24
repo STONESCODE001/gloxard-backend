@@ -184,14 +184,12 @@ const runTests = async () => {
     console.log("\n=========================================");
     console.log("🎉 ALL PHASE 1 INTEGRATION TESTS PASSED!");
     console.log("=========================================\n");
+  } catch (err) {
+    console.error("\n❌ Test Error Caught:", err);
   } finally {
     await new Promise((resolve) => server.close(resolve));
     await mongoose.connection.close();
-    process.exit(0);
   }
 };
 
-runTests().catch((err) => {
-  console.error("\n❌ Test Suite Failed:", err);
-  process.exit(1);
-});
+runTests();

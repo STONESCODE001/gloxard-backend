@@ -165,7 +165,26 @@ export const sendPasswordResetOtp = async (email, otp) => {
   return await sendMail({ to: email, subject, text, html });
 };
 
+export const sendWelcomeEmail = async (email, name) => {
+  const subject = "Welcome to Gloxad Academy! 🎓";
+  const text = `Hello ${name || "there"},\n\nWelcome to Gloxad Academy! Your email has been verified and your account is active.\n\nHappy learning!`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #4F46E5; margin-top: 0;">Welcome to Gloxad Academy! 🎓</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "there"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Your email has been verified and your account is ready to go.</p>
+      <p style="font-size: 14px; color: #64748B;">You can now explore our course catalog, enroll in interactive classes, and start learning.</p>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+
+  return await sendMail({ to: email, subject, text, html });
+};
+
 export default {
   sendEmailVerificationOtp,
   sendPasswordResetOtp,
+  sendWelcomeEmail,
 };
