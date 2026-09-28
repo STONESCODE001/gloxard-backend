@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Milestone Spec: [`01-auth-email-otp.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/01-auth-email-otp.md)
+> Current Active Spec: [`04-user-profile-s3-upload.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/04-user-profile-s3-upload.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 1 (Units 01, 02, 03) **COMPLETED & VERIFIED**. Unit 04 (User Profile Management & AWS S3 Presigned Media Offloading) **COMPLETED & VERIFIED**.
+- [x] Milestone 1 (Units 01, 02, 03, 04) **COMPLETED & VERIFIED**. Ready to commence Unit 05 (Course Taxonomy & Category Management).
 
 ---
 
@@ -30,9 +30,10 @@
     - [x] Isolated rate-limit buckets with `Retry-After`.
     - [x] Multi-provider email integration (Brevo REST API, SMTP Relay, Resend, and Dev Logger fallback).
 - [x] **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading [COMPLETED & VERIFIED]
-  - [x] **Phase 1 Alignment (Handoff P0/P1 Blockers)**:
+  - [x] **Phase 1 Alignment**:
     - [x] Upload Presigned URL Generation (S3 offloading) implemented.
     - [x] Direct Media Upload Verification (Client -> S3) verified.
+    - [x] Full Profile Update with Collision Prevention & Nested Object Preservation implemented.
 - [ ] **Unit 05**: Course Taxonomy & Category Management
 - [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)
 - [ ] **Unit 07**: Tutor Onboarding & Analytics
@@ -47,10 +48,10 @@
 
 ---
 
-## Completed in Milestone 1 (`01-auth-email-otp.md`)
+## Completed in Milestone 1
 
-1. **Dependencies**:
-   - `jsonwebtoken`, `bcryptjs`, `nodemailer`, `express-rate-limit`, `cors`, `helmet`.
+### Units 01 - 03 (`01-auth-email-otp.md`)
+1. **Dependencies**: `jsonwebtoken`, `bcryptjs`, `nodemailer`, `express-rate-limit`, `cors`, `helmet`.
 2. **Environment & Database Configuration**:
    - [`src/config/env.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/config/env.js): Validated `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `FRONTEND_ORIGIN`, SMTP settings.
    - [`.env.example`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/.env.example): Fully documented configuration keys.
@@ -76,8 +77,27 @@
    - `POST /api/auth/verify-otp`: 5-digit OTP validation without consumption.
    - `POST /api/auth/reset-passwd`: Consumes OTP and sets new password.
    - `POST /api/auth/update-password`: Authenticated password change.
-6. **Documentation Portal**:
-   - [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html): Conforms strictly to [`context/ui-context.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/ui-context.md) and served directly at `GET /`.
+
+---
+
+### Unit 04 (`04-user-profile-s3-upload.md`)
+1. **Dependencies**:
+   - Added AWS SDK v3: `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`.
+2. **Environment & Configuration**:
+   - Extended [`src/config/env.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/config/env.js) and [`.env.example`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/.env.example) to support `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_BUCKET`.
+3. **Data Model Updates**:
+   - Updated [`src/models/User.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/User.model.js) to support `github` link in `socialLinksSchema` and guarantee consistent JSON virtuals output.
+4. **AWS S3 Utility & Dev Fallback**:
+   - Created [`src/utils/s3.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/utils/s3.js): Validates target folder prefixes (`avatars`, `courses`, `certifications`, `resources`), constructs standardized keys (`<folder>/<timestamp>-<uuid>_<sanitized_filename>`), sets 15-minute expiration (`expiresIn: 900`), and automatically falls back to simulated dev presigned URLs when AWS credentials are absent.
+5. **Upload Controller & Routes**:
+   - Implemented `POST /api/upload/presigned-url` and `PUT /api/upload/mock-put/*path` in [`src/controllers/upload.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/upload.controller.js) and [`src/routes/upload.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/upload.routes.js).
+   - Mounted upload routes under `/api/upload` in [`src/app.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/app.js).
+6. **User Profile Controller Refinements**:
+   - Updated `PUT /api/auth/update-profile` in [`src/controllers/auth.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/auth.controller.js):
+     - Validates username uniqueness and returns exact error envelope `400 {"error": "Username is already taken"}`.
+     - Performs non-destructive partial updates on nested objects (`socialLinks`, `notificationPreferences`).
+7. **Interactive API Documentation Portal Sync**:
+   - Updated [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html) to render documentation blocks, request payload schema tables, and interactive response cards for both `PUT /api/auth/update-profile` and `POST /api/upload/presigned-url`.
 
 ---
 
@@ -100,23 +120,29 @@
 - [x] `POST /api/auth/reset-passwd`: Consumes OTP and resets password.
 - [x] `POST /api/auth/update-password`: Verifies current password and updates to new password.
 - [x] `POST /api/auth/signout`: Returns `200 {"message": "Successfully signed out"}`.
+- [x] `POST /api/upload/presigned-url (unauthenticated)`: Returns `401 {"error": "Authentication token missing or malformed"}`.
+- [x] `POST /api/upload/presigned-url (missing body)`: Returns `400 {"error": "Filename and fileType are required"}`.
+- [x] `POST /api/upload/presigned-url (valid request)`: Returns `200` containing `uploadUrl`, `fileUrl`, `key`, and `expiresIn: 900`.
+- [x] `PUT /api/auth/update-profile (duplicate username)`: Returns `400 {"error": "Username is already taken"}`.
+- [x] `PUT /api/auth/update-profile (successful update)`: Returns `200` with updated user profile retaining `_id`.
+- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `update-profile` and `presigned-url`.
 
 ---
 
 ## Next Up
-- **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading.
+- **Unit 05**: Course Taxonomy & Category Management.
   - Scope:
-    1. AWS SDK S3 client and presigned URL helper (`src/utils/s3.js`).
-    2. `PUT /api/auth/update-profile`: Update bio, socials, and notification preferences.
-    3. `POST /api/upload/presigned-url`: Generates S3 PUT presigned URLs for client-side uploads (enforcing Rule 2: Zero Raw File Buffering on API server).
-    4. Sync new endpoints to `src/views/docs.html`.
+    1. Category & Subcategory Mongoose models with slugification.
+    2. Admin-only category management endpoints (`POST /api/categories`, `PUT /api/categories/:id`, `DELETE /api/categories/:id`).
+    3. Public taxonomy discovery endpoint (`GET /api/categories`).
+    4. Documentation portal sync in `src/views/docs.html`.
 
 ---
 
 ## Architecture Decisions & Invariants Enforced
 - **Rule 1: Uniform Error Schema**: All 4xx and 5xx responses strictly return `{ "error": "<message>" }`.
+- **Rule 2: Zero File Buffering**: Direct-to-cloud file upload offloading strictly via AWS S3 PUT presigned URLs without streaming raw bytes through the API server.
 - **Rule 5: Strict Identifier Standard**: Primary keys strictly retain `_id` and are never projected to `id`.
 - **Stateless Auth**: JWT Bearer authorization in `Authorization: Bearer <token>` with 7-day expiration.
 - **Unified Deployment**: `src/views/docs.html` is served directly by the Express app at `GET /`, guaranteeing that deploying the backend automatically deploys the updated documentation with zero manual steps.
 - **Build Verification Invariant**: `npm run build` (`node scripts/build.js`) executes strict syntax validation (`node --check`) across all project files before every commit/deployment.
-- **Entrypoint Compatibility**: Created root `index.js` re-exporting `src/index.js` so hosting environments (e.g. Render defaults) executing `node index.js` boot without `MODULE_NOT_FOUND`.
