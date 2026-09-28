@@ -49,4 +49,6 @@ export const authGuard = async (req, res, next) => {
   }
 };
 
+export const authMiddleware = authGuard;
 export default authGuard;
+

@@ -974,6 +974,11 @@
               <span class="nav-method-pill pill-put">PUT</span> Update Profile
             </a>
           </li>
+          <li>
+            <a href="#ep-presigned-url" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Presigned S3 Upload URL
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -1702,6 +1707,79 @@
         </div>
       </div>
 
+      <!-- 11. POST /api/upload/presigned-url -->
+      <div class="endpoint-card" id="ep-presigned-url" data-search="upload presigned url aws s3 media offload post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/upload/presigned-url</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Generates a short-lived (15-minute) AWS S3 PUT presigned URL for direct client-side media offloading. Guarantees zero raw file byte streaming on the API server.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>filename</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Original filename of the target asset (e.g. <code>profile_avatar.png</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>fileType</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>MIME type of the upload (e.g. <code>image/png</code>, <code>video/mp4</code>, <code>application/pdf</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>folder</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Target S3 folder prefix: <code>avatars</code>, <code>courses</code>, <code>certifications</code>, <code>resources</code> (defaults to <code>resources</code>)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload (JSON)</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "filename": "lecture1_intro.mp4",
+  "fileType": "video/mp4",
+  "folder": "courses"
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "uploadUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/courses/1727520000000-abc123_lecture1_intro.mp4?X-Amz-Algorithm=...",
+  "fileUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/courses/1727520000000-abc123_lecture1_intro.mp4",
+  "key": "courses/1727520000000-abc123_lecture1_intro.mp4",
+  "expiresIn": 900
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -1734,6 +1812,7 @@
         <li><a href="#ep-reset-passwd" class="toc-link">POST /reset-passwd</a></li>
         <li><a href="#ep-update-password" class="toc-link">POST /update-password</a></li>
         <li><a href="#ep-update-profile" class="toc-link">PUT /update-profile</a></li>
+        <li><a href="#ep-presigned-url" class="toc-link">POST /upload/presigned-url</a></li>
       </ul>
     </aside>
 

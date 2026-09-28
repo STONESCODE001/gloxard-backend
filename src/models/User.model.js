@@ -10,6 +10,7 @@ const socialLinksSchema = new Schema(
     twitter: { type: String, default: "" },
     whatsapp: { type: String, default: "" },
     youtube: { type: String, default: "" },
+    github: { type: String, default: "" },
   },
   { _id: false }
 );

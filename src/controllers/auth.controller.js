@@ -378,7 +378,7 @@ export const updateProfile = async (req, res, next) => {
         });
         if (existing) {
           return res.status(400).json({
-            error: "Username already taken",
+            error: "Username is already taken",
           });
         }
         user.username = normalizedUsername;
@@ -402,13 +402,19 @@ export const updateProfile = async (req, res, next) => {
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber.trim();
 
     if (socialLinks && typeof socialLinks === "object") {
-      const currentSocials = user.socialLinks ? user.socialLinks.toObject() : {};
+      const currentSocials =
+        user.socialLinks && typeof user.socialLinks.toObject === "function"
+          ? user.socialLinks.toObject()
+          : user.socialLinks || {};
       user.socialLinks = { ...currentSocials, ...socialLinks };
       user.socials = user.socialLinks;
     }
 
     if (notificationPreferences && typeof notificationPreferences === "object") {
-      const currentPrefs = user.notificationPreferences ? user.notificationPreferences.toObject() : {};
+      const currentPrefs =
+        user.notificationPreferences && typeof user.notificationPreferences.toObject === "function"
+          ? user.notificationPreferences.toObject()
+          : user.notificationPreferences || {};
       user.notificationPreferences = { ...currentPrefs, ...notificationPreferences };
     }
 

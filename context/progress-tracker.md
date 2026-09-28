@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- Milestone 1 (Units 01, 02, 03) **COMPLETED & VERIFIED**. Ready to commence Unit 04 (User Profile Management & AWS S3 Presigned Media Offloading).
+- [x] Milestone 1 (Units 01, 02, 03) **COMPLETED & VERIFIED**. Unit 04 (User Profile Management & AWS S3 Presigned Media Offloading) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -29,7 +29,10 @@
     - [x] Server-side session revocation via `tokenVersion`.
     - [x] Isolated rate-limit buckets with `Retry-After`.
     - [x] Multi-provider email integration (Brevo REST API, SMTP Relay, Resend, and Dev Logger fallback).
-- [ ] **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading
+- [x] **Unit 04**: User Profile Management & AWS S3 Presigned Media Offloading [COMPLETED & VERIFIED]
+  - [x] **Phase 1 Alignment (Handoff P0/P1 Blockers)**:
+    - [x] Upload Presigned URL Generation (S3 offloading) implemented.
+    - [x] Direct Media Upload Verification (Client -> S3) verified.
 - [ ] **Unit 05**: Course Taxonomy & Category Management
 - [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)
 - [ ] **Unit 07**: Tutor Onboarding & Analytics

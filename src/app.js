@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { env } from "./config/env.js";
 import authRouter from "./routes/auth.routes.js";
+import uploadRouter from "./routes/upload.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -39,6 +40,10 @@ app.get("/api/health", (req, res) => {
 
 // Mount auth routes under /api/auth
 app.use("/api/auth", authRouter);
+
+// Mount upload routes under /api/upload
+app.use("/api/upload", uploadRouter);
+
 
 // Global 404 handler for unmatched routes
 app.use((req, res) => {
