@@ -5,6 +5,7 @@ import helmet from "helmet";
 import { env } from "./config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
+import categoryRoutes from "./routes/category.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -43,6 +44,9 @@ app.use("/api/auth", authRouter);
 
 // Mount upload routes under /api/upload
 app.use("/api/upload", uploadRouter);
+
+// Mount category taxonomy routes under /api
+app.use("/api", categoryRoutes);
 
 
 // Global 404 handler for unmatched routes

@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`04-user-profile-s3-upload.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/04-user-profile-s3-upload.md)
+> Current Active Spec: [`05-course-taxonomy-category-management.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/05-course-taxonomy-category-management.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 1 (Units 01, 02, 03, 04) **COMPLETED & VERIFIED**. Ready to commence Unit 05 (Course Taxonomy & Category Management).
+- [x] Milestone 2 (Unit 05: Course Taxonomy & Category Management) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -34,7 +34,7 @@
     - [x] Upload Presigned URL Generation (S3 offloading) implemented.
     - [x] Direct Media Upload Verification (Client -> S3) verified.
     - [x] Full Profile Update with Collision Prevention & Nested Object Preservation implemented.
-- [ ] **Unit 05**: Course Taxonomy & Category Management
+- [x] **Unit 05**: Course Taxonomy & Category Management [COMPLETED & VERIFIED]
 - [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)
 - [ ] **Unit 07**: Tutor Onboarding & Analytics
 - [ ] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline
@@ -101,6 +101,22 @@
 
 ---
 
+### Unit 05 (`05-course-taxonomy-category-management.md`) [COMPLETED & VERIFIED]
+1. **Data Models**:
+   - [`src/models/Category.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Category.model.js): Hierarchical schema supporting `name`, `slug`, `icon`, `order`, and nested `subCategories` (`name`, `slug`, `topics`). Automatic slugification middleware on validate hook.
+2. **Controllers & Routes**:
+   - [`src/controllers/category.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/category.controller.js) & [`src/routes/category.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/category.routes.js):
+     - `GET /api/categories`: Public retrieval of full category taxonomy sorted by `order` ascending, then `name` ascending.
+     - `POST /api/admin/categories`: Admin-restricted creation of category documents with duplicate name checks and auto slug generation.
+     - `PUT /api/admin/categories/:id`: Admin-restricted update of category fields with collision prevention and slug recalculation.
+     - `DELETE /api/admin/categories/:id`: Admin-restricted deletion with active course dependency safeguard.
+3. **Role Guard Middleware**:
+   - [`src/middlewares/role.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/role.middleware.js): Updated to support `roleMiddleware` alias and deliver exact `403 {"error": "Access denied. Admin role required"}` response for admin routes.
+4. **Interactive API Documentation Portal Sync**:
+   - Updated [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html) to render Section 5 ("Course Taxonomy & Category Management"), navigation links, TOC anchors, parameter tables, and request/response cards for `GET /api/categories`, `POST /api/admin/categories`, `PUT /api/admin/categories/:id`, and `DELETE /api/admin/categories/:id`.
+
+---
+
 ## Verification Results Checklist (100% Passed)
 
 - [x] `GET /`: Returns HTML API documentation portal conforming to `ui-context.md`.
@@ -125,17 +141,21 @@
 - [x] `POST /api/upload/presigned-url (valid request)`: Returns `200` containing `uploadUrl`, `fileUrl`, `key`, and `expiresIn: 900`.
 - [x] `PUT /api/auth/update-profile (duplicate username)`: Returns `400 {"error": "Username is already taken"}`.
 - [x] `PUT /api/auth/update-profile (successful update)`: Returns `200` with updated user profile retaining `_id`.
-- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `update-profile` and `presigned-url`.
+- [x] `GET /api/categories (public read)`: Returns `200 OK` with full category taxonomy array.
+- [x] `POST /api/admin/categories (unauthenticated)`: Returns `401 {"error": "Authentication token missing or malformed"}`.
+- [x] `POST /api/admin/categories (non-admin student)`: Returns `403 {"error": "Access denied. Admin role required"}`.
+- [x] `POST /api/admin/categories (missing name)`: Returns `400 {"error": "Category name is required"}`.
+- [x] `POST /api/admin/categories (valid creation)`: Returns `201 Created` with category object and auto-slugified subcategories.
+- [x] `POST /api/admin/categories (duplicate name)`: Returns `409 Conflict {"error": "Category with this name already exists"}`.
+- [x] `PUT /api/admin/categories/:id (valid update)`: Returns `200 OK` with updated fields and re-slugified name.
+- [x] `DELETE /api/admin/categories/:id (course dependency safeguard)`: Returns `409 Conflict {"error": "Cannot delete category currently associated with active courses"}`.
+- [x] `DELETE /api/admin/categories/:id (unreferenced deletion)`: Returns `200 OK {"message": "Category deleted successfully"}`.
+- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `categories` and `admin/categories`.
 
 ---
 
 ## Next Up
-- **Unit 05**: Course Taxonomy & Category Management.
-  - Scope:
-    1. Category & Subcategory Mongoose models with slugification.
-    2. Admin-only category management endpoints (`POST /api/categories`, `PUT /api/categories/:id`, `DELETE /api/categories/:id`).
-    3. Public taxonomy discovery endpoint (`GET /api/categories`).
-    4. Documentation portal sync in `src/views/docs.html`.
+- **Unit 06**: Course Catalog & Public Discovery (with Content Protection).
 
 ---
 

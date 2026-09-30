@@ -979,6 +979,26 @@
               <span class="nav-method-pill pill-post">POST</span> Presigned S3 Upload URL
             </a>
           </li>
+          <li>
+            <a href="#ep-categories-list" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Taxonomy Categories
+            </a>
+          </li>
+          <li>
+            <a href="#ep-create-category" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Category (Admin)
+            </a>
+          </li>
+          <li>
+            <a href="#ep-update-category" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Category (Admin)
+            </a>
+          </li>
+          <li>
+            <a href="#ep-delete-category" class="nav-link">
+              <span class="nav-method-pill" style="background: var(--error-bg); color: var(--error-text); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 8px;">DEL</span> Delete Category (Admin)
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -1780,6 +1800,276 @@
         </div>
       </div>
 
+      <!-- SECTION: Course Taxonomy & Category Management -->
+      <section class="doc-section" id="course-taxonomy">
+        <h2 class="section-heading">5. Course Taxonomy & Category Management</h2>
+        <p>
+          Hierarchical course classification system allowing public retrieval of categories, subcategories, and topics, with administrative-only CRUD operations restricted to users with <code>role === 'admin'</code>.
+        </p>
+      </section>
+
+      <!-- 12. GET /api/categories -->
+      <div class="endpoint-card" id="ep-categories-list" data-search="categories category list taxonomy hierarchy get public">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/categories</span>
+          <span class="endpoint-tag-pill tag-public">Public (No Token Required)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Returns the complete hierarchical taxonomy tree of all course categories, subcategories, and topics sorted by display order.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Headers</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>GET /api/categories HTTP/1.1
+Host: localhost:3001
+Accept: application/json</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "categories": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d1e",
+      "name": "Development & Engineering",
+      "slug": "development-engineering",
+      "icon": "code-bracket",
+      "order": 1,
+      "subCategories": [
+        {
+          "_id": "651a2b3c4d5e6f7a8b9c0d1f",
+          "name": "Web Development",
+          "slug": "web-development",
+          "topics": ["React", "Node.js", "TypeScript"]
+        }
+      ]
+    }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13. POST /api/admin/categories -->
+      <div class="endpoint-card" id="ep-create-category" data-search="create category post admin taxonomy subcategories">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/categories</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only (Bearer Token)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Creates a new top-level category document with optional subcategories and topics. Requires administrative privileges.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>name</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Unique display name for the category (e.g. <code>Data & AI</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>icon</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Icon identifier name string (e.g. <code>cpu-chip</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>order</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Sort display order (defaults to <code>0</code>)</td>
+                </tr>
+                <tr>
+                  <td><code>subCategories</code></td>
+                  <td>array</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Array of subcategory objects: <code>[{ name, topics: [] }]</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload (JSON)</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "name": "Data & AI",
+  "icon": "cpu-chip",
+  "order": 2,
+  "subCategories": [
+    { "name": "Machine Learning", "topics": ["Python", "PyTorch", "TensorFlow"] },
+    { "name": "Data Engineering", "topics": ["SQL", "Spark", "Kafka"] }
+  ]
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-201">201 Created</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Category created successfully",
+  "category": {
+    "_id": "673f8a92b234fa001234c999",
+    "name": "Data & AI",
+    "slug": "data-ai",
+    "icon": "cpu-chip",
+    "order": 2,
+    "subCategories": [
+      {
+        "_id": "673f8a92b234fa001234c99a",
+        "name": "Machine Learning",
+        "slug": "machine-learning",
+        "topics": ["Python", "PyTorch", "TensorFlow"]
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. PUT /api/admin/categories/:id -->
+      <div class="endpoint-card" id="ep-update-category" data-search="update category put admin edit category taxonomy">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/categories/:id</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only (Bearer Token)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates an existing category by its MongoDB ObjectId, recalculating slugs automatically. Requires admin privileges.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>name</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Updated category name (must be unique)</td>
+                </tr>
+                <tr>
+                  <td><code>icon</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Updated icon identifier</td>
+                </tr>
+                <tr>
+                  <td><code>order</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Updated display order</td>
+                </tr>
+                <tr>
+                  <td><code>subCategories</code></td>
+                  <td>array</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Updated array of subcategories and topics</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload (JSON)</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "name": "Design & User Experience",
+  "order": 1
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Category updated successfully",
+  "category": {
+    "_id": "673f8a92b234fa001234c999",
+    "name": "Design & User Experience",
+    "slug": "design-user-experience",
+    "icon": "paint-brush",
+    "order": 1
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15. DELETE /api/admin/categories/:id -->
+      <div class="endpoint-card" id="ep-delete-category" data-search="delete category remove admin delete taxonomy">
+        <div class="endpoint-header-row">
+          <span class="method-badge" style="background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border);">DELETE</span>
+          <span class="endpoint-uri">/api/admin/categories/:id</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only (Bearer Token)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Deletes a category document by ID. Enforces an active course dependency safeguard to prevent deleting categories currently referenced by active courses.
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Category deleted successfully"
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Conflict Response <span class="code-status-pill status-badge-400" style="background: rgba(239, 68, 68, 0.2); color: #EF4444;">409 Conflict</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "error": "Cannot delete category currently associated with active courses"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -1813,6 +2103,11 @@
         <li><a href="#ep-update-password" class="toc-link">POST /update-password</a></li>
         <li><a href="#ep-update-profile" class="toc-link">PUT /update-profile</a></li>
         <li><a href="#ep-presigned-url" class="toc-link">POST /upload/presigned-url</a></li>
+        <li><a href="#course-taxonomy" class="toc-link">Course Taxonomy</a></li>
+        <li><a href="#ep-categories-list" class="toc-link">GET /categories</a></li>
+        <li><a href="#ep-create-category" class="toc-link">POST /admin/categories</a></li>
+        <li><a href="#ep-update-category" class="toc-link">PUT /admin/categories/:id</a></li>
+        <li><a href="#ep-delete-category" class="toc-link">DELETE /admin/categories/:id</a></li>
       </ul>
     </aside>
 
