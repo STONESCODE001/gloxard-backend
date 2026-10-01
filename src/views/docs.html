@@ -1076,6 +1076,66 @@
               <span class="nav-method-pill pill-get">GET</span> Check Enrollment Status
             </a>
           </li>
+          <li>
+            <a href="#ep-learning-progress" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Update Lesson Progress
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-quiz-submit" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit & Grade Quiz
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-questions-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Q&A Discussion Threads
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-questions-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Ask Q&A Question
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-question-reply" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reply to Q&A Question
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-notes-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Private Study Notes
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-notes-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Private Note
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-notes-delete" class="nav-link">
+              <span class="nav-method-pill" style="background: var(--error-bg); color: var(--error-text); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 8px;">DEL</span> Delete Private Note
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-announcements-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Course Announcements
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-announcements-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Post Announcement
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-certificate-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Completion Certificate
+            </a>
+          </li>
+          <li>
+            <a href="#ep-learning-verify-certificate" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Verify Certificate
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -3676,6 +3736,397 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Learning Engine & Quiz Grading -->
+      <section class="doc-section" id="learning-engine">
+        <div class="section-header">
+          <h2 class="doc-subtitle">Unit 12: Learning Engine & Quiz Grading</h2>
+        </div>
+        <p>
+          Comprehensive student learning interaction endpoints under <code>/api/learning/*</code> for lesson playback progress tracking, server-side quiz grading, private study notes, course Q&A discussion board, announcements, and verifiable completion certificates.
+        </p>
+      </section>
+
+      <div class="endpoint-card" id="ep-learning-progress" data-search="learning progress lesson playback completion position course post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/progress</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates student playback position for a lesson and optionally marks it as completed. Automatically recalculates course completion percentage and flags course completion when 100% is reached.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Lesson progress updated successfully",
+  "progress": {
+    "courseId": "651a3c4d5e6f7a8b9c0d1234",
+    "lastAccessedLesson": "651a3c4d5e6f7a8b9c0d5678",
+    "lastPlaybackPosition": 245,
+    "completedLessons": [
+      "651a3c4d5e6f7a8b9c0d5678"
+    ],
+    "progressPercentage": 25,
+    "isCompleted": false,
+    "completedAt": null
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-quiz-submit" data-search="quiz submit evaluation grading score correct answers post learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/quiz/:quizId/submit</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Evaluates quiz submissions strictly server-side against hidden answer keys. Records attempt on student enrollment and returns pass/fail evaluation breakdown without disclosing unselected answer keys.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Quiz evaluated successfully",
+  "result": {
+    "quizId": "651a3c4d5e6f7a8b9c0d9000",
+    "quizTitle": "Module 1 Assessment",
+    "score": 100,
+    "passingScore": 70,
+    "passed": true,
+    "totalQuestions": 2,
+    "correctAnswers": 2,
+    "breakdown": [
+      {
+        "questionId": "651a3c4d5e6f7a8b9c0d9001",
+        "selectedOptionIndex": 1,
+        "isCorrect": true
+      },
+      {
+        "questionId": "651a3c4d5e6f7a8b9c0d9002",
+        "selectedOptionIndex": 0,
+        "isCorrect": true
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-questions-get" data-search="qa questions discussion threads replies lesson get learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/learning/:courseId/questions</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves Q&A discussion board threads for a course, optionally filtered by <code>?lessonId=</code>, including populated author user details and replies.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "questions": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d7777",
+      "course": "651a3c4d5e6f7a8b9c0d1234",
+      "lessonId": "651a3c4d5e6f7a8b9c0d5678",
+      "user": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d12",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "avatarUrl": "https://s3.amazonaws.com/gloxard/avatars/jane.jpg",
+        "role": "student"
+      },
+      "title": "Question about Async/Await",
+      "content": "How do we handle unhandled promise rejections in Express v5?",
+      "replies": [],
+      "createdAt": "2026-10-01T21:00:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-questions-post" data-search="qa create question post discussion thread learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/questions</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Posts a new Q&A discussion question for a course and optional lesson context.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Question created successfully",
+  "question": {
+    "_id": "651a3c4d5e6f7a8b9c0d7777",
+    "title": "Question about Async/Await",
+    "content": "How do we handle unhandled promise rejections in Express v5?",
+    "user": {
+      "_id": "651a2b3c4d5e6f7a8b9c0d12",
+      "firstName": "Jane",
+      "lastName": "Doe"
+    }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-question-reply" data-search="qa question reply post response instructor student learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/questions/:questionId/reply</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Appends a reply to an existing course Q&A discussion question.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Reply added successfully",
+  "question": {
+    "_id": "651a3c4d5e6f7a8b9c0d7777",
+    "replies": [
+      {
+        "content": "Express v5 automatically handles rejected promises!",
+        "createdAt": "2026-10-01T21:10:00.000Z"
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-notes-get" data-search="private study notes get student lesson timestamp learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/learning/:courseId/notes</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves private study notes created by the authenticated student for a course.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "notes": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d6666",
+      "course": "651a3c4d5e6f7a8b9c0d1234",
+      "lessonId": "651a3c4d5e6f7a8b9c0d5678",
+      "timestamp": 120,
+      "content": "Remember to use global error handler for async operations.",
+      "createdAt": "2026-10-01T21:05:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-notes-post" data-search="private study note create post lesson timestamp learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/notes</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Creates a timestamped private study note for a lesson.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Note created successfully",
+  "note": {
+    "_id": "651a3c4d5e6f7a8b9c0d6666",
+    "timestamp": 120,
+    "content": "Remember to use global error handler for async operations."
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-notes-delete" data-search="delete private study note delete noteId learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge" style="background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border);">DELETE</span>
+          <span class="endpoint-uri">/api/learning/:courseId/notes/:noteId</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Deletes a student's private study note.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Note deleted successfully"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-announcements-get" data-search="announcements course get instructor broadcast learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/learning/:courseId/announcements</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves course announcements published by the course instructor or admins.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "announcements": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d5555",
+      "course": "651a3c4d5e6f7a8b9c0d1234",
+      "instructor": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d99",
+        "firstName": "Alex",
+        "lastName": "Instructor",
+        "avatarUrl": "https://s3.amazonaws.com/gloxard/avatars/alex.jpg"
+      },
+      "title": "Live Q&A Session Scheduled",
+      "content": "Join us live this Friday at 4 PM UTC for a deep dive into Mongoose v9 schemas.",
+      "createdAt": "2026-10-01T20:00:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-announcements-post" data-search="announcement create post instructor admin course learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/learning/:courseId/announcements</span>
+          <span class="endpoint-tag-pill tag-auth">Instructor / Admin Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Publishes a course announcement for enrolled students (restricted to course instructor and platform admins).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Announcement created successfully",
+  "announcement": {
+    "_id": "651a3c4d5e6f7a8b9c0d5555",
+    "title": "Live Q&A Session Scheduled",
+    "content": "Join us live this Friday at 4 PM UTC for a deep dive into Mongoose v9 schemas."
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-certificate-get" data-search="certificate completion verifiable get 100 percent learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/learning/:courseId/certificate</span>
+          <span class="endpoint-tag-pill tag-auth">Enrollment Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Generates and retrieves verifiable completion certificate metadata for students who reached 100% course progress completion. Returns HTTP 400 for incomplete courses.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Certificate retrieved successfully",
+  "certificate": {
+    "certificateId": "GLX-CERT-0D12-1234",
+    "studentName": "Jane Doe",
+    "courseTitle": "Fullstack Node.js Masterclass",
+    "instructorName": "Alex Instructor",
+    "issuedAt": "2026-10-01T21:12:00.000Z",
+    "verificationUrl": "http://localhost:3001/api/learning/verify-certificate/GLX-CERT-0D12-1234"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-learning-verify-certificate" data-search="verify certificate public verification code get learning">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/learning/verify-certificate/:certificateId</span>
+          <span class="endpoint-tag-pill tag-public">Public Endpoint</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Public verification endpoint validating course completion certificate credentials and issued student details.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "valid": true,
+  "message": "Certificate verified successfully",
+  "certificate": {
+    "certificateId": "GLX-CERT-0D12-1234",
+    "studentName": "Jane Doe",
+    "courseTitle": "Fullstack Node.js Masterclass",
+    "instructorName": "Alex Instructor",
+    "issuedAt": "2026-10-01T21:12:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -3747,6 +4198,18 @@ Accept: application/json</code></pre>
         <li><a href="#ep-enroll-my-courses" class="toc-link">GET /enrollments/my-courses</a></li>
         <li><a href="#ep-enroll-check" class="toc-link">GET /enrollments/check/:courseId</a></li>
         <li><a href="#ep-paystack-webhook" class="toc-link">POST /webhooks/paystack</a></li>
+        <li><a href="#ep-learning-progress" class="toc-link">POST /learning/:courseId/progress</a></li>
+        <li><a href="#ep-learning-quiz-submit" class="toc-link">POST /learning/:courseId/quiz/:quizId/submit</a></li>
+        <li><a href="#ep-learning-questions-get" class="toc-link">GET /learning/:courseId/questions</a></li>
+        <li><a href="#ep-learning-questions-post" class="toc-link">POST /learning/:courseId/questions</a></li>
+        <li><a href="#ep-learning-question-reply" class="toc-link">POST /learning/:courseId/questions/:questionId/reply</a></li>
+        <li><a href="#ep-learning-notes-get" class="toc-link">GET /learning/:courseId/notes</a></li>
+        <li><a href="#ep-learning-notes-post" class="toc-link">POST /learning/:courseId/notes</a></li>
+        <li><a href="#ep-learning-notes-delete" class="toc-link">DELETE /learning/:courseId/notes/:noteId</a></li>
+        <li><a href="#ep-learning-announcements-get" class="toc-link">GET /learning/:courseId/announcements</a></li>
+        <li><a href="#ep-learning-announcements-post" class="toc-link">POST /learning/:courseId/announcements</a></li>
+        <li><a href="#ep-learning-certificate-get" class="toc-link">GET /learning/:courseId/certificate</a></li>
+        <li><a href="#ep-learning-verify-certificate" class="toc-link">GET /learning/verify-certificate/:certificateId</a></li>
       </ul>
     </aside>
 
