@@ -12,6 +12,8 @@ import adminRouter from "./routes/admin.routes.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js";
 import learningRouter from "./routes/learning.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -72,6 +74,12 @@ app.use("/api/webhooks", webhookRoutes);
 
 // Mount learning engine routes under /api/learning
 app.use("/api/learning", learningRouter);
+
+// Mount messaging routes under /api/messages
+app.use("/api/messages", messageRoutes);
+
+// Mount notification routes under /api/notifications
+app.use("/api/notifications", notificationRoutes);
 
 // Mount category taxonomy & course catalog routes under /api
 app.use("/api", categoryRoutes);

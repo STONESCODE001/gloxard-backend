@@ -4127,6 +4127,340 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Real-Time Messaging & In-App Notifications -->
+      <section class="doc-section" id="messaging-notifications">
+        <h2 class="section-heading">8. Real-Time Messaging & In-App Notifications (REST + Socket.io)</h2>
+        <p>
+          Real-time messaging engine, in-app notification management system, REST API endpoints (<code>/api/messages/*</code> and <code>/api/notifications/*</code>), and Socket.io WebSocket server with JWT handshake authentication. Supports 1:1 and group course conversations, live message delivery, typing indicators, user room push notifications.
+        </p>
+      </section>
+
+      <!-- 1. GET /api/messages/conversations -->
+      <div class="endpoint-card" id="ep-messages-conversations-get" data-search="conversations messages get chat list participants unreadCount">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/messages/conversations</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves all active 1:1 and course group conversations where the authenticated user is a participant. Returns populated participant details, last message snippet, unread message status, and updatedAt sorted descending.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "conversations": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d1111",
+      "participants": [
+        {
+          "_id": "651a2b3c4d5e6f7a8b9c0d12",
+          "firstName": "Alex",
+          "lastName": "Rivera",
+          "avatar": "https://s3.amazonaws.com/gloxard/avatars/alex.jpg",
+          "role": "student"
+        },
+        {
+          "_id": "651a2b3c4d5e6f7a8b9c0d99",
+          "firstName": "Sarah",
+          "lastName": "Dev",
+          "avatar": "https://s3.amazonaws.com/gloxard/avatars/sarah.jpg",
+          "role": "instructor"
+        }
+      ],
+      "courseId": "651a3c4d5e6f7a8b9c0d1234",
+      "lastMessage": {
+        "_id": "651a3c4d5e6f7a8b9c0d2222",
+        "sender": "651a2b3c4d5e6f7a8b9c0d99",
+        "text": "Welcome to Python Masterclass!",
+        "createdAt": "2026-10-01T21:40:00.000Z"
+      },
+      "unreadCount": 1,
+      "updatedAt": "2026-10-01T21:40:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. POST /api/messages/conversations/new -->
+      <div class="endpoint-card" id="ep-messages-conversations-new" data-search="conversations new create post chat start recipientId courseId">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/messages/conversations/new</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Creates a new 1:1 conversation between the requesting user and <code>recipientId</code>, or returns an existing conversation if one already exists.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>Request Body Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "recipientId": "651a2b3c4d5e6f7a8b9c0d99",
+  "courseId": "651a3c4d5e6f7a8b9c0d1234"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK / 201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Conversation initialized",
+  "conversation": {
+    "_id": "651a3c4d5e6f7a8b9c0d1111",
+    "participants": [
+      "651a2b3c4d5e6f7a8b9c0d12",
+      "651a2b3c4d5e6f7a8b9c0d99"
+    ],
+    "courseId": "651a3c4d5e6f7a8b9c0d1234",
+    "lastMessage": null,
+    "updatedAt": "2026-10-01T21:45:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. GET /api/messages/:conversationId -->
+      <div class="endpoint-card" id="ep-messages-history-get" data-search="messages history conversation get chat readBy pagination">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/messages/:conversationId</span>
+          <span class="endpoint-tag-pill tag-auth">Participant Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches paginated message history for a specific conversation. Automatically updates the <code>readBy</code> array on unread messages for the caller.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "messages": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d2222",
+      "conversationId": "651a3c4d5e6f7a8b9c0d1111",
+      "sender": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d99",
+        "firstName": "Sarah",
+        "lastName": "Dev",
+        "avatar": "https://s3.amazonaws.com/gloxard/avatars/sarah.jpg"
+      },
+      "text": "Welcome to Python Masterclass!",
+      "readBy": [
+        "651a2b3c4d5e6f7a8b9c0d99",
+        "651a2b3c4d5e6f7a8b9c0d12"
+      ],
+      "createdAt": "2026-10-01T21:40:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "totalMessages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. POST /api/messages/:conversationId -->
+      <div class="endpoint-card" id="ep-messages-send-post" data-search="message send post chat conversation real-time socket emit">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/messages/:conversationId</span>
+          <span class="endpoint-tag-pill tag-auth">Participant Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Saves a new chat message to MongoDB, updates lastMessage & updatedAt on Conversation model, and emits real-time <code>new_message</code> Socket.io event to room <code>conv:&lt;conversationId&gt;</code>.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>Request Body Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "text": "Hi Sarah! I have a question about module 3."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Message sent successfully",
+  "data": {
+    "_id": "651a3c4d5e6f7a8b9c0d3333",
+    "conversationId": "651a3c4d5e6f7a8b9c0d1111",
+    "sender": {
+      "_id": "651a2b3c4d5e6f7a8b9c0d12",
+      "firstName": "Alex",
+      "lastName": "Rivera",
+      "avatar": "https://s3.amazonaws.com/gloxard/avatars/alex.jpg"
+    },
+    "text": "Hi Sarah! I have a question about module 3.",
+    "readBy": [
+      "651a2b3c4d5e6f7a8b9c0d12"
+    ],
+    "createdAt": "2026-10-01T21:50:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. GET /api/notifications -->
+      <div class="endpoint-card" id="ep-notifications-get" data-search="notifications get unreadOnly unreadCount list alert">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/notifications</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches in-app notifications for the authenticated user (or targeted role broadcasts), sorted with unread/newest notifications first.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "notifications": [
+    {
+      "_id": "651a3c4d5e6f7a8b9c0d4444",
+      "recipient": "651a2b3c4d5e6f7a8b9c0d12",
+      "title": "Course Enrolled Successfully",
+      "message": "You are now enrolled in Python Masterclass",
+      "type": "enrollment_success",
+      "read": false,
+      "link": "/courses/python-masterclass",
+      "createdAt": "2026-10-01T21:30:00.000Z"
+    }
+  ],
+  "unreadCount": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. POST /api/notifications/mark-read -->
+      <div class="endpoint-card" id="ep-notifications-mark-read" data-search="notifications mark-read post markAll notificationIds read">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/notifications/mark-read</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Marks specified notifications (or all notifications if <code>markAll: true</code>) as <code>read: true</code> for the authenticated recipient user.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>Request Body Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "notificationIds": ["651a3c4d5e6f7a8b9c0d4444"],
+  "markAll": false
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Notifications marked as read",
+  "updatedCount": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Socket.io Real-Time Events Catalog -->
+      <div class="endpoint-card" id="realtime-ws-events" data-search="socket.io websocket events typing new_message new_notification join_conversation leave_conversation">
+        <div class="endpoint-header-row">
+          <span class="method-badge" style="background: #F3E8FF; color: #6B21A8; border: 1px solid #C084FC;">WS Event</span>
+          <span class="endpoint-uri">Socket.io WebSocket Real-Time Events</span>
+          <span class="endpoint-tag-pill tag-auth">JWT Auth Handshake</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Socket.io handshake authentication requires <code>auth: { token: "&lt;jwt_access_token&gt;" }</code>. Clients automatically join room <code>user:&lt;userId&gt;</code> on connection.
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Event Name</th>
+                  <th>Direction</th>
+                  <th>Payload Shape</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>join_user</code></td>
+                  <td>Client &rarr; Server</td>
+                  <td><code>{ "userId": "..." }</code></td>
+                  <td>Automatically called on connection; joins room <code>user:&lt;userId&gt;</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>join_conversation</code></td>
+                  <td>Client &rarr; Server</td>
+                  <td><code>{ "conversationId": "..." }</code></td>
+                  <td>Client joins conversation room <code>conv:&lt;conversationId&gt;</code>. Validates membership.</td>
+                </tr>
+                <tr>
+                  <td><code>leave_conversation</code></td>
+                  <td>Client &rarr; Server</td>
+                  <td><code>{ "conversationId": "..." }</code></td>
+                  <td>Client leaves conversation room <code>conv:&lt;conversationId&gt;</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>typing</code></td>
+                  <td>Client &rarr; Server</td>
+                  <td><code>{ "conversationId": "..." }</code></td>
+                  <td>Broadcasts <code>typing</code> event to room <code>conv:&lt;conversationId&gt;</code> excluding sender.</td>
+                </tr>
+                <tr>
+                  <td><code>stop_typing</code></td>
+                  <td>Client &rarr; Server</td>
+                  <td><code>{ "conversationId": "..." }</code></td>
+                  <td>Broadcasts <code>stop_typing</code> event to room <code>conv:&lt;conversationId&gt;</code> excluding sender.</td>
+                </tr>
+                <tr>
+                  <td><code>new_message</code></td>
+                  <td>Server &rarr; Client</td>
+                  <td>Message object payload</td>
+                  <td>Emitted to room <code>conv:&lt;conversationId&gt;</code> when a message is posted.</td>
+                </tr>
+                <tr>
+                  <td><code>new_notification</code></td>
+                  <td>Server &rarr; Client</td>
+                  <td>Notification object payload</td>
+                  <td>Emitted to room <code>user:&lt;recipientId&gt;</code> when a notification is generated.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -4210,6 +4544,14 @@ Accept: application/json</code></pre>
         <li><a href="#ep-learning-announcements-post" class="toc-link">POST /learning/:courseId/announcements</a></li>
         <li><a href="#ep-learning-certificate-get" class="toc-link">GET /learning/:courseId/certificate</a></li>
         <li><a href="#ep-learning-verify-certificate" class="toc-link">GET /learning/verify-certificate/:certificateId</a></li>
+        <li><a href="#messaging-notifications" class="toc-link">Real-Time Messaging & Notifications</a></li>
+        <li><a href="#ep-messages-conversations-get" class="toc-link">GET /messages/conversations</a></li>
+        <li><a href="#ep-messages-conversations-new" class="toc-link">POST /messages/conversations/new</a></li>
+        <li><a href="#ep-messages-history-get" class="toc-link">GET /messages/:conversationId</a></li>
+        <li><a href="#ep-messages-send-post" class="toc-link">POST /messages/:conversationId</a></li>
+        <li><a href="#ep-notifications-get" class="toc-link">GET /notifications</a></li>
+        <li><a href="#ep-notifications-mark-read" class="toc-link">POST /notifications/mark-read</a></li>
+        <li><a href="#realtime-ws-events" class="toc-link">Socket.io Events</a></li>
       </ul>
     </aside>
 

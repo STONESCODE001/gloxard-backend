@@ -1,20 +1,25 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import http from "http";
 import { env } from "./config/env.js";
 import connectDB from "./config/db.js";
 import { app } from "./app.js";
+import { initSocket } from "./socket/socket.handler.js";
 
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.on("error", (error) => {
+    const httpServer = http.createServer(app);
+    initSocket(httpServer);
+
+    httpServer.on("error", (error) => {
       console.error("Server error:", error);
     });
 
     const PORT = env.PORT || process.env.PORT || 3001;
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`⚙️  Server running on port: ${PORT}`);
       console.log(`⚡ API Documentation available at: http://localhost:${PORT}/`);
     });

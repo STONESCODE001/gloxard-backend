@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`12-learning-engine-quiz-grading.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/12-learning-engine-quiz-grading.md)
+> Current Active Spec: [`13-real-time-messaging-notifications.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/13-real-time-messaging-notifications.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 8 (Unit 12: Learning Engine & Quiz Grading) **COMPLETED & VERIFIED**.
+- [x] Milestone 9 (Unit 13: Real-Time Messaging & In-App Notifications) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -42,7 +42,7 @@
 - [x] **Unit 10**: Course Enrollments & Paystack Payment Verification [COMPLETED & VERIFIED]
 - [x] **Unit 11**: Idempotent Paystack Webhook Processing [COMPLETED & VERIFIED]
 - [x] **Unit 12**: Learning Engine (Progress, Server-Side Quiz Grading, Q&A, Notes, Certificate) [COMPLETED & VERIFIED]
-- [ ] **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io)
+- [x] **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io) [COMPLETED & VERIFIED]
 - [ ] **Unit 14**: Interactive API Documentation Web Page
 - [ ] **Unit 15**: Seed Data & End-to-End System Smoke Tests
 
