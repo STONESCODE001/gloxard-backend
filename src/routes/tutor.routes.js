@@ -3,22 +3,33 @@ import {
   showcaseExpertiseController,
   getDashboardStatsController,
   getEarningsController,
+  createCourseDraft,
+  updateCourseDraft,
+  getInstructorCourses,
+  getInstructorCourseById,
+  submitCourseForReview,
+  appealCourseRejection,
 } from "../controllers/tutor.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 
 const router = Router();
 
-// Apply authMiddleware to all tutor onboarding and analytics endpoints
+// Apply authMiddleware to all tutor onboarding, analytics, and course authoring endpoints
 router.use(authMiddleware);
 
-// POST /api/tutor/showcase-expertise (Student or Instructor)
+// Onboarding & Analytics
 router.post("/showcase-expertise", showcaseExpertiseController);
-
-// GET /api/tutor/dashboard-stats (Instructor only)
 router.get("/dashboard-stats", roleMiddleware("instructor"), getDashboardStatsController);
-
-// GET /api/tutor/earnings (Instructor only)
 router.get("/earnings", roleMiddleware("instructor"), getEarningsController);
 
+// Course Authoring Wizard & Review Pipeline
+router.post("/courses", roleMiddleware("instructor"), createCourseDraft);
+router.get("/courses", roleMiddleware("instructor"), getInstructorCourses);
+router.get("/courses/:id", roleMiddleware("instructor"), getInstructorCourseById);
+router.put("/courses/:id", roleMiddleware("instructor"), updateCourseDraft);
+router.post("/courses/:id/submit", roleMiddleware("instructor"), submitCourseForReview);
+router.post("/courses/:id/appeal", roleMiddleware("instructor"), appealCourseRejection);
+
 export default router;
+

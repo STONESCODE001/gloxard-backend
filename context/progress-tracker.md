@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`07-tutor-onboarding-analytics.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/07-tutor-onboarding-analytics.md)
+> Current Active Spec: [`08-course-authoring-review-pipeline.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/08-course-authoring-review-pipeline.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [ ] Milestone 3 (Unit 07: Tutor Onboarding & Analytics) **IN PROGRESS**.
+- [x] Milestone 4 (Unit 08: 5-Step Course Authoring Wizard & Review Pipeline) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -36,8 +36,8 @@
     - [x] Full Profile Update with Collision Prevention & Nested Object Preservation implemented.
 - [x] **Unit 05**: Course Taxonomy & Category Management [COMPLETED & VERIFIED]
 - [x] **Unit 06**: Course Catalog & Public Discovery (with Content Protection) [COMPLETED & VERIFIED]
-- [/] **Unit 07**: Tutor Onboarding & Analytics [IN PROGRESS]
-- [ ] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline
+- [x] **Unit 07**: Tutor Onboarding & Analytics [COMPLETED & VERIFIED]
+- [x] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline [COMPLETED & VERIFIED]
 - [ ] **Unit 09**: Admin Moderation, User Management & Platform Operations
 - [ ] **Unit 10**: Course Enrollments & Paystack Payment Verification
 - [ ] **Unit 11**: Idempotent Paystack Webhook Processing
@@ -168,12 +168,26 @@
 - [x] `GET /api/courses (filters & search)`: Filters courses by search, category, courseType, level, minPrice/maxPrice, and sort.
 - [x] `GET /api/courses/:slugOrId (content shield)`: Redacts video URLs for non-free preview lessons and strips quiz answers for un-enrolled callers.
 - [x] `GET /api/courses/:slugOrId (not found)`: Returns 404 {"error": "Course not found"}.
-- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `courses` and `courses/:slugOrId`.
+- [x] `POST /api/tutor/showcase-expertise (unauthenticated)`: Returns `401 {"error": "Authentication token missing or malformed"}`.
+- [x] `POST /api/tutor/showcase-expertise (validation)`: Returns `400 {"error": "Area of expertise and expertise bio are required"}`.
+- [x] `POST /api/tutor/showcase-expertise (valid)`: Updates profile, sets `approvalStatus: "pending"`, upgrades student role to `instructor`, returns `200 OK` with updated user object retaining `_id`.
+- [x] `GET /api/tutor/dashboard-stats (student)`: Returns `403 {"error": "Access denied. Instructor role required"}`.
+- [x] `GET /api/tutor/dashboard-stats (instructor)`: Returns `200 OK` with `totalCourses`, `publishedCourses`, `pendingCourses`, `draftCourses`, `totalStudents`, `averageRating`, and `totalRevenue`.
+- [x] `GET /api/tutor/earnings (student)`: Returns `403 {"error": "Access denied. Instructor role required"}`.
+- [x] `GET /api/tutor/earnings (instructor)`: Returns `200 OK` with `totalEarnings`, `withdrawableBalance`, `pendingBalance`, `monthlyBreakdown`, and `recentTransactions`.
+- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `showcase-expertise`, `dashboard-stats`, `earnings`, and course authoring wizard.
+- [x] `POST /api/tutor/courses (draft creation)`: Creates step 1 draft course with auto-slug generation (`201 Created`). Validates required fields (`400 Bad Request`).
+- [x] `PUT /api/tutor/courses/:id (incremental updates)`: Incrementally updates steps 2-4 content for draft/rejected courses (`200 OK`). Restricts edits on pending/published courses (`400 Bad Request`).
+- [x] `GET /api/tutor/courses (instructor directory)`: Returns list of instructor's owned courses across all status lifecycles (`200 OK`).
+- [x] `GET /api/tutor/courses/:id (unshielded author preview)`: Returns full unshielded draft preview including video URLs and quiz answers for course owner (`200 OK`). Restricts non-owners (`403 Forbidden`).
+- [x] `POST /api/tutor/courses/:id/submit (review submission)`: Validates 5-step completeness before transitioning status to `pending` (`200 OK`). Rejects incomplete courses (`400 Bad Request`).
+- [x] `POST /api/tutor/courses/:id/appeal (rejection appeal)`: Submits rejection appeal creating `Appeal` document for `rejected` courses (`201 Created`). Rejects appeals on non-rejected courses (`400 Bad Request`).
 
 ---
 
 ## Next Up
-- **Unit 07**: Tutor Onboarding & Analytics
+- **Unit 09**: Admin Moderation, User Management & Platform Operations
+
 
 ---
 

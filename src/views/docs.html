@@ -394,6 +394,8 @@
 
     .pill-post { background: var(--info-bg); color: var(--info-text); }
     .pill-get { background: var(--success-bg); color: var(--success-text); }
+    .pill-put { background: var(--warning-bg); color: var(--warning-text); }
+
 
     /* Main Content Column */
     main.content-area {
@@ -1024,9 +1026,40 @@
               <span class="nav-method-pill pill-get">GET</span> Tutor Earnings
             </a>
           </li>
+          <li>
+            <a href="#ep-create-course-draft" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Draft Course
+            </a>
+          </li>
+          <li>
+            <a href="#ep-update-course-draft" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Course Draft
+            </a>
+          </li>
+          <li>
+            <a href="#ep-get-instructor-courses" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Instructor Courses
+            </a>
+          </li>
+          <li>
+            <a href="#ep-get-instructor-course-by-id" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Preview Course Draft
+            </a>
+          </li>
+          <li>
+            <a href="#ep-submit-course" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Course for Review
+            </a>
+          </li>
+          <li>
+            <a href="#ep-appeal-course" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Appeal Course Rejection
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
+
 
     <!-- Main Content Area -->
     <main class="content-area">
@@ -2530,6 +2563,417 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION 8: 5-Step Course Authoring Wizard & Review Pipeline -->
+      <section class="doc-section" id="course-authoring">
+        <div class="section-header">
+          <h2 class="section-heading">Section 8. 5-Step Course Authoring Wizard & Review Pipeline</h2>
+        </div>
+        <p>
+          Comprehensive 5-step incremental course creation, management, preview, submission, and appeal pipeline. Instructors can create drafts, incrementally update content across wizard steps, view unshielded draft previews, submit for admin review upon full completeness validation, and appeal rejected courses.
+        </p>
+      </section>
+
+      <!-- 21. POST /api/tutor/courses -->
+      <div class="endpoint-card" id="ep-create-course-draft" data-search="create course draft initial step 1 title category courseType price tutor post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/tutor/courses</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Step 1: Initializes a new course draft record with basic info (title, category, courseType) and assigns <code>status: "draft"</code>, auto-generating a clean unique slug.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                  <th>Required</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>title</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">REQUIRED</span></td>
+                  <td>Full title of the course (min length 1)</td>
+                </tr>
+                <tr>
+                  <td><code>category</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">REQUIRED</span></td>
+                  <td>Taxonomy category name</td>
+                </tr>
+                <tr>
+                  <td><code>courseType</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">REQUIRED</span></td>
+                  <td>Pricing tier: <code>free</code>, <code>paid</code>, or <code>trimester</code></td>
+                </tr>
+                <tr>
+                  <td><code>subtitle</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Short course subtitle</td>
+                </tr>
+                <tr>
+                  <td><code>subCategory</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Taxonomy sub-category name</td>
+                </tr>
+                <tr>
+                  <td><code>topic</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Specific topic focus</td>
+                </tr>
+                <tr>
+                  <td><code>language</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Course language (defaults to "English")</td>
+                </tr>
+                <tr>
+                  <td><code>level</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Level: <code>beginner</code>, <code>intermediate</code>, <code>advanced</code>, <code>all-levels</code></td>
+                </tr>
+                <tr>
+                  <td><code>price</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Price in NGN (required if courseType is paid)</td>
+                </tr>
+                <tr>
+                  <td><code>discountPrice</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">OPTIONAL</span></td>
+                  <td>Discounted sale price in NGN</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload Example</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "title": "Complete Full-Stack Web Development BootCamp",
+  "subtitle": "Master React, Node.js, Express, and MongoDB from scratch",
+  "category": "Development & Engineering",
+  "subCategory": "Web Development",
+  "topic": "Full-Stack",
+  "language": "English",
+  "level": "beginner",
+  "courseType": "paid",
+  "price": 25000,
+  "discountPrice": 18000
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span>201 Created Response</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Course draft created successfully",
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Complete Full-Stack Web Development BootCamp",
+    "subtitle": "Master React, Node.js, Express, and MongoDB from scratch",
+    "slug": "complete-full-stack-web-development-bootcamp",
+    "category": "Development & Engineering",
+    "subCategory": "Web Development",
+    "topic": "Full-Stack",
+    "language": "English",
+    "level": "beginner",
+    "courseType": "paid",
+    "price": 25000,
+    "discountPrice": 18000,
+    "status": "draft",
+    "instructor": "651a2b3c4d5e6f7a8b9c0d10",
+    "modules": [],
+    "createdAt": "2026-10-01T20:45:00.000Z",
+    "updatedAt": "2026-10-01T20:45:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 22. PUT /api/tutor/courses/:id -->
+      <div class="endpoint-card" id="ep-update-course-draft" data-search="update course draft incremental wizard steps modules lessons quizzes thumbnail description skills put tutor">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post" style="background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border);">PUT</span>
+          <span class="endpoint-uri">/api/tutor/courses/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Owner)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Steps 2–4: Incrementally updates course content (thumbnail, trailer, description, skills, target audience, requirements, modules, lessons, quizzes, welcome/congrats messages). Edits allowed only for <code>draft</code> or <code>rejected</code> courses.
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload Example (Steps 2–4)</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "thumbnail": "https://gloxad-media.s3.amazonaws.com/courses/thumbnails/fullstack.jpg",
+  "trailerVideoUrl": "https://gloxad-media.s3.amazonaws.com/courses/trailers/fullstack-promo.mp4",
+  "description": "Comprehensive step-by-step guide to building modern full-stack web applications...",
+  "skills": ["JavaScript", "Node.js", "React", "MongoDB", "Express.js"],
+  "targetAudience": ["Aspiring Web Developers", "CS Students"],
+  "requirements": ["Basic computer literacy"],
+  "modules": [
+    {
+      "title": "Module 1: Introduction to Web Architecture",
+      "lessons": [
+        {
+          "title": "Lesson 1: How the Web Works",
+          "duration": "12:45",
+          "isFreePreview": true,
+          "videoUrl": "https://gloxad-media.s3.amazonaws.com/courses/videos/lesson1.mp4"
+        }
+      ],
+      "quizzes": [
+        {
+          "title": "Module 1 Quiz",
+          "passingScore": 70,
+          "questions": [
+            {
+              "questionText": "What protocol does HTTP build upon?",
+              "options": ["UDP", "TCP", "ICMP", "FTP"],
+              "correctOptionIndex": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "welcomeMessage": "Welcome to the Complete Full-Stack BootCamp!",
+  "congratsMessage": "Congratulations on completing the course!"
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span>200 OK Response</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Course draft updated successfully",
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Complete Full-Stack Web Development BootCamp",
+    "slug": "complete-full-stack-web-development-bootcamp",
+    "status": "draft",
+    "updatedAt": "2026-10-01T20:50:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 23. GET /api/tutor/courses -->
+      <div class="endpoint-card" id="ep-get-instructor-courses" data-search="get instructor courses list directory status lifecycle draft pending published rejected get tutor">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/courses</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves all courses created by the authenticated instructor across all status lifecycles (<code>draft</code>, <code>pending</code>, <code>published</code>, <code>rejected</code>).
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "courses": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d20",
+      "title": "Complete Full-Stack Web Development BootCamp",
+      "slug": "complete-full-stack-web-development-bootcamp",
+      "category": "Development & Engineering",
+      "courseType": "paid",
+      "price": 25000,
+      "status": "draft",
+      "enrolledCount": 0,
+      "createdAt": "2026-10-01T20:45:00.000Z",
+      "updatedAt": "2026-10-01T20:50:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 24. GET /api/tutor/courses/:id -->
+      <div class="endpoint-card" id="ep-get-instructor-course-by-id" data-search="get instructor course by id unshielded preview author draft videoUrl correctOptionIndex get tutor">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/courses/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Owner)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Returns full course object for author preview. Unlike public discovery endpoints, this returns <strong>UNSHIELDED</strong> data (<code>videoUrl</code> and <code>correctOptionIndex</code> included for all lessons/quizzes).
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example (Unshielded)</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Complete Full-Stack Web Development BootCamp",
+    "slug": "complete-full-stack-web-development-bootcamp",
+    "status": "draft",
+    "modules": [
+      {
+        "_id": "651a2b3c4d5e6f7a8b9c0d21",
+        "title": "Module 1: Introduction to Web Architecture",
+        "lessons": [
+          {
+            "_id": "651a2b3c4d5e6f7a8b9c0d22",
+            "title": "Lesson 1: How the Web Works",
+            "duration": "12:45",
+            "isFreePreview": true,
+            "videoUrl": "https://gloxad-media.s3.amazonaws.com/courses/videos/lesson1.mp4"
+          }
+        ],
+        "quizzes": [
+          {
+            "_id": "651a2b3c4d5e6f7a8b9c0d24",
+            "title": "Module 1 Quiz",
+            "passingScore": 70,
+            "questions": [
+              {
+                "_id": "651a2b3c4d5e6f7a8b9c0d25",
+                "questionText": "What protocol does HTTP build upon?",
+                "options": ["UDP", "TCP", "ICMP", "FTP"],
+                "correctOptionIndex": 1
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "welcomeMessage": "Welcome to the Complete Full-Stack BootCamp!",
+    "congratsMessage": "Congratulations on completing the course!",
+    "instructor": "651a2b3c4d5e6f7a8b9c0d10"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 25. POST /api/tutor/courses/:id/submit -->
+      <div class="endpoint-card" id="ep-submit-course" data-search="submit course review moderation step 5 completeness validation pending status post tutor">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/tutor/courses/:id/submit</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Owner)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Step 5: Validates completeness across all 5 wizard steps (basic info, thumbnail & 20+ char description & skills, modules & lesson video, welcome & congrats messages) and transitions course status to <code>pending</code> for admin review.
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>200 OK Success Response</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Course submitted successfully for administrative review",
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Complete Full-Stack Web Development BootCamp",
+    "status": "pending",
+    "updatedAt": "2026-10-01T20:55:00.000Z"
+  }
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span>400 Bad Request Error Example</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "error": "Course incomplete: At least one module with a lesson video is required before submitting for review"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 26. POST /api/tutor/courses/:id/appeal -->
+      <div class="endpoint-card" id="ep-appeal-course" data-search="appeal rejected course rejection message admin review post tutor">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/tutor/courses/:id/appeal</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Owner)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Submits an appeal message for a course that was rejected during moderation. Creates a new <code>Appeal</code> document in MongoDB with <code>status: "pending"</code>.
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload Example</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "I have updated Module 2 lesson videos and improved course description clarity as requested in moderation feedback."
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span>201 Created Response</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Course rejection appeal submitted successfully",
+  "appeal": {
+    "_id": "651a2b3c4d5e6f7a8b9c0f80",
+    "courseId": "651a2b3c4d5e6f7a8b9c0d20",
+    "instructorId": "651a2b3c4d5e6f7a8b9c0d10",
+    "message": "I have updated Module 2 lesson videos and improved course description clarity...",
+    "status": "pending",
+    "createdAt": "2026-10-01T21:00:00.000Z",
+    "updatedAt": "2026-10-01T21:00:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -2575,8 +3019,16 @@ Accept: application/json</code></pre>
         <li><a href="#ep-showcase-expertise" class="toc-link">POST /tutor/showcase-expertise</a></li>
         <li><a href="#ep-dashboard-stats" class="toc-link">GET /tutor/dashboard-stats</a></li>
         <li><a href="#ep-earnings" class="toc-link">GET /tutor/earnings</a></li>
+        <li><a href="#course-authoring" class="toc-link">Course Authoring & Review</a></li>
+        <li><a href="#ep-create-course-draft" class="toc-link">POST /tutor/courses</a></li>
+        <li><a href="#ep-update-course-draft" class="toc-link">PUT /tutor/courses/:id</a></li>
+        <li><a href="#ep-get-instructor-courses" class="toc-link">GET /tutor/courses</a></li>
+        <li><a href="#ep-get-instructor-course-by-id" class="toc-link">GET /tutor/courses/:id</a></li>
+        <li><a href="#ep-submit-course" class="toc-link">POST /tutor/courses/:id/submit</a></li>
+        <li><a href="#ep-appeal-course" class="toc-link">POST /tutor/courses/:id/appeal</a></li>
       </ul>
     </aside>
+
 
   </div>
 

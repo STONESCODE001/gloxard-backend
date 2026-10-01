@@ -112,5 +112,15 @@ courseSchema.index({
   skills: "text"
 });
 
+export const generateSlug = (title) => {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
 export const Course = mongoose.models.Course || mongoose.model("Course", courseSchema);
 export default Course;
+

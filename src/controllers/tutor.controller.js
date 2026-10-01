@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { User } from "../models/User.model.js";
-import { Course } from "../models/Course.model.js";
+import { Course, generateSlug } from "../models/Course.model.js";
+import { Appeal } from "../models/Appeal.model.js";
 
 /**
  * @desc    Submit tutor qualification credentials for admin verification & upgrade student role to instructor
@@ -237,3 +238,249 @@ export const getEarningsController = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * POST /api/tutor/courses
+ * Step 1: Create Initial Course Draft
+ */
+export const createCourseDraft = async (req, res, next) => {
+  try {
+    const { title, subtitle, category, subCategory, topic, language, level, courseType, price, discountPrice } = req.body || {};
+
+    if (!title || !category || !courseType) {
+      return res.status(400).json({ error: "Title, category, and course type are required" });
+    }
+
+    let baseSlug = generateSlug(title);
+    let slug = baseSlug;
+    let count = 1;
+    while (await Course.exists({ slug })) {
+      slug = `${baseSlug}-${count++}`;
+    }
+
+    const course = await Course.create({
+      title,
+      subtitle: subtitle || "",
+      slug,
+      category,
+      subCategory: subCategory || "",
+      topic: topic || "",
+      language: language || "English",
+      level: level || "beginner",
+      courseType: courseType.toLowerCase(),
+      price: courseType === "free" ? 0 : Number(price) || 0,
+      discountPrice: discountPrice ? Number(discountPrice) : 0,
+      status: "draft",
+      instructor: req.user._id
+    });
+
+    return res.status(201).json({
+      message: "Course draft created successfully",
+      course
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PUT /api/tutor/courses/:id
+ * Steps 2–4: Incremental Wizard Update
+ */
+export const updateCourseDraft = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ error: "You do not have permission to edit this course" });
+    }
+
+    if (["pending", "published"].includes(course.status)) {
+      return res.status(400).json({ error: "Cannot edit a course that is currently pending review or published" });
+    }
+
+    const updateFields = { ...req.body };
+
+    if (updateFields.title && updateFields.title !== course.title) {
+      let baseSlug = generateSlug(updateFields.title);
+      let slug = baseSlug;
+      let count = 1;
+      while (await Course.exists({ slug, _id: { $ne: course._id } })) {
+        slug = `${baseSlug}-${count++}`;
+      }
+      updateFields.slug = slug;
+    }
+
+    delete updateFields.status;
+    delete updateFields.instructor;
+
+    const updatedCourse = await Course.findByIdAndUpdate(id, { $set: updateFields }, { returnDocument: "after", runValidators: true });
+
+    return res.status(200).json({
+      message: "Course draft updated successfully",
+      course: updatedCourse
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tutor/courses
+ * List Instructor Owned Courses
+ */
+export const getInstructorCourses = async (req, res, next) => {
+  try {
+    const courses = await Course.find({ instructor: req.user._id })
+      .sort({ createdAt: -1 })
+      .select("title slug category courseType price status enrolledCount createdAt updatedAt")
+      .lean();
+
+    return res.status(200).json({ courses });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tutor/courses/:id
+ * Unshielded Author Draft Preview
+ */
+export const getInstructorCourseById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id).lean();
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ error: "You do not have permission to view this course draft" });
+    }
+
+    return res.status(200).json({ course });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/tutor/courses/:id/submit
+ * Step 5: Submit Course for Admin Moderation
+ */
+export const submitCourseForReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    if (course.instructor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "You do not have permission to submit this course" });
+    }
+
+    // Step 1 Validation
+    if (!course.title || !course.category || !course.courseType) {
+      return res.status(400).json({ error: "Course incomplete: Step 1 basic info (title, category, courseType) is required" });
+    }
+    if (course.courseType === "paid" && (!course.price || course.price <= 0)) {
+      return res.status(400).json({ error: "Course incomplete: Paid courses must have a price greater than 0" });
+    }
+
+    // Step 2 Validation
+    if (!course.thumbnail || !course.description || course.description.trim().length < 20) {
+      return res.status(400).json({ error: "Course incomplete: Step 2 thumbnail and detailed description (at least 20 chars) are required" });
+    }
+    if (!Array.isArray(course.skills) || course.skills.length === 0) {
+      return res.status(400).json({ error: "Course incomplete: Step 2 requires at least one target skill" });
+    }
+
+    // Step 3 Validation
+    if (!Array.isArray(course.modules) || course.modules.length === 0) {
+      return res.status(400).json({ error: "Course incomplete: Step 3 requires at least one curriculum module" });
+    }
+    const hasLesson = course.modules.some(mod => Array.isArray(mod.lessons) && mod.lessons.length > 0 && mod.lessons.some(l => l.videoUrl && l.videoUrl.trim() !== ""));
+    if (!hasLesson) {
+      return res.status(400).json({ error: "Course incomplete: At least one module with a lesson video is required before submitting for review" });
+    }
+
+    // Step 4 Validation
+    if (!course.welcomeMessage || !course.congratsMessage) {
+      return res.status(400).json({ error: "Course incomplete: Step 4 welcome and congratulations messages are required" });
+    }
+
+    course.status = "pending";
+    await course.save();
+
+    return res.status(200).json({
+      message: "Course submitted successfully for administrative review",
+      course
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/tutor/courses/:id/appeal
+ * Submit Appeal for Rejected Course
+ */
+export const appealCourseRejection = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body || {};
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    if (course.instructor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: "You do not have permission to appeal for this course" });
+    }
+
+    if (course.status !== "rejected") {
+      return res.status(400).json({ error: "Appeals can only be submitted for rejected courses" });
+    }
+
+    if (!message || message.trim() === "") {
+      return res.status(400).json({ error: "Appeal message is required" });
+    }
+
+    const appeal = await Appeal.create({
+      courseId: course._id,
+      instructorId: req.user._id,
+      message: message.trim(),
+      status: "pending"
+    });
+
+    return res.status(201).json({
+      message: "Course rejection appeal submitted successfully",
+      appeal
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
