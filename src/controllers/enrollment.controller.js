@@ -106,7 +106,12 @@ export const checkoutPaidCourse = async (req, res, next) => {
     }
 
     // Verify transaction with Paystack API
-    const paystackData = await verifyPaystackTransaction(reference);
+    let paystackData;
+    try {
+      paystackData = await verifyPaystackTransaction(reference);
+    } catch (paystackErr) {
+      return res.status(400).json({ error: `Paystack transaction verification failed: ${paystackErr.message}` });
+    }
 
     if (!paystackData || paystackData.status !== 'success') {
       return res.status(400).json({ error: 'Payment verification failed: Transaction was not successful' });

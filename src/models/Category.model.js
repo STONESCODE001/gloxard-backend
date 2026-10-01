@@ -52,6 +52,7 @@ const categorySchema = new mongoose.Schema(
       virtuals: true,
       transform: function (doc, ret) {
         delete ret.__v;
+        delete ret.id;
         return ret;
       }
     }

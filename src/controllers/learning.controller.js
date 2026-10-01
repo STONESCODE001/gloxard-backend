@@ -9,7 +9,8 @@ import { Question, Note, Announcement } from '../models/QuestionNoteMisc.model.j
  */
 export const updateProgressController = async (req, res, next) => {
   try {
-    const { lessonId, playbackPosition, isCompleted } = req.body;
+    const { lessonId, playbackPosition } = req.body;
+    const isCompleted = req.body.isCompleted ?? req.body.completed;
 
     if (!lessonId) {
       return res.status(400).json({ error: 'lessonId is required' });
@@ -141,15 +142,18 @@ export const submitQuizController = async (req, res, next) => {
     const breakdown = [];
 
     if (quiz.questions && quiz.questions.length > 0) {
-      for (const question of quiz.questions) {
+      quiz.questions.forEach((question, index) => {
+        let selectedOptionIndex = null;
+
         const userAns = answers.find(
-          (a) => a.questionId && a.questionId.toString() === question._id.toString()
+          (a) => typeof a === 'object' && a !== null && a.questionId && a.questionId.toString() === question._id.toString()
         );
 
-        const selectedOptionIndex =
-          userAns && typeof userAns.selectedOptionIndex === 'number'
-            ? userAns.selectedOptionIndex
-            : null;
+        if (userAns && typeof userAns.selectedOptionIndex === 'number') {
+          selectedOptionIndex = userAns.selectedOptionIndex;
+        } else if (typeof answers[index] === 'number') {
+          selectedOptionIndex = answers[index];
+        }
 
         const isCorrect =
           selectedOptionIndex !== null && selectedOptionIndex === question.correctOptionIndex;
@@ -163,7 +167,7 @@ export const submitQuizController = async (req, res, next) => {
           selectedOptionIndex,
           isCorrect,
         });
-      }
+      });
     }
 
     const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;

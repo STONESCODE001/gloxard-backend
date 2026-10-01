@@ -179,6 +179,7 @@ const userSchema = new Schema(
       transform: function (doc, ret) {
         delete ret.password;
         delete ret.__v;
+        delete ret.id;
         ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
         ret.biography = ret.biography || ret.bio || "";
         ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";
@@ -195,6 +196,7 @@ const userSchema = new Schema(
       transform: function (doc, ret) {
         delete ret.password;
         delete ret.__v;
+        delete ret.id;
         ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
         ret.biography = ret.biography || ret.bio || "";
         ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";

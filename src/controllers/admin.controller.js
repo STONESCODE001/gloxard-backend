@@ -174,7 +174,8 @@ export const deactivateUserController = async (req, res, next) => {
  */
 export const moderateTutorApprovalController = async (req, res, next) => {
   try {
-    const { status, rejectionReason } = req.body;
+    const { rejectionReason } = req.body;
+    const status = req.body.status || req.body.approvalStatus;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
       return res.status(400).json({ error: 'Status must be approved or rejected' });
