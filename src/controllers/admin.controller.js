@@ -1,0 +1,521 @@
+import User from '../models/User.model.js';
+import Course from '../models/Course.model.js';
+import Appeal from '../models/Appeal.model.js';
+import Notification from '../models/Notification.model.js';
+import Enrollment from '../models/Enrollment.model.js';
+import Transaction from '../models/Transaction.model.js';
+
+/**
+ * 1. GET /api/admin/dashboard-stats
+ * Retrieves high-level platform health metrics.
+ */
+export const getDashboardStatsController = async (req, res, next) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalStudents = await User.countDocuments({ role: 'student' });
+    const totalInstructors = await User.countDocuments({ role: 'instructor' });
+    const pendingTutors = await User.countDocuments({ approvalStatus: 'pending' });
+
+    const totalCourses = await Course.countDocuments();
+    const publishedCourses = await Course.countDocuments({ status: 'published' });
+    const pendingCourses = await Course.countDocuments({ status: 'pending' });
+    const rejectedCourses = await Course.countDocuments({ status: 'rejected' });
+
+    const totalEnrollments = await Enrollment.countDocuments();
+
+    const revenueResult = await Transaction.aggregate([
+      { $match: { status: 'success' } },
+      { $group: { _id: null, total: { $sum: '$amount' } } }
+    ]);
+    const grossRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+    return res.status(200).json({
+      stats: {
+        totalUsers,
+        totalStudents,
+        totalInstructors,
+        pendingTutors,
+        totalCourses,
+        publishedCourses,
+        pendingCourses,
+        rejectedCourses,
+        totalEnrollments,
+        grossRevenue
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 2. GET /api/admin/recent-registrations
+ * Retrieves recent user registrations sorted descending.
+ */
+export const getRecentRegistrationsController = async (req, res, next) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .select('-password');
+
+    return res.status(200).json({
+      users,
+      count: users.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 3. GET /api/admin/recent-transactions
+ * Retrieves recent financial transactions with user and course metadata.
+ */
+export const getRecentTransactionsController = async (req, res, next) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+
+    const transactions = await Transaction.find()
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate('user', 'firstName lastName email')
+      .populate('course', 'title');
+
+    return res.status(200).json({
+      transactions,
+      count: transactions.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 4. GET /api/admin/users
+ * Searchable, paginated user directory.
+ */
+export const getUsersController = async (req, res, next) => {
+  try {
+    const { role, status, search } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const filter = {};
+    if (role) filter.role = role;
+    if (status) filter.approvalStatus = status;
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [{ firstName: regex }, { lastName: regex }, { email: regex }];
+    }
+
+    const total = await User.countDocuments(filter);
+    const users = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .select('-password');
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      users,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 5. DELETE /api/admin/users/:id
+ * Deactivates (soft-deletes) a user account. Guards active admin self-deactivation.
+ */
+export const deactivateUserController = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+
+    if (userId === req.user._id.toString()) {
+      return res.status(400).json({ error: 'Cannot deactivate your own admin account' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User account not found' });
+    }
+
+    user.isDeactivated = true;
+    user.isActive = false;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'User account deactivated successfully',
+      user: {
+        _id: user._id,
+        email: user.email,
+        isDeactivated: true
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 6. PUT /api/admin/tutors/:id/approval
+ * Moderates tutor application (approve/reject).
+ */
+export const moderateTutorApprovalController = async (req, res, next) => {
+  try {
+    const { status, rejectionReason } = req.body;
+
+    if (!status || !['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be approved or rejected' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User account not found' });
+    }
+
+    user.approvalStatus = status;
+    if (status === 'approved') {
+      user.role = 'instructor';
+    } else if (status === 'rejected') {
+      user.rejectionReason = rejectionReason || null;
+    }
+    await user.save();
+
+    return res.status(200).json({
+      message: `Tutor application status updated to ${status}`,
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        approvalStatus: user.approvalStatus,
+        updatedAt: user.updatedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 7. GET /api/admin/courses/pending
+ * Retrieves courses awaiting admin moderation.
+ */
+export const getPendingCoursesController = async (req, res, next) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const filter = { status: 'pending' };
+    const total = await Course.countDocuments(filter);
+    const courses = await Course.find(filter)
+      .populate('instructor', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      courses,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 8. GET /api/admin/courses/all
+ * Retrieves all courses with status and search filter.
+ */
+export const getAllCoursesController = async (req, res, next) => {
+  try {
+    const { status, search } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const filter = {};
+    if (status) filter.status = status;
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [{ title: regex }, { topic: regex }, { subtitle: regex }];
+    }
+
+    const total = await Course.countDocuments(filter);
+    const courses = await Course.find(filter)
+      .populate('instructor', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      courses,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 9. PUT /api/admin/courses/:id/status
+ * Moderates course status (publish / reject).
+ */
+export const moderateCourseStatusController = async (req, res, next) => {
+  try {
+    const { status, rejectionReason } = req.body;
+
+    if (!status || !['published', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be published or rejected' });
+    }
+
+    if (status === 'rejected' && (!rejectionReason || !rejectionReason.trim())) {
+      return res.status(400).json({ error: 'Rejection reason is required when rejecting a course' });
+    }
+
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    course.status = status;
+    course.rejectionReason = status === 'rejected' ? rejectionReason.trim() : null;
+    course.reviewedAt = new Date();
+    course.reviewedBy = req.user._id;
+    await course.save();
+
+    return res.status(200).json({
+      message: `Course status updated to ${status} successfully`,
+      course: {
+        _id: course._id,
+        title: course.title,
+        status: course.status,
+        rejectionReason: course.rejectionReason,
+        reviewedAt: course.reviewedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 10. GET /api/admin/appeals
+ * Retrieves course rejection appeals.
+ */
+export const getAppealsController = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const filter = {};
+    if (status) filter.status = status;
+
+    const total = await Appeal.countDocuments(filter);
+    const appeals = await Appeal.find(filter)
+      .populate('courseId', 'title status')
+      .populate('instructorId', 'firstName lastName email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      appeals,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 11. PUT /api/admin/appeals/:id/status
+ * Moderates appeal status (resolve / dismiss).
+ */
+export const moderateAppealStatusController = async (req, res, next) => {
+  try {
+    const { status, resolutionNotes } = req.body;
+
+    if (!status || !['resolved', 'dismissed'].includes(status)) {
+      return res.status(400).json({ error: 'Status must be resolved or dismissed' });
+    }
+
+    const appeal = await Appeal.findById(req.params.id);
+    if (!appeal) {
+      return res.status(404).json({ error: 'Course appeal not found' });
+    }
+
+    appeal.status = status;
+    appeal.resolutionNotes = resolutionNotes || appeal.resolutionNotes || null;
+    appeal.adminNotes = resolutionNotes || appeal.adminNotes || '';
+    await appeal.save();
+
+    // If appeal resolved and notes indicate publication, optionally update course status
+    if (status === 'resolved' && appeal.courseId) {
+      const course = await Course.findById(appeal.courseId);
+      if (course && course.status === 'rejected') {
+        course.status = 'pending';
+        await course.save();
+      }
+    }
+
+    return res.status(200).json({
+      message: 'Course appeal status updated successfully',
+      appeal: {
+        _id: appeal._id,
+        status: appeal.status,
+        resolutionNotes: appeal.resolutionNotes,
+        updatedAt: appeal.updatedAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 12. GET /api/admin/finance
+ * Aggregates platform financial metrics.
+ */
+export const getFinanceMetricsController = async (req, res, next) => {
+  try {
+    const aggregateResult = await Transaction.aggregate([
+      { $match: { status: 'success' } },
+      {
+        $group: {
+          _id: null,
+          grossRevenue: { $sum: '$amount' },
+          platformCommission: { $sum: '$platformShare' },
+          instructorPayoutsTotal: { $sum: '$instructorShare' },
+          totalSuccessfulTransactions: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const stats = aggregateResult.length > 0 ? aggregateResult[0] : {
+      grossRevenue: 0,
+      platformCommission: 0,
+      instructorPayoutsTotal: 0,
+      totalSuccessfulTransactions: 0
+    };
+
+    // Monthly breakdown
+    const monthlyBreakdown = await Transaction.aggregate([
+      { $match: { status: 'success' } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+          revenue: { $sum: '$amount' },
+          transactions: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: -1 } },
+      {
+        $project: {
+          _id: 0,
+          month: '$_id',
+          revenue: 1,
+          transactions: 1
+        }
+      }
+    ]);
+
+    return res.status(200).json({
+      finance: {
+        grossRevenue: stats.grossRevenue,
+        platformCommission: stats.platformCommission || Math.round(stats.grossRevenue * 0.3),
+        instructorPayoutsTotal: stats.instructorPayoutsTotal || Math.round(stats.grossRevenue * 0.7),
+        currency: 'NGN',
+        totalSuccessfulTransactions: stats.totalSuccessfulTransactions,
+        monthlyBreakdown
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 13. POST /api/admin/broadcast
+ * Dispatches broadcast notification to targeted user roles.
+ */
+export const broadcastNotificationController = async (req, res, next) => {
+  try {
+    const { targetRole, title, message, link } = req.body;
+
+    if (!targetRole || !['all', 'student', 'instructor'].includes(targetRole)) {
+      return res.status(400).json({ error: 'Target role must be all, student, or instructor' });
+    }
+
+    if (!title || !title.trim() || !message || !message.trim()) {
+      return res.status(400).json({ error: 'Title and message are required' });
+    }
+
+    const userQuery = {};
+    if (targetRole !== 'all') {
+      userQuery.role = targetRole;
+    }
+
+    const targetUsers = await User.find(userQuery, '_id');
+    const dispatchedCount = targetUsers.length;
+
+    if (dispatchedCount > 0) {
+      const notificationDocs = targetUsers.map((u) => ({
+        recipient: u._id,
+        targetRole,
+        title: title.trim(),
+        message: message.trim(),
+        link: link || null,
+        type: 'system_broadcast'
+      }));
+
+      await Notification.insertMany(notificationDocs);
+    }
+
+    return res.status(201).json({
+      message: `Broadcast notification dispatched successfully to ${dispatchedCount} users`,
+      broadcast: {
+        targetRole,
+        title: title.trim(),
+        dispatchedCount,
+        createdAt: new Date()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -82,6 +82,14 @@ const userSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    isDeactivated: {
+      type: Boolean,
+      default: false,
+    },
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
     avatarUrl: {
       type: String,
       default: "",

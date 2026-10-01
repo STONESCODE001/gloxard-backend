@@ -2974,6 +2974,505 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION 9: Admin Moderation, User Management & Platform Operations -->
+      <section class="doc-section" id="admin-operations">
+        <div class="section-header">
+          <h2 class="section-heading">Section 9. Admin Moderation, User Management & Platform Operations</h2>
+        </div>
+        <p>
+          Administrative moderation suite restricted strictly to accounts with the <code>admin</code> role. Enforces RBAC protection (HTTP 403 Forbidden for non-admin callers), user lifecycle management, tutor application reviews, course catalog moderation, appeal resolutions, financial analytics, and broadcast notifications.
+        </p>
+      </section>
+
+      <!-- 27. GET /api/admin/dashboard-stats -->
+      <div class="endpoint-card" id="ep-admin-dashboard-stats" data-search="admin dashboard stats platform metrics counts users students instructors tutors courses gross revenue get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/dashboard-stats</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves high-level platform health metrics including user counts, course status breakdown, pending tutor applications, total enrollments, and gross financial volume.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "stats": {
+    "totalUsers": 1250,
+    "totalStudents": 1100,
+    "totalInstructors": 145,
+    "pendingTutors": 8,
+    "totalCourses": 64,
+    "publishedCourses": 48,
+    "pendingCourses": 12,
+    "rejectedCourses": 4,
+    "totalEnrollments": 3420,
+    "grossRevenue": 4850000
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 28. GET /api/admin/recent-registrations -->
+      <div class="endpoint-card" id="ep-admin-recent-registrations" data-search="admin recent registrations users limit query get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/recent-registrations</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves the most recently created user accounts sorted descending by creation date. Supports <code>?limit=10</code> (default 10, max 50).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "users": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d12",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane.doe@example.com",
+      "role": "student",
+      "approvalStatus": "approved",
+      "isVerified": true,
+      "isDeactivated": false,
+      "createdAt": "2026-10-01T20:45:00.000Z"
+    }
+  ],
+  "count": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 29. GET /api/admin/recent-transactions -->
+      <div class="endpoint-card" id="ep-admin-recent-transactions" data-search="admin recent transactions financial payments sales limit query get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/recent-transactions</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves recent financial transactions populated with user and course metadata. Supports <code>?limit=10</code> (default 10, max 50).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "transactions": [
+    {
+      "_id": "651b3c4d5e6f7a8b9c0d1122",
+      "reference": "TX_9876543210",
+      "user": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d12",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "email": "jane.doe@example.com"
+      },
+      "course": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d99",
+        "title": "Full-Stack Node.js Masterclass"
+      },
+      "amount": 25000,
+      "currency": "NGN",
+      "status": "success",
+      "instructorShare": 17500,
+      "platformShare": 7500,
+      "createdAt": "2026-10-01T19:30:00.000Z"
+    }
+  ],
+  "count": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 30. GET /api/admin/users -->
+      <div class="endpoint-card" id="ep-admin-users" data-search="admin users list search filter pagination role status get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/users</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches a paginated, searchable directory of users with filters for <code>role</code> (student, instructor, admin), <code>status</code> (pending, approved, rejected), text <code>search</code>, and pagination (<code>page</code>, <code>limit</code>).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "users": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d10",
+      "firstName": "Alex",
+      "lastName": "Tutor",
+      "email": "alex.tutor@example.com",
+      "role": "instructor",
+      "approvalStatus": "pending",
+      "isVerified": true,
+      "isDeactivated": false,
+      "title": "Senior Full-Stack Instructor",
+      "areaOfExpertise": "Software Engineering",
+      "experienceYears": 6,
+      "createdAt": "2026-09-15T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 31. DELETE /api/admin/users/:id -->
+      <div class="endpoint-card" id="ep-admin-deactivate-user" data-search="admin deactivate user delete soft delete disable account">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-delete">DELETE</span>
+          <span class="endpoint-uri">/api/admin/users/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Deactivates (soft-deletes) a user account. Prevents deactivating the calling admin's own account (returns HTTP 400).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "User account deactivated successfully",
+  "user": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d12",
+    "email": "jane.doe@example.com",
+    "isDeactivated": true
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 32. PUT /api/admin/tutors/:id/approval -->
+      <div class="endpoint-card" id="ep-admin-tutor-approval" data-search="admin tutor approval approve reject status put">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/tutors/:id/approval</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates a tutor applicant's status to <code>approved</code> or <code>rejected</code>. Setting <code>approved</code> updates the user role to <code>instructor</code>.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Tutor application status updated to approved",
+  "user": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d10",
+    "firstName": "Alex",
+    "lastName": "Tutor",
+    "email": "alex.tutor@example.com",
+    "role": "instructor",
+    "approvalStatus": "approved",
+    "updatedAt": "2026-10-01T21:00:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 33. GET /api/admin/courses/pending -->
+      <div class="endpoint-card" id="ep-admin-courses-pending" data-search="admin pending courses review approval moderation get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/courses/pending</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves all course drafts submitted by instructors awaiting admin review (<code>status: "pending"</code>).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "courses": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d99",
+      "title": "Advanced Microservices with Node.js",
+      "slug": "advanced-microservices-with-nodejs",
+      "category": "651a2b3c4d5e6f7a8b9c0d01",
+      "subCategory": "Backend Engineering",
+      "topic": "Microservices",
+      "price": 30000,
+      "courseType": "paid",
+      "status": "pending",
+      "instructor": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d10",
+        "firstName": "Alex",
+        "lastName": "Tutor",
+        "email": "alex.tutor@example.com"
+      },
+      "createdAt": "2026-10-01T18:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 34. GET /api/admin/courses/all -->
+      <div class="endpoint-card" id="ep-admin-courses-all" data-search="admin all courses full catalog status search get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/courses/all</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves the full platform course catalog across all statuses (draft, pending, published, rejected) with search and pagination.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "courses": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d99",
+      "title": "Advanced Microservices with Node.js",
+      "slug": "advanced-microservices-with-nodejs",
+      "status": "published",
+      "instructor": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d10",
+        "firstName": "Alex",
+        "lastName": "Tutor"
+      },
+      "enrolledCount": 150,
+      "rating": {
+        "average": 4.8,
+        "count": 25
+      }
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 35. PUT /api/admin/courses/:id/status -->
+      <div class="endpoint-card" id="ep-admin-course-status" data-search="admin course status publish reject moderate put">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/courses/:id/status</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Moderates course status to <code>published</code> or <code>rejected</code>. Enforces a non-empty <code>rejectionReason</code> when rejecting.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Course status updated to published successfully",
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d99",
+    "title": "Advanced Microservices with Node.js",
+    "status": "published",
+    "rejectionReason": null,
+    "reviewedAt": "2026-10-01T21:10:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 36. GET /api/admin/appeals -->
+      <div class="endpoint-card" id="ep-admin-appeals" data-search="admin appeals course rejection list status get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/appeals</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves course rejection appeals submitted by instructors, supporting status filtering (pending, resolved, dismissed).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "appeals": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d77",
+      "courseId": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d99",
+        "title": "Advanced Microservices with Node.js",
+        "status": "rejected"
+      },
+      "instructorId": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d10",
+        "firstName": "Alex",
+        "lastName": "Tutor",
+        "email": "alex.tutor@example.com"
+      },
+      "message": "We have re-recorded all audio tracks in HD quality as requested.",
+      "status": "pending",
+      "createdAt": "2026-10-01T19:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 37. PUT /api/admin/appeals/:id/status -->
+      <div class="endpoint-card" id="ep-admin-appeal-status" data-search="admin appeal status resolve dismiss moderate put">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/appeals/:id/status</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates appeal status to <code>resolved</code> or <code>dismissed</code> with resolution notes.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Course appeal status updated successfully",
+  "appeal": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d77",
+    "status": "resolved",
+    "resolutionNotes": "Audio issues resolved. Course has been published.",
+    "updatedAt": "2026-10-01T21:15:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 38. GET /api/admin/finance -->
+      <div class="endpoint-card" id="ep-admin-finance" data-search="admin finance platform commission gross revenue instructor payouts breakdown get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/finance</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Aggregates platform financial metrics including gross transactions, instructor payouts balance, 30% platform commission, and monthly revenue breakdown.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "finance": {
+    "grossRevenue": 4850000,
+    "platformCommission": 1455000,
+    "instructorPayoutsTotal": 3395000,
+    "currency": "NGN",
+    "totalSuccessfulTransactions": 194,
+    "monthlyBreakdown": [
+      {
+        "month": "2026-10",
+        "revenue": 2100000,
+        "transactions": 84
+      },
+      {
+        "month": "2026-09",
+        "revenue": 2750000,
+        "transactions": 110
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 39. POST /api/admin/broadcast -->
+      <div class="endpoint-card" id="ep-admin-broadcast" data-search="admin broadcast notifications message alert target role post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/broadcast</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Dispatches system broadcast notifications to targeted user roles (<code>all</code>, <code>student</code>, <code>instructor</code>).
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Broadcast notification dispatched successfully to 1250 users",
+  "broadcast": {
+    "targetRole": "all",
+    "title": "Platform Scheduled Maintenance",
+    "dispatchedCount": 1250,
+    "createdAt": "2026-10-01T21:20:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -3026,6 +3525,20 @@ Accept: application/json</code></pre>
         <li><a href="#ep-get-instructor-course-by-id" class="toc-link">GET /tutor/courses/:id</a></li>
         <li><a href="#ep-submit-course" class="toc-link">POST /tutor/courses/:id/submit</a></li>
         <li><a href="#ep-appeal-course" class="toc-link">POST /tutor/courses/:id/appeal</a></li>
+        <li><a href="#admin-operations" class="toc-link">Admin Operations & Moderation</a></li>
+        <li><a href="#ep-admin-dashboard-stats" class="toc-link">GET /admin/dashboard-stats</a></li>
+        <li><a href="#ep-admin-recent-registrations" class="toc-link">GET /admin/recent-registrations</a></li>
+        <li><a href="#ep-admin-recent-transactions" class="toc-link">GET /admin/recent-transactions</a></li>
+        <li><a href="#ep-admin-users" class="toc-link">GET /admin/users</a></li>
+        <li><a href="#ep-admin-deactivate-user" class="toc-link">DELETE /admin/users/:id</a></li>
+        <li><a href="#ep-admin-tutor-approval" class="toc-link">PUT /admin/tutors/:id/approval</a></li>
+        <li><a href="#ep-admin-courses-pending" class="toc-link">GET /admin/courses/pending</a></li>
+        <li><a href="#ep-admin-courses-all" class="toc-link">GET /admin/courses/all</a></li>
+        <li><a href="#ep-admin-course-status" class="toc-link">PUT /admin/courses/:id/status</a></li>
+        <li><a href="#ep-admin-appeals" class="toc-link">GET /admin/appeals</a></li>
+        <li><a href="#ep-admin-appeal-status" class="toc-link">PUT /admin/appeals/:id/status</a></li>
+        <li><a href="#ep-admin-finance" class="toc-link">GET /admin/finance</a></li>
+        <li><a href="#ep-admin-broadcast" class="toc-link">POST /admin/broadcast</a></li>
       </ul>
     </aside>
 

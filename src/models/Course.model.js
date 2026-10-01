@@ -79,6 +79,19 @@ const courseSchema = new mongoose.Schema(
       default: "draft",
       index: true
     },
+    rejectionReason: {
+      type: String,
+      default: null
+    },
+    reviewedAt: {
+      type: Date,
+      default: null
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

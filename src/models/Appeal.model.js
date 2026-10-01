@@ -21,9 +21,13 @@ const appealSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "resolved"],
+      enum: ["pending", "resolved", "dismissed"],
       default: "pending",
       index: true
+    },
+    resolutionNotes: {
+      type: String,
+      default: null
     },
     adminNotes: {
       type: String,

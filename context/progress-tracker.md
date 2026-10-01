@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`08-course-authoring-review-pipeline.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/08-course-authoring-review-pipeline.md)
+> Current Active Spec: [`09-admin-moderation-operations.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/09-admin-moderation-operations.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 4 (Unit 08: 5-Step Course Authoring Wizard & Review Pipeline) **COMPLETED & VERIFIED**.
+- [x] Milestone 5 (Unit 09: Admin Moderation, User Management & Platform Operations) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -38,7 +38,7 @@
 - [x] **Unit 06**: Course Catalog & Public Discovery (with Content Protection) [COMPLETED & VERIFIED]
 - [x] **Unit 07**: Tutor Onboarding & Analytics [COMPLETED & VERIFIED]
 - [x] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline [COMPLETED & VERIFIED]
-- [ ] **Unit 09**: Admin Moderation, User Management & Platform Operations
+- [x] **Unit 09**: Admin Moderation, User Management & Platform Operations [COMPLETED & VERIFIED]
 - [ ] **Unit 10**: Course Enrollments & Paystack Payment Verification
 - [ ] **Unit 11**: Idempotent Paystack Webhook Processing
 - [ ] **Unit 12**: Learning Engine (Progress, Server-Side Quiz Grading, Q&A, Notes, Certificate)
@@ -183,10 +183,12 @@
 - [x] `POST /api/tutor/courses/:id/submit (review submission)`: Validates 5-step completeness before transitioning status to `pending` (`200 OK`). Rejects incomplete courses (`400 Bad Request`).
 - [x] `POST /api/tutor/courses/:id/appeal (rejection appeal)`: Submits rejection appeal creating `Appeal` document for `rejected` courses (`201 Created`). Rejects appeals on non-rejected courses (`400 Bad Request`).
 
+- [x] `GET /api/admin/dashboard-stats`, `GET /api/admin/recent-registrations`, `GET /api/admin/recent-transactions`, `GET /api/admin/users`, `DELETE /api/admin/users/:id`, `PUT /api/admin/tutors/:id/approval`, `GET /api/admin/courses/pending`, `GET /api/admin/courses/all`, `PUT /api/admin/courses/:id/status`, `GET /api/admin/appeals`, `PUT /api/admin/appeals/:id/status`, `GET /api/admin/finance`, `POST /api/admin/broadcast`: All 13 admin endpoints fully implemented, RBAC-protected (`admin` role), and synchronized with interactive docs portal.
+
 ---
 
 ## Next Up
-- **Unit 09**: Admin Moderation, User Management & Platform Operations
+- **Unit 10**: Course Enrollments & Paystack Payment Verification
 
 
 ---
