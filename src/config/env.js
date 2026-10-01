@@ -30,6 +30,7 @@ export const env = {
   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
   AWS_S3_BUCKET: process.env.AWS_S3_BUCKET || "gloxad-media-bucket",
+  PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY || "sk_test_mock_paystack_secret_key_12345",
 };
 
 export default env;

@@ -9,6 +9,7 @@ import categoryRoutes from "./routes/category.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import tutorRoutes from "./routes/tutor.routes.js";
 import adminRouter from "./routes/admin.routes.js";
+import enrollmentRoutes from "./routes/enrollment.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -53,6 +54,9 @@ app.use("/api/tutor", tutorRoutes);
 
 // Mount admin routes under /api/admin
 app.use("/api/admin", adminRouter);
+
+// Mount enrollment routes under /api/enrollments
+app.use("/api/enrollments", enrollmentRoutes);
 
 // Mount category taxonomy & course catalog routes under /api
 app.use("/api", categoryRoutes);

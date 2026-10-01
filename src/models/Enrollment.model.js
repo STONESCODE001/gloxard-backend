@@ -1,23 +1,62 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 
-const enrollmentSchema = new Schema(
+const enrollmentSchema = new mongoose.Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    course: { type: Schema.Types.ObjectId, ref: 'Course', required: true, index: true },
-    price: { type: Number, default: 0 },
-    status: { type: String, enum: ['active', 'completed', 'cancelled'], default: 'active' }
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course',
+      required: true,
+      index: true,
+    },
+    enrolledAt: {
+      type: Date,
+      default: Date.now,
+    },
+    completedLessons: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
+    lastAccessedLesson: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    quizScores: [
+      {
+        moduleId: { type: String, required: true },
+        score: { type: Number, required: true },
+        passed: { type: Boolean, required: true },
+        attemptedAt: { type: Date, default: Date.now },
+      },
+    ],
+    progressPercentage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
-    toJSON: {
-      virtuals: true,
-      transform: function (doc, ret) {
-        delete ret.__v;
-        return ret;
-      }
-    }
   }
 );
+
+// Compound unique index to prevent duplicate enrollment records per user & course
+enrollmentSchema.index({ user: 1, course: 1 }, { unique: true });
 
 export const Enrollment = mongoose.models.Enrollment || mongoose.model('Enrollment', enrollmentSchema);
 export default Enrollment;

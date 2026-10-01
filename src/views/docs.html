@@ -1056,6 +1056,26 @@
               <span class="nav-method-pill pill-post">POST</span> Appeal Course Rejection
             </a>
           </li>
+          <li>
+            <a href="#ep-enroll-free" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Enroll Free Course
+            </a>
+          </li>
+          <li>
+            <a href="#ep-enroll-checkout" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Paystack Checkout
+            </a>
+          </li>
+          <li>
+            <a href="#ep-enroll-my-courses" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> My Enrolled Courses
+            </a>
+          </li>
+          <li>
+            <a href="#ep-enroll-check" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Check Enrollment Status
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -3473,6 +3493,166 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- Course Enrollments & Paystack Verification -->
+      <div class="endpoint-card" id="ep-enroll-free" data-search="enroll free course instant student instructor admin post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/enrollments/enroll/:courseId</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Performs instant zero-cost enrollment for free courses (<code>courseType === "free"</code>). Rejects paid courses with HTTP 400.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Enrolled successfully in free course",
+  "enrollment": {
+    "_id": "651a9c3d4e5f6a7b8c9d0e1f",
+    "user": "651a2b3c4d5e6f7a8b9c0d12",
+    "course": "651a3c4d5e6f7a8b9c0d1234",
+    "enrolledAt": "2026-10-01T21:00:00.000Z",
+    "completedLessons": [],
+    "lastAccessedLesson": null,
+    "quizScores": [],
+    "progressPercentage": 0,
+    "isCompleted": false,
+    "completedAt": null
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-enroll-checkout" data-search="enroll checkout paystack verification paid course reference post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/enrollments/checkout</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Validates Paystack payment reference server-side, verifies course price accuracy, enforces idempotency, calculates 70/30 revenue share, and creates transaction and enrollment records.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>201 Created Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "message": "Payment verified and course enrollment completed successfully",
+  "enrollment": {
+    "_id": "651a9c3d4e5f6a7b8c9d0e1f",
+    "user": "651a2b3c4d5e6f7a8b9c0d12",
+    "course": "651a3c4d5e6f7a8b9c0d1234",
+    "enrolledAt": "2026-10-01T21:05:00.000Z",
+    "completedLessons": [],
+    "lastAccessedLesson": null,
+    "quizScores": [],
+    "progressPercentage": 0,
+    "isCompleted": false,
+    "completedAt": null
+  },
+  "transaction": {
+    "_id": "651a8b7c6d5e4f3a2b1c0d9e",
+    "reference": "PAYSTACK_REF_1029384756",
+    "user": "651a2b3c4d5e6f7a8b9c0d12",
+    "course": "651a3c4d5e6f7a8b9c0d1234",
+    "amount": 15000,
+    "currency": "NGN",
+    "status": "success",
+    "instructorShare": 10500,
+    "platformShare": 4500,
+    "createdAt": "2026-10-01T21:05:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-enroll-my-courses" data-search="my courses enrollment active user student get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/enrollments/my-courses</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves all course enrollments for the authenticated user with populated course metadata and learning progress statistics.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "enrollments": [
+    {
+      "_id": "651a9c3d4e5f6a7b8c9d0e1f",
+      "course": {
+        "_id": "651a3c4d5e6f7a8b9c0d1234",
+        "title": "Complete Web Development Bootcamp",
+        "slug": "complete-web-development-bootcamp",
+        "thumbnail": "https://s3.amazonaws.com/gloxard/courses/thumbnails/bootcamp.jpg",
+        "instructor": {
+          "_id": "651a1a2b3c4d5e6f7a8b9c0d",
+          "firstName": "Alex",
+          "lastName": "Tutor",
+          "avatarUrl": "https://s3.amazonaws.com/gloxard/avatars/alex.jpg"
+        },
+        "level": "beginner",
+        "courseType": "paid"
+      },
+      "enrolledAt": "2026-10-01T21:05:00.000Z",
+      "completedLessons": ["651a4b5c6d7e8f9a0b1c2d3e"],
+      "progressPercentage": 25,
+      "isCompleted": false,
+      "completedAt": null
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="endpoint-card" id="ep-enroll-check" data-search="check enrollment status user course student get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/enrollments/check/:courseId</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Checks whether the authenticated user is enrolled in a specific course by ObjectId or slug.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "isEnrolled": true,
+  "enrollment": {
+    "_id": "651a9c3d4e5f6a7b8c9d0e1f",
+    "enrolledAt": "2026-10-01T21:05:00.000Z",
+    "progressPercentage": 25,
+    "isCompleted": false
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -3539,6 +3719,10 @@ Accept: application/json</code></pre>
         <li><a href="#ep-admin-appeal-status" class="toc-link">PUT /admin/appeals/:id/status</a></li>
         <li><a href="#ep-admin-finance" class="toc-link">GET /admin/finance</a></li>
         <li><a href="#ep-admin-broadcast" class="toc-link">POST /admin/broadcast</a></li>
+        <li><a href="#ep-enroll-free" class="toc-link">POST /enrollments/enroll/:courseId</a></li>
+        <li><a href="#ep-enroll-checkout" class="toc-link">POST /enrollments/checkout</a></li>
+        <li><a href="#ep-enroll-my-courses" class="toc-link">GET /enrollments/my-courses</a></li>
+        <li><a href="#ep-enroll-check" class="toc-link">GET /enrollments/check/:courseId</a></li>
       </ul>
     </aside>
 
