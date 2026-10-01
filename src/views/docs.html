@@ -999,6 +999,31 @@
               <span class="nav-method-pill" style="background: var(--error-bg); color: var(--error-text); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 8px;">DEL</span> Delete Category (Admin)
             </a>
           </li>
+          <li>
+            <a href="#course-catalog" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Course Catalog
+            </a>
+          </li>
+          <li>
+            <a href="#ep-course-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Course Details & Shield
+            </a>
+          </li>
+          <li>
+            <a href="#tutor-onboarding" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Showcase Expertise
+            </a>
+          </li>
+          <li>
+            <a href="#ep-dashboard-stats" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Dashboard Stats
+            </a>
+          </li>
+          <li>
+            <a href="#ep-earnings" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Tutor Earnings
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -2070,6 +2095,441 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Course Catalog & Public Discovery -->
+      <section class="doc-section" id="course-catalog">
+        <h2 class="section-heading">6. Course Catalog & Public Discovery</h2>
+        <p>
+          Public discovery endpoints for searching, filtering, and retrieving detailed course curriculum with role-based content protection (shielding un-enrolled callers from full lesson video URLs and quiz answer keys).
+        </p>
+      </section>
+
+      <!-- 16. GET /api/courses -->
+      <div class="endpoint-card" id="ep-courses-list" data-search="courses catalog search filter pagination public get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/courses</span>
+          <span class="endpoint-tag-pill tag-public">Public (No Token Required)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves published courses with full-text search, category/subcategory filtering, level/courseType enum filters, price range bounding, sorting, and pagination.
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Query Parameter</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>search</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>MongoDB full-text search query (matched against title, subtitle, topic, description, skills)</td>
+                </tr>
+                <tr>
+                  <td><code>category</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Case-insensitive category name/slug filter</td>
+                </tr>
+                <tr>
+                  <td><code>subCategory</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Case-insensitive subcategory filter</td>
+                </tr>
+                <tr>
+                  <td><code>courseType</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td><code>free</code>, <code>paid</code>, or <code>trimester</code></td>
+                </tr>
+                <tr>
+                  <td><code>level</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td><code>beginner</code>, <code>intermediate</code>, <code>advanced</code>, or <code>all-levels</code></td>
+                </tr>
+                <tr>
+                  <td><code>minPrice</code> / <code>maxPrice</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Numeric price bounds</td>
+                </tr>
+                <tr>
+                  <td><code>sort</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td><code>newest</code> (default), <code>popular</code>, <code>price-asc</code>, <code>price-desc</code>, or <code>rating</code></td>
+                </tr>
+                <tr>
+                  <td><code>page</code> / <code>limit</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Page number (default: <code>1</code>) and limit per page (default: <code>10</code>, max: <code>50</code>)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>GET /api/courses?search=javascript&category=development-engineering&sort=popular&page=1&limit=10 HTTP/1.1
+Host: localhost:3001
+Accept: application/json</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "courses": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0d20",
+      "title": "Complete Full-Stack Web Development BootCamp",
+      "slug": "complete-full-stack-web-development-bootcamp",
+      "subtitle": "Master React, Node.js, Express, and MongoDB",
+      "category": "Development & Engineering",
+      "subCategory": "Web Development",
+      "topic": "Full-Stack",
+      "level": "beginner",
+      "courseType": "paid",
+      "price": 25000,
+      "discountPrice": 18000,
+      "thumbnail": "https://gloxad-media.s3.amazonaws.com/courses/thumbnails/fullstack.jpg",
+      "trailerVideoUrl": "https://gloxad-media.s3.amazonaws.com/courses/trailers/fullstack-promo.mp4",
+      "rating": { "average": 4.8, "count": 124 },
+      "enrolledCount": 450,
+      "instructor": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d10",
+        "firstName": "Alex",
+        "lastName": "Tutor",
+        "avatarUrl": "https://gloxad-media.s3.amazonaws.com/avatars/alex.jpg"
+      },
+      "createdAt": "2026-09-15T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 42,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 5,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 17. GET /api/courses/:slugOrId -->
+      <div class="endpoint-card" id="ep-course-detail" data-search="course detail slug id content shield video preview get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/courses/:slugOrId</span>
+          <span class="endpoint-tag-pill tag-bearer" style="background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A;">Content Shield Active</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves complete course details including curriculum modules, lessons, and quizzes. Accepts optional <code>Authorization: Bearer &lt;token&gt;</code>. Unauthenticated or non-enrolled callers have non-free video URLs set to <code>null</code> and quiz <code>correctOptionIndex</code> removed.
+          </div>
+
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>GET /api/courses/complete-full-stack-web-development-bootcamp HTTP/1.1
+Host: localhost:3001
+Accept: application/json</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Complete Full-Stack Web Development BootCamp",
+    "slug": "complete-full-stack-web-development-bootcamp",
+    "description": "Comprehensive guide to building modern web applications...",
+    "skills": ["JavaScript", "React", "Node.js", "MongoDB"],
+    "modules": [
+      {
+        "_id": "651a2b3c4d5e6f7a8b9c0d21",
+        "title": "Module 1: Introduction to Web Architecture",
+        "lessons": [
+          {
+            "_id": "651a2b3c4d5e6f7a8b9c0d22",
+            "title": "Lesson 1: How the Web Works",
+            "duration": "12:45",
+            "isFreePreview": true,
+            "videoUrl": "https://gloxad-media.s3.amazonaws.com/courses/videos/lesson1.mp4"
+          },
+          {
+            "_id": "651a2b3c4d5e6f7a8b9c0d23",
+            "title": "Lesson 2: Setting Up Node.js Environment",
+            "duration": "18:20",
+            "isFreePreview": false,
+            "videoUrl": null
+          }
+        ],
+        "quizzes": [
+          {
+            "_id": "651a2b3c4d5e6f7a8b9c0d24",
+            "title": "Module 1 Quiz",
+            "passingScore": 70,
+            "questions": [
+              {
+                "_id": "651a2b3c4d5e6f7a8b9c0d25",
+                "questionText": "What protocol does HTTP build upon?",
+                "options": ["UDP", "TCP", "ICMP", "FTP"]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "isEnrolled": false
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION: Tutor Onboarding & Analytics -->
+      <section class="doc-section" id="tutor-onboarding">
+        <h2 class="section-heading">7. Tutor Onboarding & Performance Analytics</h2>
+        <p>
+          Instructor onboarding and performance analytics suite enabling tutors to submit qualification credentials for administrative verification, monitor course performance metrics, and track revenue balance.
+        </p>
+      </section>
+
+      <!-- 18. POST /api/tutor/showcase-expertise -->
+      <div class="endpoint-card" id="ep-showcase-expertise" data-search="tutor showcase expertise qualification onboarding submit post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/tutor/showcase-expertise</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Student / Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Submits tutor qualification profile, expertise summary, years of experience, and S3-hosted certification document links for administrative review. Transitions approvalStatus to "pending" and upgrades student role to "instructor".
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Body Parameter</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>title</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Instructor professional title</td>
+                </tr>
+                <tr>
+                  <td><code>areaOfExpertise</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Primary field or subject of specialization</td>
+                </tr>
+                <tr>
+                  <td><code>experienceYears</code></td>
+                  <td>number</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Years of active teaching/industry experience</td>
+                </tr>
+                <tr>
+                  <td><code>expertiseBio</code></td>
+                  <td>string</td>
+                  <td><span class="tag-req">Required</span></td>
+                  <td>Detailed bio outlining teaching background and accomplishments</td>
+                </tr>
+                <tr>
+                  <td><code>university</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Educational institution or background</td>
+                </tr>
+                <tr>
+                  <td><code>skills</code></td>
+                  <td>array&lt;string&gt;</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Array of core technical/subject skill tags</td>
+                </tr>
+                <tr>
+                  <td><code>certificationsUrl</code></td>
+                  <td>string</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>S3 presigned URL to uploaded certification PDF/document</td>
+                </tr>
+                <tr>
+                  <td><code>certifications</code></td>
+                  <td>array&lt;string&gt;</td>
+                  <td><span class="tag-opt">Optional</span></td>
+                  <td>Array of certification names or titles</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid-2col">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Payload Example</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "title": "Senior Full-Stack Engineering Instructor",
+  "areaOfExpertise": "Software Engineering & Web Development",
+  "experienceYears": 6,
+  "expertiseBio": "10+ years building scalable distributed systems and training 5,000+ developers globally.",
+  "university": "University of Lagos",
+  "skills": ["JavaScript", "Node.js", "React", "MongoDB", "System Design"],
+  "certificationsUrl": "https://gloxad-media.s3.amazonaws.com/certifications/1727800000-alex_aws_cert.pdf",
+  "certifications": ["AWS Certified Solutions Architect", "MongoDB Certified Developer"]
+}</code></pre>
+            </div>
+
+            <div class="code-block">
+              <div class="code-header">
+                <span>200 OK Response</span>
+                <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Tutor expertise showcase submitted successfully and is currently under administrative review",
+  "user": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d10",
+    "firstName": "Alex",
+    "lastName": "Tutor",
+    "name": "Alex Tutor",
+    "email": "alex.tutor@example.com",
+    "role": "instructor",
+    "approvalStatus": "pending",
+    "title": "Senior Full-Stack Engineering Instructor",
+    "areaOfExpertise": "Software Engineering & Web Development",
+    "experienceYears": 6,
+    "expertiseBio": "10+ years building scalable distributed systems and training 5,000+ developers globally.",
+    "university": "University of Lagos",
+    "skills": ["JavaScript", "Node.js", "React", "MongoDB", "System Design"],
+    "certificationsUrl": "https://gloxad-media.s3.amazonaws.com/certifications/1727800000-alex_aws_cert.pdf",
+    "certifications": ["AWS Certified Solutions Architect", "MongoDB Certified Developer"],
+    "avatarUrl": "https://gloxad-media.s3.amazonaws.com/avatars/alex.jpg",
+    "isVerified": true,
+    "createdAt": "2026-09-15T10:00:00.000Z",
+    "updatedAt": "2026-10-01T20:20:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 19. GET /api/tutor/dashboard-stats -->
+      <div class="endpoint-card" id="ep-dashboard-stats" data-search="tutor dashboard stats performance metrics courses students instructor get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/dashboard-stats</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves aggregated course and student engagement metrics for the authenticated instructor across published, pending, and draft courses.
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "totalCourses": 12,
+  "publishedCourses": 8,
+  "pendingCourses": 2,
+  "draftCourses": 2,
+  "totalStudents": 1420,
+  "averageRating": 4.85,
+  "totalReviews": 310,
+  "totalRevenue": 3550000
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20. GET /api/tutor/earnings -->
+      <div class="endpoint-card" id="ep-earnings" data-search="tutor earnings revenue balance payout sales transactions monthly breakdown get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/earnings</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves financial breakdown including 80% instructor revenue share earnings, withdrawable vs pending balances, monthly earnings trajectory, and recent sales transactions.
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "totalEarnings": 2840000,
+  "withdrawableBalance": 2100000,
+  "pendingBalance": 740000,
+  "revenueSharePercentage": 80,
+  "monthlyBreakdown": [
+    {
+      "month": "2026-08",
+      "grossRevenue": 1500000,
+      "instructorEarnings": 1200000,
+      "enrollments": 60
+    },
+    {
+      "month": "2026-09",
+      "grossRevenue": 2050000,
+      "instructorEarnings": 1640000,
+      "enrollments": 82
+    }
+  ],
+  "recentTransactions": [
+    {
+      "_id": "651a2b3c4d5e6f7a8b9c0e50",
+      "courseTitle": "Complete Full-Stack Web Development BootCamp",
+      "studentName": "John Doe",
+      "amount": 25000,
+      "instructorShare": 20000,
+      "status": "success",
+      "createdAt": "2026-09-28T14:30:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -2108,6 +2568,13 @@ Accept: application/json</code></pre>
         <li><a href="#ep-create-category" class="toc-link">POST /admin/categories</a></li>
         <li><a href="#ep-update-category" class="toc-link">PUT /admin/categories/:id</a></li>
         <li><a href="#ep-delete-category" class="toc-link">DELETE /admin/categories/:id</a></li>
+        <li><a href="#course-catalog" class="toc-link">Course Catalog</a></li>
+        <li><a href="#ep-courses-list" class="toc-link">GET /courses</a></li>
+        <li><a href="#ep-course-detail" class="toc-link">GET /courses/:slugOrId</a></li>
+        <li><a href="#tutor-onboarding" class="toc-link">Tutor Onboarding</a></li>
+        <li><a href="#ep-showcase-expertise" class="toc-link">POST /tutor/showcase-expertise</a></li>
+        <li><a href="#ep-dashboard-stats" class="toc-link">GET /tutor/dashboard-stats</a></li>
+        <li><a href="#ep-earnings" class="toc-link">GET /tutor/earnings</a></li>
       </ul>
     </aside>
 

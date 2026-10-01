@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`05-course-taxonomy-category-management.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/05-course-taxonomy-category-management.md)
+> Current Active Spec: [`07-tutor-onboarding-analytics.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/07-tutor-onboarding-analytics.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 2 (Unit 05: Course Taxonomy & Category Management) **COMPLETED & VERIFIED**.
+- [ ] Milestone 3 (Unit 07: Tutor Onboarding & Analytics) **IN PROGRESS**.
 
 ---
 
@@ -35,8 +35,8 @@
     - [x] Direct Media Upload Verification (Client -> S3) verified.
     - [x] Full Profile Update with Collision Prevention & Nested Object Preservation implemented.
 - [x] **Unit 05**: Course Taxonomy & Category Management [COMPLETED & VERIFIED]
-- [ ] **Unit 06**: Course Catalog & Public Discovery (with Content Protection)
-- [ ] **Unit 07**: Tutor Onboarding & Analytics
+- [x] **Unit 06**: Course Catalog & Public Discovery (with Content Protection) [COMPLETED & VERIFIED]
+- [/] **Unit 07**: Tutor Onboarding & Analytics [IN PROGRESS]
 - [ ] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline
 - [ ] **Unit 09**: Admin Moderation, User Management & Platform Operations
 - [ ] **Unit 10**: Course Enrollments & Paystack Payment Verification
@@ -117,6 +117,20 @@
 
 ---
 
+### Unit 06 (`06-course-catalog-public-discovery.md`) [COMPLETED & VERIFIED]
+1. **Data Models**:
+   - [`src/models/Course.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Course.model.js): Schema for `Course` including `lessonSchema`, `quizQuestionSchema`, `quizSchema`, `moduleSchema`, and full-text search indexes (`title`, `subtitle`, `description`, `topic`, `skills`).
+2. **Middlewares**:
+   - [`src/middlewares/optionalAuth.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/optionalAuth.middleware.js): Optional JWT authentication middleware extracting `req.user` without rejecting unauthenticated callers.
+3. **Controllers & Routes**:
+   - [`src/controllers/course.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/course.controller.js) & [`src/routes/course.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/course.routes.js):
+     - `GET /api/courses`: Public course catalog listing with full-text search (`$text`), category/subCategory regex filters, courseType & level enum filters, price range filter, sorting (`newest`, `popular`, `price-asc`, `price-desc`, `rating`), and pagination.
+     - `GET /api/courses/:slugOrId`: Public single course view by MongoDB `_id` or `slug` with Rule 3 content protection shield (`videoUrl` redacted for non-preview lessons unless enrolled/tutor/admin; `correctOptionIndex` stripped from quiz questions for non-tutors/admins).
+4. **Interactive API Documentation Portal Sync**:
+   - Updated [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html) to render Section 6 ("Course Catalog & Public Discovery"), navigation links, TOC anchors, parameter tables, content shield badges, and request/response cards for `GET /api/courses` and `GET /api/courses/:slugOrId`.
+
+---
+
 ## Verification Results Checklist (100% Passed)
 
 - [x] `GET /`: Returns HTML API documentation portal conforming to `ui-context.md`.
@@ -150,18 +164,23 @@
 - [x] `PUT /api/admin/categories/:id (valid update)`: Returns `200 OK` with updated fields and re-slugified name.
 - [x] `DELETE /api/admin/categories/:id (course dependency safeguard)`: Returns `409 Conflict {"error": "Cannot delete category currently associated with active courses"}`.
 - [x] `DELETE /api/admin/categories/:id (unreferenced deletion)`: Returns `200 OK {"message": "Category deleted successfully"}`.
-- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `categories` and `admin/categories`.
+- [x] `GET /api/courses (public read)`: Returns 200 OK with published courses and pagination metadata.
+- [x] `GET /api/courses (filters & search)`: Filters courses by search, category, courseType, level, minPrice/maxPrice, and sort.
+- [x] `GET /api/courses/:slugOrId (content shield)`: Redacts video URLs for non-free preview lessons and strips quiz answers for un-enrolled callers.
+- [x] `GET /api/courses/:slugOrId (not found)`: Returns 404 {"error": "Course not found"}.
+- [x] `GET / (API docs portal sync)`: Verified HTML portal contains sections for `courses` and `courses/:slugOrId`.
 
 ---
 
 ## Next Up
-- **Unit 06**: Course Catalog & Public Discovery (with Content Protection).
+- **Unit 07**: Tutor Onboarding & Analytics
 
 ---
 
 ## Architecture Decisions & Invariants Enforced
 - **Rule 1: Uniform Error Schema**: All 4xx and 5xx responses strictly return `{ "error": "<message>" }`.
 - **Rule 2: Zero File Buffering**: Direct-to-cloud file upload offloading strictly via AWS S3 PUT presigned URLs without streaming raw bytes through the API server.
+- **Rule 3: Server Content Protection**: Lesson video URLs (for non-preview lessons) and quiz `correctOptionIndex` are strictly shielded server-side from non-enrolled or unauthenticated users.
 - **Rule 5: Strict Identifier Standard**: Primary keys strictly retain `_id` and are never projected to `id`.
 - **Stateless Auth**: JWT Bearer authorization in `Authorization: Bearer <token>` with 7-day expiration.
 - **Unified Deployment**: `src/views/docs.html` is served directly by the Express app at `GET /`, guaranteeing that deploying the backend automatically deploys the updated documentation with zero manual steps.

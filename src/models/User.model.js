@@ -111,6 +111,20 @@ const userSchema = new Schema(
       default: "",
       trim: true,
     },
+    experienceYears: {
+      type: Number,
+      default: 0,
+    },
+    expertiseBio: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    certificationsUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     university: {
       type: String,
       default: "",
@@ -159,9 +173,12 @@ const userSchema = new Schema(
         delete ret.__v;
         ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
         ret.biography = ret.biography || ret.bio || "";
+        ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";
         ret.socialLinks = ret.socialLinks || ret.socials || {};
         if (!ret.certifications) ret.certifications = [];
         if (!ret.skills) ret.skills = [];
+        if (ret.experienceYears === undefined) ret.experienceYears = 0;
+        if (!ret.certificationsUrl) ret.certificationsUrl = "";
         return ret;
       },
     },
@@ -172,25 +189,33 @@ const userSchema = new Schema(
         delete ret.__v;
         ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
         ret.biography = ret.biography || ret.bio || "";
+        ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";
         ret.socialLinks = ret.socialLinks || ret.socials || {};
         if (!ret.certifications) ret.certifications = [];
         if (!ret.skills) ret.skills = [];
+        if (ret.experienceYears === undefined) ret.experienceYears = 0;
+        if (!ret.certificationsUrl) ret.certificationsUrl = "";
         return ret;
       },
     },
   }
 );
 
-// Pre-save hook: auto-compute full name, sync biography/bio, and default approvalStatus for instructors
+// Pre-save hook: auto-compute full name, sync biography/bio/expertiseBio, and default approvalStatus for instructors
 userSchema.pre("save", async function () {
   if (this.isModified("firstName") || this.isModified("lastName") || !this.name) {
     this.name = `${this.firstName || ""} ${this.lastName || ""}`.trim();
   }
 
-  if (this.isModified("biography") && !this.bio) {
+  if (this.isModified("expertiseBio") && (!this.biography || !this.bio)) {
+    if (!this.bio) this.bio = this.expertiseBio;
+    if (!this.biography) this.biography = this.expertiseBio;
+  } else if (this.isModified("biography") && !this.bio) {
     this.bio = this.biography;
+    if (!this.expertiseBio) this.expertiseBio = this.biography;
   } else if (this.isModified("bio") && !this.biography) {
     this.biography = this.bio;
+    if (!this.expertiseBio) this.expertiseBio = this.bio;
   }
 
   if (this.isModified("socialLinks") && (!this.socials || Object.keys(this.socials).length === 0)) {

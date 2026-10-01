@@ -6,6 +6,11 @@ export const roleGuard = (...allowedRoles) => {
           error: "Access denied. Admin role required",
         });
       }
+      if (allowedRoles.includes("instructor")) {
+        return res.status(403).json({
+          error: "Access denied. Instructor role required",
+        });
+      }
       return res.status(403).json({
         error: "Access forbidden: insufficient role permissions",
       });

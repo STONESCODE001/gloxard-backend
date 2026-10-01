@@ -6,6 +6,8 @@ import { env } from "./config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
+import courseRoutes from "./routes/course.routes.js";
+import tutorRoutes from "./routes/tutor.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -45,8 +47,12 @@ app.use("/api/auth", authRouter);
 // Mount upload routes under /api/upload
 app.use("/api/upload", uploadRouter);
 
-// Mount category taxonomy routes under /api
+// Mount tutor onboarding & analytics routes under /api/tutor
+app.use("/api/tutor", tutorRoutes);
+
+// Mount category taxonomy & course catalog routes under /api
 app.use("/api", categoryRoutes);
+app.use("/api", courseRoutes);
 
 
 // Global 404 handler for unmatched routes
