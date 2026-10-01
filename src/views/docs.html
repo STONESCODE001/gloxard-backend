@@ -3651,6 +3651,29 @@ Accept: application/json</code></pre>
 }</code></pre>
           </div>
         </div>
+      <div class="endpoint-card" id="ep-paystack-webhook" data-search="paystack webhook charge success signature post webhooks">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/webhooks/paystack</span>
+          <span class="endpoint-tag-pill tag-public">Webhook Signature Guard</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Handles asynchronous Paystack <code>charge.success</code> payment events idempotently. Verifies <code>x-paystack-signature</code> HMAC-SHA512 header, calculates 70% instructor and 30% platform revenue share, creates active course enrollment, increments course <code>enrolledCount</code>, and dispatches student confirmation notification.
+          </div>
+          <div class="code-block">
+            <div class="code-header">
+              <span>200 OK Response Example (New Transaction)</span>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+            </div>
+            <pre><code>{
+  "status": "success",
+  "message": "Webhook processed successfully",
+  "reference": "PAYSTACK_REF_1029384756",
+  "transactionId": "651a9c3d4e5f6a7b8c9d0e1f"
+}</code></pre>
+          </div>
+        </div>
       </div>
 
       <!-- Footer with High Contrast -->
@@ -3723,6 +3746,7 @@ Accept: application/json</code></pre>
         <li><a href="#ep-enroll-checkout" class="toc-link">POST /enrollments/checkout</a></li>
         <li><a href="#ep-enroll-my-courses" class="toc-link">GET /enrollments/my-courses</a></li>
         <li><a href="#ep-enroll-check" class="toc-link">GET /enrollments/check/:courseId</a></li>
+        <li><a href="#ep-paystack-webhook" class="toc-link">POST /webhooks/paystack</a></li>
       </ul>
     </aside>
 

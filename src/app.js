@@ -10,6 +10,7 @@ import courseRoutes from "./routes/course.routes.js";
 import tutorRoutes from "./routes/tutor.routes.js";
 import adminRouter from "./routes/admin.routes.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
+import webhookRoutes from "./routes/webhook.routes.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -29,8 +30,15 @@ app.use(
   })
 );
 
-// Body parser middleware with 16kb limit
-app.use(express.json({ limit: "16kb" }));
+// Body parser middleware with 16kb limit & rawBody preservation for signature verification
+app.use(
+  express.json({
+    limit: "16kb",
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 // Interactive HTML API Documentation
@@ -57,6 +65,9 @@ app.use("/api/admin", adminRouter);
 
 // Mount enrollment routes under /api/enrollments
 app.use("/api/enrollments", enrollmentRoutes);
+
+// Mount webhook routes under /api/webhooks
+app.use("/api/webhooks", webhookRoutes);
 
 // Mount category taxonomy & course catalog routes under /api
 app.use("/api", categoryRoutes);

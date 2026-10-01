@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`10-course-enrollments-paystack-verification.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/10-course-enrollments-paystack-verification.md)
+> Current Active Spec: [`11-idempotent-paystack-webhook-processing.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/11-idempotent-paystack-webhook-processing.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 6 (Unit 10: Course Enrollments & Paystack Payment Verification) **COMPLETED & VERIFIED**.
+- [x] Milestone 7 (Unit 11: Idempotent Paystack Webhook Processing) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -40,7 +40,7 @@
 - [x] **Unit 08**: 5-Step Course Authoring Wizard & Review Pipeline [COMPLETED & VERIFIED]
 - [x] **Unit 09**: Admin Moderation, User Management & Platform Operations [COMPLETED & VERIFIED]
 - [x] **Unit 10**: Course Enrollments & Paystack Payment Verification [COMPLETED & VERIFIED]
-- [ ] **Unit 11**: Idempotent Paystack Webhook Processing
+- [x] **Unit 11**: Idempotent Paystack Webhook Processing [COMPLETED & VERIFIED]
 - [ ] **Unit 12**: Learning Engine (Progress, Server-Side Quiz Grading, Q&A, Notes, Certificate)
 - [ ] **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io)
 - [ ] **Unit 14**: Interactive API Documentation Web Page
@@ -187,10 +187,12 @@
 
 - [x] `POST /api/enrollments/enroll/:courseId`, `POST /api/enrollments/checkout`, `GET /api/enrollments/my-courses`, `GET /api/enrollments/check/:courseId`: All 4 enrollment endpoints implemented, Paystack verification active, revenue share (70% instructor / 30% platform) calculated, idempotency enforced, and synchronized with interactive docs portal.
 
+- [x] `POST /api/webhooks/paystack`: HMAC-SHA512 signature verified against raw payload, idempotent transaction reference check, 70/30 instructor/platform revenue split calculated, active enrollment created, course `enrolledCount` incremented, student notification created, and synchronized with interactive docs portal.
+
 ---
 
 ## Next Up
-- **Unit 11**: Idempotent Paystack Webhook Processing
+- **Unit 12**: Learning Engine (Progress, Server-Side Quiz Grading, Q&A, Notes, Certificate)
 
 
 ---
