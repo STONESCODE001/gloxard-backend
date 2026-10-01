@@ -14,6 +14,7 @@ import webhookRoutes from "./routes/webhook.routes.js";
 import learningRouter from "./routes/learning.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import { renderApiDocs } from "./controllers/docs.controller.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
@@ -44,10 +45,8 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
-// Interactive HTML API Documentation
-app.get("/", (req, res) => {
-  res.sendFile(path.resolve("src/views/docs.html"));
-});
+// Interactive HTML API Documentation Portal
+app.get("/", renderApiDocs);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

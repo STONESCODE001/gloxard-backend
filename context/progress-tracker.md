@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`13-real-time-messaging-notifications.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/13-real-time-messaging-notifications.md)
+> Current Active Spec: [`14-interactive-api-documentation.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/14-interactive-api-documentation.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 1**: Identity, Security & Core Foundation
 
 ## Current Goal
-- [x] Milestone 9 (Unit 13: Real-Time Messaging & In-App Notifications) **COMPLETED & VERIFIED**.
+- [x] Milestone 10 (Unit 14: Interactive API Documentation Web Page) **COMPLETED & VERIFIED**.
 
 ---
 
@@ -43,7 +43,7 @@
 - [x] **Unit 11**: Idempotent Paystack Webhook Processing [COMPLETED & VERIFIED]
 - [x] **Unit 12**: Learning Engine (Progress, Server-Side Quiz Grading, Q&A, Notes, Certificate) [COMPLETED & VERIFIED]
 - [x] **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io) [COMPLETED & VERIFIED]
-- [ ] **Unit 14**: Interactive API Documentation Web Page
+- [x] **Unit 14**: Interactive API Documentation Web Page [COMPLETED & VERIFIED]
 - [ ] **Unit 15**: Seed Data & End-to-End System Smoke Tests
 
 ---
@@ -191,10 +191,12 @@
 
 - [x] `POST /api/learning/:courseId/progress`, `POST /api/learning/:courseId/quiz/:quizId/submit`, `GET /api/learning/:courseId/questions`, `POST /api/learning/:courseId/questions`, `POST /api/learning/:courseId/questions/:questionId/reply`, `GET /api/learning/:courseId/notes`, `POST /api/learning/:courseId/notes`, `DELETE /api/learning/:courseId/notes/:noteId`, `GET /api/learning/:courseId/announcements`, `POST /api/learning/:courseId/announcements`, `GET /api/learning/:courseId/certificate`, `GET /api/learning/verify-certificate/:certificateId`: All 12 learning engine endpoints fully implemented, enrollment-guarded, server-side quiz answers shielded (Rule 3), progress & 100% completion auto-tracked, verifiable completion certificates issued, and synchronized with interactive docs portal.
 
+- [x] `GET /`: Interactive API documentation portal served at `GET /` (`src/views/docs.html`) via `src/controllers/docs.controller.js`. Includes `#apiSearchInput` filter, `#globalJwtToken` persistence in `localStorage`, 5 Architectural Invariants banner, and dynamic "Try It Out" live HTTP sandbox drawers across all 43 REST endpoints.
+
 ---
 
 ## Next Up
-- **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io)
+- **Unit 15**: Seed Data & End-to-End System Smoke Tests
 
 
 ---

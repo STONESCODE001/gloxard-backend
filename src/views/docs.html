@@ -857,6 +857,75 @@
         display: none;
       }
     }
+    /* Sandbox Drawer Styles */
+    .sandbox-toggle-btn {
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      color: var(--primary);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sandbox-toggle-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .sandbox-drawer {
+      border-top: 1px solid var(--border-color);
+    }
+
+    .sandbox-input, .sandbox-textarea {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px 12px;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .sandbox-input:focus, .sandbox-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .sandbox-exec-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sandbox-exec-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .counter-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      padding: 1px 6px;
+      border-radius: 999px;
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
@@ -875,9 +944,9 @@
         <span class="search-icon">🔍</span>
         <input
           type="text"
-          id="globalSearch"
+          id="apiSearchInput"
           class="search-input"
-          placeholder="Search endpoints, status codes, parameters..."
+          placeholder="Filter endpoints by keyword, route, or category..."
           oninput="handleSearch(this.value)"
         />
         <span class="search-kbd">⌘K</span>
@@ -885,6 +954,19 @@
     </div>
 
     <div class="header-right">
+      <!-- Global JWT Token Persistence Input -->
+      <div class="token-input-container" style="position: relative; display: flex; align-items: center;">
+        <span style="position: absolute; left: 10px; font-size: 11px; color: var(--text-muted); pointer-events: none;">🔑</span>
+        <input
+          type="password"
+          id="globalJwtToken"
+          class="search-input"
+          style="padding-left: 28px; width: 220px; font-family: var(--font-mono); font-size: 11.5px;"
+          placeholder="Paste Bearer Token for Sandbox..."
+          oninput="handleTokenChange(this.value)"
+        />
+      </div>
+
       <!-- Dark / Light Theme Toggle Button -->
       <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle light/dark theme">
         <span class="theme-icon" id="themeIcon">🌙</span>
@@ -893,7 +975,7 @@
 
       <span class="badge-status">
         <span class="badge-status-dot"></span>
-        API Docs v1.0
+        API Reference v1.0
       </span>
     </div>
   </header>
@@ -1147,15 +1229,47 @@
       <!-- SECTION: Introduction -->
       <section class="doc-section" id="introduction">
         <div class="section-header">
-          <h1 class="doc-title">Introduction</h1>
+          <h1 class="doc-title">Gloxad Academy API Reference v1.0</h1>
         </div>
         <p>
-          Welcome to the Gloxad REST API documentation. This API powers secure student and instructor authentication, account onboarding, role authorization, and password recovery workflows.
+          Welcome to the Gloxad REST API documentation portal and interactive sandbox. This portal provides complete, zero-ambiguity documentation for all 43 REST API endpoints and 8 Socket.io WebSocket events across Gloxad Academy.
         </p>
         <p style="margin-top: 12px;">
-          All requests accept standard JSON payloads with <code>Content-Type: application/json</code>. Every response returns JSON with consistent error envelopes formatted as <code class="inline-code">{ "error": "&lt;message&gt;" }</code>.
+          All requests accept standard JSON payloads with <code>Content-Type: application/json</code>. Protected endpoints require a Bearer token in the <code>Authorization</code> header.
         </p>
       </section>
+
+      <!-- SECTION: Architectural Invariants Banner -->
+      <div class="invariants-banner" id="architectural-invariants" style="background: var(--bg-subtle); border: 1px solid var(--primary); border-left: 4px solid var(--primary); border-radius: 8px; padding: 18px 22px; margin-bottom: 32px;">
+        <h3 style="color: var(--text-primary); font-size: 16px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          🛡️ Core Platform Architectural Invariants
+        </h3>
+        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 12px; max-width: 100%;">
+          Gloxad Academy backend enforces 5 strict architectural rules across all 43 REST API endpoints and Socket.io events:
+        </p>
+        <ul style="list-style-type: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; font-size: 13px;">
+          <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--primary);">Rule 1: Uniform Error Schema</strong><br />
+            All 4xx and 5xx responses strictly return <code class="inline-code">{ "error": "&lt;message&gt;" }</code>.
+          </li>
+          <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--primary);">Rule 2: Direct S3 Media Offloading</strong><br />
+            Zero server file buffering; direct-to-cloud AWS S3 presigned PUT URLs (<code class="inline-code">/api/upload/presigned-url</code>).
+          </li>
+          <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--primary);">Rule 3: Server Content Protection</strong><br />
+            Video playback links & quiz correct options are strictly shielded server-side for non-enrolled users.
+          </li>
+          <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--primary);">Rule 4: Paystack Verification</strong><br />
+            Server-side Paystack transaction verification & raw payload HMAC-SHA512 webhook signature check.
+          </li>
+          <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <strong style="color: var(--primary);">Rule 5: Identifier Standard</strong><br />
+            Primary keys strictly retain <code class="inline-code">_id</code> and are never projected to <code class="inline-code">id</code>.
+          </li>
+        </ul>
+      </div>
 
       <hr class="section-divider" />
 
@@ -4632,12 +4746,195 @@ Accept: application/json</code></pre>
     window.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        const searchInput = document.getElementById('globalSearch');
+        const searchInput = document.getElementById('apiSearchInput') || document.getElementById('globalSearch');
         if (searchInput) {
           searchInput.focus();
         }
       }
     });
+
+    // Token Persistence Handling
+    function handleTokenChange(val) {
+      localStorage.setItem('gloxad_doc_token', val);
+    }
+
+    (function initToken() {
+      const savedToken = localStorage.getItem('gloxad_doc_token') || localStorage.getItem('gloxad_jwt_token') || '';
+      const input = document.getElementById('globalJwtToken');
+      if (input && savedToken) {
+        input.value = savedToken;
+      }
+    })();
+
+    // Interactive Sandbox Engine
+    function toggleSandbox(cardId) {
+      const drawer = document.getElementById(`sandbox-drawer-${cardId}`);
+      if (drawer) {
+        const isHidden = drawer.style.display === 'none' || !drawer.style.display;
+        drawer.style.display = isHidden ? 'block' : 'none';
+      }
+    }
+
+    function copySandboxOutput(cardId, btn) {
+      const outputEl = document.getElementById(`sandbox-output-${cardId}`);
+      if (outputEl) {
+        copyText(outputEl.innerText, btn);
+      }
+    }
+
+    async function executeSandboxRequest(cardId, method) {
+      const urlInput = document.getElementById(`sandbox-url-${cardId}`);
+      const bodyInput = document.getElementById(`sandbox-body-${cardId}`);
+      const resPanel = document.getElementById(`sandbox-response-${cardId}`);
+      const statusEl = document.getElementById(`sandbox-status-${cardId}`);
+      const latencyEl = document.getElementById(`sandbox-latency-${cardId}`);
+      const outputEl = document.getElementById(`sandbox-output-${cardId}`);
+
+      if (!urlInput || !resPanel || !statusEl || !outputEl) return;
+
+      resPanel.style.display = 'block';
+      statusEl.textContent = 'Sending...';
+      statusEl.className = 'badge-code code-2xx';
+      latencyEl.textContent = '...';
+      outputEl.textContent = 'Executing HTTP request...';
+
+      let path = urlInput.value.trim();
+      let fullUrl = path;
+      if (!path.startsWith('http://') && !path.startsWith('https://')) {
+        if (!path.startsWith('/')) path = '/' + path;
+        fullUrl = window.location.origin + path;
+      }
+
+      const tokenInput = document.getElementById('globalJwtToken');
+      const token = (tokenInput ? tokenInput.value : localStorage.getItem('gloxad_doc_token') || '').trim();
+
+      const headers = {
+        'Accept': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+
+      let body = null;
+      if ((method === 'POST' || method === 'PUT') && bodyInput) {
+        headers['Content-Type'] = 'application/json';
+        body = bodyInput.value.trim();
+      }
+
+      const startTime = performance.now();
+      try {
+        const response = await fetch(fullUrl, {
+          method,
+          headers,
+          body: body || undefined
+        });
+        const endTime = performance.now();
+        const duration = Math.round(endTime - startTime);
+
+        latencyEl.textContent = `${duration}ms`;
+        statusEl.textContent = `${response.status} ${response.statusText}`;
+
+        if (response.status >= 200 && response.status < 300) {
+          statusEl.className = 'badge-code code-2xx';
+        } else if (response.status >= 400 && response.status < 500) {
+          statusEl.className = 'badge-code code-4xx';
+        } else {
+          statusEl.className = 'badge-code code-5xx';
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+          outputEl.textContent = JSON.stringify(data, null, 2);
+        } else {
+          const text = await response.text();
+          outputEl.textContent = text;
+        }
+      } catch (err) {
+        const endTime = performance.now();
+        latencyEl.textContent = `${Math.round(endTime - startTime)}ms`;
+        statusEl.textContent = 'Network Failure / Error';
+        statusEl.className = 'badge-code code-5xx';
+        outputEl.textContent = JSON.stringify({ error: err.message || 'Failed to fetch' }, null, 2);
+      }
+    }
+
+    // Auto-inject Sandbox Drawers on all Endpoint Cards
+    function initSandboxDrawers() {
+      const cards = document.querySelectorAll('.endpoint-card');
+      cards.forEach(card => {
+        const cardId = card.id;
+        if (!cardId || cardId === 'realtime-ws-events') return;
+
+        const headerRow = card.querySelector('.endpoint-header-row');
+        const uriEl = card.querySelector('.endpoint-uri');
+        const methodBadgeEl = card.querySelector('.method-badge');
+
+        if (!headerRow || !uriEl || !methodBadgeEl) return;
+
+        const method = methodBadgeEl.textContent.trim().toUpperCase();
+        const rawPath = uriEl.textContent.trim();
+
+        if (headerRow.querySelector('.sandbox-toggle-btn')) return;
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'sandbox-toggle-btn';
+        toggleBtn.innerHTML = '🧪 Try It Out';
+        toggleBtn.onclick = () => toggleSandbox(cardId);
+        headerRow.appendChild(toggleBtn);
+
+        let defaultBody = '';
+        const codeBlocks = card.querySelectorAll('.code-block');
+        codeBlocks.forEach(block => {
+          const headerText = (block.querySelector('.code-header')?.textContent || '').toLowerCase();
+          if (headerText.includes('request') || headerText.includes('body')) {
+            const codeEl = block.querySelector('code');
+            if (codeEl && codeEl.textContent.includes('{')) {
+              defaultBody = codeEl.textContent.trim();
+            }
+          }
+        });
+
+        const drawer = document.createElement('div');
+        drawer.className = 'sandbox-drawer';
+        drawer.id = `sandbox-drawer-${cardId}`;
+        drawer.style.display = 'none';
+
+        let bodyInputHtml = '';
+        if (method === 'POST' || method === 'PUT') {
+          bodyInputHtml = `
+            <div style="margin-top: 10px;">
+              <label style="font-size: 11.5px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">REQUEST BODY (JSON):</label>
+              <textarea id="sandbox-body-${cardId}" class="sandbox-textarea" rows="4" placeholder="{ &quot;key&quot;: &quot;value&quot; }">${defaultBody}</textarea>
+            </div>
+          `;
+        }
+
+        drawer.innerHTML = `
+          <div class="sandbox-inner" style="background: var(--bg-subtle); padding: 14px 16px; border-top: 1px solid var(--border-color); border-radius: 0 0 12px 12px;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <span class="method-badge method-${method.toLowerCase()}">${method}</span>
+              <input type="text" id="sandbox-url-${cardId}" class="sandbox-input" value="${rawPath}" style="flex: 1; min-width: 220px;" />
+              <button class="sandbox-exec-btn" onclick="executeSandboxRequest('${cardId}', '${method}')">⚡ Send Live Request</button>
+            </div>
+            ${bodyInputHtml}
+            <div id="sandbox-response-${cardId}" class="sandbox-response-panel" style="display: none; margin-top: 12px; background: var(--bg-code); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-family: var(--font-mono); font-size: 11.5px;">
+                <div>Status: <span id="sandbox-status-${cardId}"></span> &bull; Latency: <span id="sandbox-latency-${cardId}"></span></div>
+                <button class="copy-code-btn" onclick="copySandboxOutput('${cardId}', this)">Copy Response</button>
+              </div>
+              <pre style="margin: 0; max-height: 280px; overflow-y: auto;"><code id="sandbox-output-${cardId}" style="padding: 0;"></code></pre>
+            </div>
+          </div>
+        `;
+
+        card.appendChild(drawer);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initSandboxDrawers);
+    window.addEventListener('load', initSandboxDrawers);
 
     // Mobile menu toggle
     function toggleMobileMenu() {
