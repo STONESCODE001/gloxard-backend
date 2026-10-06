@@ -4,7 +4,7 @@
 Gloxad Academy is a high-performance RESTful backend API and real-time Socket.io service designed to power an e-learning platform. Built using Node.js, Express.js (ES Modules), MongoDB with Mongoose ODM, AWS S3 for direct file uploads, Paystack for payment verification, and Socket.io for messaging, the API serves three distinct roles: Students, Instructors, and Admins. It handles authentication with JWT and email OTP verification, course catalog search and discovery, a 5-step course authoring pipeline, server-side quiz grading, progress and certificate tracking, and real-time notifications. The backend also serves an HTML API documentation web page detailing every endpoint for frontend developers.
 
 ## Measurable Goals
-1. **Endpoint Coverage**: Implement and expose all 35+ REST endpoints and 8 Socket.io real-time events defined in the backend API specification under the `/api` base path.
+1. **Endpoint Coverage**: Implement and expose all 55+ REST endpoints and 8 Socket.io real-time events defined in the backend API specification under the `/api` base path.
 2. **Access Control Verification**: Achieve 100% role-based access control (RBAC) enforcement across `student`, `instructor`, and `admin` routes, returning HTTP 401 for unauthenticated calls and HTTP 403 for unauthorized calls.
 3. **5-Step Authoring Incremental Wizard**: Support complete course creation and editing across 5 separate wizard step payloads (`Basic Info`, `Advanced Info`, `Curriculum & Lessons`, `Publish Messages`, `Final Review`).
 4. **Server-Side Payment Idempotency**: Verify 100% of Paystack payment transactions server-side with zero tolerance for browser-side price tampering or duplicate reference processing.
@@ -15,26 +15,28 @@ Gloxad Academy is a high-performance RESTful backend API and real-time Socket.io
 
 1. **Registration**: An unauthenticated user sends `POST /api/auth/signup` with `email`, `password`, `firstName`, `lastName`, and `role` (`student` or `instructor`).
 2. **Email Verification**: Instructors receive a 4-digit email OTP and call `POST /api/auth/verify-email` with `{ "email": "...", "otp": "1234" }` to set `user.isVerified = true`.
-3. **Authentication**: User calls `POST /api/auth/signin` with email and password. The backend verifies credentials via `bcrypt` and returns a JWT Bearer token and public user object.
+3. **Authentication**: User calls `POST /api/auth/signin` with email and password. The backend verifies credentials via `bcrypt` and returns a JWT Bearer token and public user object. Active sessions can be refreshed via `POST /api/auth/refresh`.
 4. **Tutor Onboarding Application**: An instructor calls `POST /api/tutor/showcase-expertise` with credentials/bio. The account status becomes `approvalStatus: "pending"`.
-5. **Admin Tutor Approval**: An admin calls `GET /api/admin/users?role=instructor` to review pending tutors and updates the status via `PUT /api/admin/tutors/:id/approval` with `{ "status": "approved" }`.
+5. **Admin Tutor Approval**: An admin calls `GET /api/admin/users?role=instructor` to review pending tutors and updates the status via `PUT /api/admin/tutors/:id/approval` with `{ "status": "approved" }`. Admins can inspect complete tutor profiles via `GET /api/admin/users/:id`.
 6. **Draft Course Initialization**: The approved instructor calls `POST /api/tutor/courses` with basic course info (Step 1). The server creates a course record with `status: "draft"` and returns `course._id`.
 7. **Direct Media Upload URL Generation**: The instructor calls `POST /api/upload/presigned-url` with `{ "filename": "lesson.mp4", "fileType": "video/mp4", "folder": "courses" }` and receives an S3 `uploadUrl` and permanent `fileUrl`. The browser uploads video bytes directly to S3.
 8. **Incremental Course Authoring**: The instructor calls `PUT /api/tutor/courses/:id` with step data (Step 2 description/skills, Step 3 modules/lessons/quizzes, Step 4 welcome/congrats messages).
 9. **Course Review Submission**: The instructor calls `POST /api/tutor/courses/:id/submit`. The server validates course completeness and sets `status: "pending"`.
-10. **Admin Course Moderation**: An admin reviews pending courses via `GET /api/admin/courses/pending` and approves the course via `PUT /api/admin/courses/:id/status` with `{ "status": "published" }`.
+10. **Admin Course Moderation**: An admin reviews pending courses via `GET /api/admin/courses/pending` (with populated category details) and unshielded course audit view via `GET /api/admin/courses/:id`, approving via `PUT /api/admin/courses/:id/status` with `{ "status": "published" }`.
 11. **Public Course Discovery**: A student searches published courses via `GET /api/courses?search=python&courseType=paid` and views single course details via `GET /api/courses/:slugOrId`. The backend strips lesson `videoUrl` and quiz `correctOptionIndex` for non-enrolled callers.
 12. **Paid Course Checkout**: The student completes Paystack payment popup in the browser and calls `POST /api/enrollments/checkout` with `{ "courseId": "...", "reference": "T12345" }`. The server verifies the reference with Paystack API, creates a `Transaction` record, creates an `Enrollment` record, and adds the student to the course group chat.
 13. **Learning Experience & Progress**: The enrolled student fetches enrolled courses via `GET /api/enrollments/my-courses`, streams lesson videos, posts Q&A via `POST /api/learning/:courseId/questions`, and saves private notes via `POST /api/learning/:courseId/notes`.
 14. **Server-Side Quiz Submission**: The student submits quiz answers via `POST /api/learning/:courseId/quiz/:moduleId/submit` with `{ "answers": [1, 0, 2] }`. The server grades the quiz and returns `{ "passed": true, "score": 80 }`.
 15. **Course Completion & Certificate**: The student updates lesson progress via `POST /api/learning/:courseId/progress`. When 100% complete, `completedAt` is recorded and `GET /api/learning/:courseId/certificate` returns certificate details.
-16. **Real-Time Communication**: Students and tutors send messages via `POST /api/messages/:conversationId`, emitting `new_message` events over Socket.io to clients in room `conv:<id>`, and view notifications via `GET /api/notifications`.
+16. **Course Ratings & Reviews**: Enrolled students submit reviews via `POST /api/courses/:id/reviews`. Instructors list reviews via `GET /api/tutor/reviews` and reply via `POST /api/tutor/reviews/:id/reply`. Admins moderate reviews via `GET /api/admin/reviews` and `DELETE /api/admin/reviews/:id`.
+17. **Real-Time Communication**: Students and tutors send messages via `POST /api/messages/:conversationId`, emitting `new_message` events over Socket.io to clients in room `conv:<id>`, and view notifications via `GET /api/notifications`.
 
 ## Features by Category
 
 ### 1. Authentication & Security
 - `POST /api/auth/signup`: User creation with `bcrypt` password hashing.
 - `POST /api/auth/signin`: Credential validation and JWT Bearer token generation.
+- `POST /api/auth/refresh`: Session token refresh validating `tokenVersion`.
 - `GET /api/auth/me`: Authenticated user state retrieval.
 - `POST /api/auth/signout`: Session teardown / token invalidation.
 - `POST /api/auth/verify-email`: 4-digit OTP email verification for tutors.
@@ -52,10 +54,13 @@ Gloxad Academy is a high-performance RESTful backend API and real-time Socket.io
 - `POST /api/admin/categories` & `DELETE /api/admin/categories/:id`: Category CRUD for admins.
 - `GET /api/courses`: Public course search, filter (free/paid/trimester), sort, and pagination.
 - `GET /api/courses/:slugOrId`: Full course details with role-based content protection (video URL & quiz answers hidden from non-enrolled users).
+- `POST /api/courses/:id/reviews` & `GET /api/courses/:id/reviews`: Student course review submission and public review listing.
 
 ### 4. Tutor Authoring & Moderation
 - `POST /api/tutor/showcase-expertise`: Submit credentials and bio for admin verification.
 - `GET /api/tutor/dashboard-stats` & `GET /api/tutor/earnings`: Instructor analytics and revenue metrics.
+- `GET /api/tutor/search-instructors`: Search approved platform instructors by name, email, or username.
+- `GET /api/tutor/reviews` & `POST /api/tutor/reviews/:id/reply`: Instructor course reviews retrieval and tutor response posting.
 - `POST /api/tutor/courses`: Create initial draft course (Step 1).
 - `PUT /api/tutor/courses/:id`: Update course draft per wizard step (Steps 2–4).
 - `GET /api/tutor/courses` & `GET /api/tutor/courses/:id`: Instructor course catalog and single course preview.
@@ -64,12 +69,14 @@ Gloxad Academy is a high-performance RESTful backend API and real-time Socket.io
 
 ### 5. Admin Moderation & Operations
 - `GET /api/admin/dashboard-stats`, `GET /api/admin/recent-registrations`, `GET /api/admin/recent-transactions`: Platform metrics.
-- `GET /api/admin/users` & `DELETE /api/admin/users/:id`: User management and soft deletion.
+- `GET /api/admin/users`, `GET /api/admin/users/:id`, & `DELETE /api/admin/users/:id`: User management, full profile detail fetch, and soft deletion.
 - `PUT /api/admin/tutors/:id/approval`: Approve or reject tutor onboarding applications.
-- `GET /api/admin/courses/pending`, `GET /api/admin/courses/all`, `PUT /api/admin/courses/:id/status`: Course moderation.
+- `GET /api/admin/courses/pending`, `GET /api/admin/courses/all`, `GET /api/admin/courses/:id`, & `PUT /api/admin/courses/:id/status`: Course moderation and unshielded audit view.
 - `GET /api/admin/appeals` & `PUT /api/admin/appeals/:id/status`: Appeal resolution.
 - `GET /api/admin/finance`: Platform revenue and monthly breakdown.
 - `POST /api/admin/broadcast`: Role-based system broadcast notifications.
+- `GET /api/admin/settings` & `PUT /api/admin/settings`: Platform configuration singleton read/update.
+- `GET /api/admin/reviews` & `DELETE /api/admin/reviews/:id`: Platform-wide review listing and moderation deletion.
 
 ### 6. Enrollments & Paystack Integration
 - `POST /api/enrollments/enroll/:courseId`: Instant free course enrollment.

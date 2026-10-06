@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { User } from "../models/User.model.js";
 import { Course, generateSlug } from "../models/Course.model.js";
 import { Appeal } from "../models/Appeal.model.js";
+import { Review } from "../models/Review.model.js";
 
 /**
  * @desc    Submit tutor qualification credentials for admin verification & upgrade student role to instructor
@@ -478,6 +479,118 @@ export const appealCourseRejection = async (req, res, next) => {
     return res.status(201).json({
       message: "Course rejection appeal submitted successfully",
       appeal
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tutor/search-instructors?q=
+ * Search approved instructors by name/email/username for co-instructors.
+ */
+export const searchInstructorsController = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    const filter = {
+      role: "instructor",
+      approvalStatus: "approved"
+    };
+
+    if (q && q.trim()) {
+      const regex = new RegExp(q.trim(), "i");
+      filter.$or = [
+        { name: regex },
+        { firstName: regex },
+        { lastName: regex },
+        { username: regex },
+        { email: regex }
+      ];
+    }
+
+    const instructors = await User.find(filter)
+      .select("_id name firstName lastName email username avatar avatarUrl title areaOfExpertise role approvalStatus")
+      .limit(50);
+
+    return res.status(200).json({
+      instructors,
+      count: instructors.length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/tutor/reviews
+ * Fetch student reviews for courses created by signed-in instructor.
+ */
+export const getTutorReviewsController = async (req, res, next) => {
+  try {
+    const instructorCourses = await Course.find({ instructor: req.user._id }).select("_id");
+    const courseIds = instructorCourses.map((c) => c._id);
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const total = await Review.countDocuments({ course: { $in: courseIds } });
+    const reviews = await Review.find({ course: { $in: courseIds } })
+      .populate("course", "title slug thumbnail")
+      .populate("student", "name firstName lastName avatar avatarUrl email")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      reviews,
+      count: reviews.length,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/tutor/reviews/:id/reply
+ * Post an instructor response to a student review on their course.
+ */
+export const replyToReviewController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { comment, text, reply: replyBody } = req.body || {};
+    const replyText = (comment || text || replyBody || "").trim();
+
+    if (!replyText) {
+      return res.status(400).json({ error: "Reply comment is required" });
+    }
+
+    const review = await Review.findById(id).populate("course");
+    if (!review) {
+      return res.status(404).json({ error: "Review not found" });
+    }
+
+    const courseInstructor = review.course?.instructor ? review.course.instructor.toString() : null;
+    if (courseInstructor !== req.user._id.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ error: "You do not have permission to reply to this review" });
+    }
+
+    review.tutorReply = {
+      comment: replyText,
+      createdAt: new Date()
+    };
+    await review.save();
+
+    return res.status(200).json({
+      message: "Reply posted successfully",
+      review
     });
   } catch (error) {
     next(error);

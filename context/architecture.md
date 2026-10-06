@@ -58,7 +58,7 @@ gloxard/
   * `validate.middleware.js`: Schema validation for request body, query params, and URL parameters.
   * `rateLimiter.middleware.js`: Configures IP rate limiters for login, OTP, and message routes.
 * `src/models/`:
-  * Defines 12 Mongoose collections: `User`, `Otp`, `Category`, `Course`, `Enrollment`, `Transaction`, `Review`, `Appeal`, `Conversation`, `Message`, `Notification`, `QuestionNoteMisc`.
+  * Defines 14 Mongoose collections: `User`, `Otp`, `Category`, `Course`, `Enrollment`, `Transaction`, `Review`, `PlatformSettings`, `Appeal`, `Conversation`, `Message`, `Notification`, `QuestionNoteMisc`.
 * `src/controllers/`:
   * Implements pure controller functions. Controllers MUST NOT contain raw SQL/query building logic or direct Socket.io room manipulations; they delegate DB ops to Mongoose models and real-time events to `socket.handler.js`.
 * `src/routes/`:
@@ -76,12 +76,13 @@ Data is strictly partitioned across three distinct storage tiers to maximize per
 
 ### 1. Database (MongoDB)
 All persistent structured data lives in MongoDB.
-* **User Data**: User accounts, email verification status, hashed passwords, bios, social links, notification preferences.
+* **User Data**: User accounts, email verification status, hashed passwords, bios, experience proofs, social links, notification preferences.
 * **Auth & Security Data**: Hashed OTP records with TTL indexes (`expiresAt`).
-* **Catalog & Authoring Data**: Categories, course metadata, module structures, lesson metadata, quiz questions/options (including server-only `correctOptionIndex`), draft states, rejection reasons.
+* **Catalog & Authoring Data**: Categories (with image URLs), course metadata, module structures, lesson metadata, quiz questions/options (including server-only `correctOptionIndex`), draft states, rejection reasons.
 * **Enrollments & Transactions**: Student-course enrollment records, completed lesson arrays, server-verified Paystack transaction records (reference, amount, shares).
-* **Learning & Interaction Data**: Q&A questions/replies, student private notes, instructor announcements, course reviews.
+* **Learning & Interaction Data**: Q&A questions/replies, student private notes, instructor announcements, course reviews, tutor replies.
 * **Messaging & Notifications**: Conversations, message history with sender IDs, in-app notifications.
+* **Platform Operations Data**: PlatformSettings singleton holding signup toggles, deletion grace days, signature URL.
 
 ### 2. Cloud File Storage (AWS S3)
 Raw binary files and media assets **NEVER** pass through or reside on the Node.js API server filesystem. They are stored directly in AWS S3 buckets under isolated folder prefixes:
@@ -92,6 +93,7 @@ Raw binary files and media assets **NEVER** pass through or reside on the Node.j
 * `courses/resources/`: Downloadable lecture PDFs and supplementary materials.
 * `certifications/`: Tutor qualification PDFs submitted during onboarding.
 * `certificates/`: Generated student course completion certificates.
+* `signatures/`: Authorized platform signee signature images.
 
 ### 3. Cache Tier (In-Memory / MongoDB Indexed)
 * **Categories & Public Feeds**: Category trees (`GET /api/categories`) and public course feeds are cached in Node.js memory or optimized with MongoDB indexes (`slug`, `status`, `courseType`, `text`).
@@ -103,11 +105,13 @@ Raw binary files and media assets **NEVER** pass through or reside on the Node.j
 
 Authentication and authorization follow a strict, multi-layered model:
 
-### 1. Authentication Lifecycle
+### 1. Authentication Lifecycle & Session Refresh
 * **Registration**: User registers via `POST /api/auth/signup`. Passwords are salted and hashed using `bcrypt` (10-12 rounds) before persistence.
 * **Token Issuance**: `POST /api/auth/signin` returns a signed JWT containing `{ sub: userId, role: user.role }` signed with `JWT_SECRET`.
 * **Token Transmission**: Clients attach the token in the HTTP header: `Authorization: Bearer <token>`.
 * **Token Verification**: `auth.middleware.js` decodes the token, verifies expiry, queries `User.findById(sub)`, and populates `req.user`.
+* **Token Refresh**: `POST /api/auth/refresh` verifies current token signature and `tokenVersion`, issuing a fresh 7-day access token.
+* **Multi-Origin CORS**: The backend parses comma-separated origins in `FRONTEND_ORIGIN` to enable seamless development (`localhost`) and production cross-origin requests.
 
 ### 2. Role-Based Access Control (RBAC)
 Routes are protected by explicit role middleware guards:

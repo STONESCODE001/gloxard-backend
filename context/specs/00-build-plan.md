@@ -301,6 +301,21 @@ This build plan decomposes the Gloxad Academy Backend API into **15 focused, seq
 
 ---
 
+### Unit 16: Frontend Integration Gap Remediation
+- **System Boundary**: Frontend Integration Gap Remediation & System Synchronization
+- **What It Builds**:
+  - Implement 6 missing REST endpoints (`POST /api/auth/refresh`, `GET /api/admin/users/:id`, `GET /api/admin/courses/:id`, `GET/PUT /api/admin/settings`, `GET /api/tutor/search-instructors`, `POST /api/courses/:id/reviews`).
+  - Complete Course Ratings & Review Engine (`Review` model, student review creation, public review list, tutor reply to reviews, admin review moderation/deletion).
+  - Schema extensions: `imageUrl` on `Category`, `experienceProofs` on `User`, `PlatformSettings` singleton model.
+  - Response field standardization & dual-key aliases (`isVerified`/`isEmailVerified`, `bio`/`biography`/`expertiseBio`, `socials`/`socialLinks`, `avatar`/`avatarUrl`).
+  - Multi-Origin CORS support handling comma-separated `FRONTEND_ORIGIN` strings.
+  - Interactive HTML documentation portal sync (`src/views/docs.html`) covering all 55+ REST endpoints.
+- **Dependencies To Introduce**: None (Uses existing packages).
+- **Prerequisite Dependencies**: Units 01 through 15.
+- **Visible Result**: All 55+ endpoints operate with 100% compliance across all 5 architectural invariants and pass automated E2E smoke tests.
+
+---
+
 ## Invariants Checklist (Enforced on Every Unit)
 
 1. [ ] **Uniform Error Schema**: Any failure branch returns `{ "error": "<message>" }` with appropriate status code.

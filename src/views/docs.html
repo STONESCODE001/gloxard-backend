@@ -1014,6 +1014,11 @@
             </a>
           </li>
           <li>
+            <a href="#ep-refresh" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Refresh Token
+            </a>
+          </li>
+          <li>
             <a href="#ep-me" class="nav-link">
               <span class="nav-method-pill pill-get">GET</span> Current User
             </a>
@@ -1094,6 +1099,16 @@
             </a>
           </li>
           <li>
+            <a href="#ep-create-course-review" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Course Review
+            </a>
+          </li>
+          <li>
+            <a href="#ep-get-course-reviews" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Course Reviews
+            </a>
+          </li>
+          <li>
             <a href="#tutor-onboarding" class="nav-link">
               <span class="nav-method-pill pill-post">POST</span> Showcase Expertise
             </a>
@@ -1106,6 +1121,21 @@
           <li>
             <a href="#ep-earnings" class="nav-link">
               <span class="nav-method-pill pill-get">GET</span> Tutor Earnings
+            </a>
+          </li>
+          <li>
+            <a href="#ep-search-instructors" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Search Instructors
+            </a>
+          </li>
+          <li>
+            <a href="#ep-tutor-reviews" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Tutor Course Reviews
+            </a>
+          </li>
+          <li>
+            <a href="#ep-tutor-reply-review" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reply to Review
             </a>
           </li>
           <li>
@@ -1218,6 +1248,36 @@
               <span class="nav-method-pill pill-get">GET</span> Verify Certificate
             </a>
           </li>
+          <li>
+            <a href="#ep-admin-user-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Admin User Details
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-course-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Admin Course Audit
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-settings-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Platform Settings
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-settings-put" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Settings
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-reviews-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Moderation Reviews
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-reviews-del" class="nav-link">
+              <span class="nav-method-pill" style="background: var(--error-bg); color: var(--error-text); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 8px;">DEL</span> Delete Review
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -1232,7 +1292,7 @@
           <h1 class="doc-title">Gloxad Academy API Reference v1.0</h1>
         </div>
         <p>
-          Welcome to the Gloxad REST API documentation portal and interactive sandbox. This portal provides complete, zero-ambiguity documentation for all 43 REST API endpoints and 8 Socket.io WebSocket events across Gloxad Academy.
+          Welcome to the Gloxad REST API documentation portal and interactive sandbox. This portal provides complete, zero-ambiguity documentation for all 51 REST API endpoints and 8 Socket.io WebSocket events across Gloxad Academy.
         </p>
         <p style="margin-top: 12px;">
           All requests accept standard JSON payloads with <code>Content-Type: application/json</code>. Protected endpoints require a Bearer token in the <code>Authorization</code> header.
@@ -1245,7 +1305,7 @@
           🛡️ Core Platform Architectural Invariants
         </h3>
         <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 12px; max-width: 100%;">
-          Gloxad Academy backend enforces 5 strict architectural rules across all 43 REST API endpoints and Socket.io events:
+          Gloxad Academy backend enforces 5 strict architectural rules across all 55 REST API endpoints and Socket.io events:
         </p>
         <ul style="list-style-type: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; font-size: 13px;">
           <li style="background: var(--bg-surface); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border-color);">
@@ -1662,6 +1722,59 @@
         </div>
       </div>
 
+      <!-- 2.5. POST /api/auth/refresh -->
+      <div class="endpoint-card" id="ep-refresh" data-search="refresh token jwt auth post session">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/auth/refresh</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Refreshes the caller's active JWT session using either the Bearer token in the <code>Authorization</code> header or JSON body <code>{ "token": "&lt;token&gt;" }</code>. Validates current <code>tokenVersion</code> and issues a fresh 7-day token.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X POST https://gloxard-backend.onrender.com/api/auth/refresh \
+  -H "Authorization: Bearer &lt;token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "_id": "673f8a92b234fa001234abcd",
+    "email": "student@gloxad.com",
+    "firstName": "Alex",
+    "lastName": "Johnson",
+    "name": "Alex Johnson",
+    "role": "student",
+    "approvalStatus": "approved",
+    "isVerified": true,
+    "isEmailVerified": true,
+    "avatarUrl": "https://gloxad-bucket.s3.amazonaws.com/avatars/alex.jpg",
+    "avatar": "https://gloxad-bucket.s3.amazonaws.com/avatars/alex.jpg",
+    "bio": "Aspiring fullstack developer.",
+    "biography": "Aspiring fullstack developer.",
+    "socialLinks": {},
+    "socials": {}
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 3. GET /api/auth/me -->
       <div class="endpoint-card" id="ep-me" data-search="me current user profile token get">
         <div class="endpoint-header-row">
@@ -2019,6 +2132,13 @@
         <div class="endpoint-content">
           <div class="endpoint-desc">
             Generates a short-lived (15-minute) AWS S3 PUT presigned URL for direct client-side media offloading. Guarantees zero raw file byte streaming on the API server.
+          </div>
+
+          <div style="background: rgba(79, 70, 229, 0.08); border-left: 4px solid #4F46E5; padding: 12px 16px; border-radius: 6px; margin: 14px 0; font-size: 13px; color: var(--text-primary);">
+            <strong>Frontend Integration Note (Profile Picture Upload Workflow):</strong><br/>
+            1. Call <code>POST /api/upload/presigned-url</code> with <code>{ "filename": "avatar.png", "fileType": "image/png", "folder": "avatars" }</code> to receive <code>uploadUrl</code> and <code>fileUrl</code>.<br/>
+            2. Perform direct HTTP <code>PUT</code> with image binary to <code>uploadUrl</code>.<br/>
+            3. Call <code>PUT /api/auth/update-profile</code> with <code>{ "avatarUrl": fileUrl }</code> (or <code>{ "avatar": fileUrl }</code>) to save the S3 link to the user profile in MongoDB.
           </div>
 
           <div class="table-container">
@@ -2569,6 +2689,112 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- 17.1. POST /api/courses/:id/reviews -->
+      <div class="endpoint-card" id="ep-create-course-review" data-search="courses reviews rating submit feedback star enrolled student post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/courses/:id/reviews</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Submits a student rating and review for an enrolled course. Automatically updates and recalculates the target course's average rating and ratings count. Rejects non-enrolled students with HTTP 403.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X POST https://gloxard-backend.onrender.com/api/courses/651a2b3c4d5e6f7a8b9c0d20/reviews \
+  -H "Authorization: Bearer &lt;student_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rating": 5,
+    "comment": "Incredible explanation of backend engineering principles!"
+  }'</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-201">201 Created</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Review submitted successfully",
+  "review": {
+    "_id": "674a2b3c4d5e6f7a8b9c0e99",
+    "course": "651a2b3c4d5e6f7a8b9c0d20",
+    "student": "651a2b3c4d5e6f7a8b9c0d12",
+    "rating": 5,
+    "comment": "Incredible explanation of backend engineering principles!",
+    "tutorReply": {
+      "comment": "",
+      "createdAt": null
+    },
+    "createdAt": "2026-10-02T19:30:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 17.2. GET /api/courses/:id/reviews -->
+      <div class="endpoint-card" id="ep-get-course-reviews" data-search="courses reviews rating list student feedback public get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/courses/:id/reviews</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves paginated public reviews for a course populated with student avatar, full name, rating, comment, and tutor reply.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET "https://gloxard-backend.onrender.com/api/courses/651a2b3c4d5e6f7a8b9c0d20/reviews?page=1&limit=10"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "reviews": [
+    {
+      "_id": "674a2b3c4d5e6f7a8b9c0e99",
+      "course": "651a2b3c4d5e6f7a8b9c0d20",
+      "student": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d12",
+        "name": "Alice Student",
+        "firstName": "Alice",
+        "lastName": "Student",
+        "avatarUrl": "https://gloxad-bucket.s3.amazonaws.com/avatars/alice.jpg",
+        "avatar": "https://gloxad-bucket.s3.amazonaws.com/avatars/alice.jpg"
+      },
+      "rating": 5,
+      "comment": "Incredible explanation of backend engineering principles!",
+      "tutorReply": {
+        "comment": "Thank you Alice! Happy coding!",
+        "createdAt": "2026-10-02T19:35:00.000Z"
+      },
+      "createdAt": "2026-10-02T19:30:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- SECTION: Tutor Onboarding & Analytics -->
       <section class="doc-section" id="tutor-onboarding">
         <h2 class="section-heading">7. Tutor Onboarding & Performance Analytics</h2>
@@ -2783,6 +3009,164 @@ Accept: application/json</code></pre>
     }
   ]
 }</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20.1. GET /api/tutor/search-instructors -->
+      <div class="endpoint-card" id="ep-search-instructors" data-search="tutor search instructors co-instructor find approved get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/search-instructors</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Searches approved platform instructors by name, username, or email for co-instructor invites and collaboration.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET "https://gloxard-backend.onrender.com/api/tutor/search-instructors?q=jane" \
+  -H "Authorization: Bearer &lt;instructor_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "instructors": [
+    {
+      "_id": "673f8a92b234fa001234abcd",
+      "name": "Jane Tutor",
+      "firstName": "Jane",
+      "lastName": "Tutor",
+      "email": "jane.tutor@gloxad.com",
+      "username": "janetutor",
+      "avatarUrl": "https://gloxad-bucket.s3.amazonaws.com/avatars/jane.jpg",
+      "avatar": "https://gloxad-bucket.s3.amazonaws.com/avatars/jane.jpg",
+      "title": "Senior Fullstack Lead",
+      "areaOfExpertise": "Web Development"
+    }
+  ],
+  "count": 1
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20.2. GET /api/tutor/reviews -->
+      <div class="endpoint-card" id="ep-tutor-reviews" data-search="tutor course reviews feedback student ratings list get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/tutor/reviews</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves all student reviews submitted across courses authored by the authenticated instructor. Includes student metadata and existing tutor responses.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET "https://gloxard-backend.onrender.com/api/tutor/reviews?page=1&limit=10" \
+  -H "Authorization: Bearer &lt;instructor_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "reviews": [
+    {
+      "_id": "674a2b3c4d5e6f7a8b9c0e99",
+      "course": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d20",
+        "title": "Complete Full-Stack Web Development BootCamp",
+        "slug": "complete-full-stack-web-development-bootcamp",
+        "thumbnail": "https://gloxad-bucket.s3.amazonaws.com/courses/fs-thumb.jpg"
+      },
+      "student": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d12",
+        "name": "Alice Student",
+        "firstName": "Alice",
+        "lastName": "Student",
+        "avatarUrl": "https://gloxad-bucket.s3.amazonaws.com/avatars/alice.jpg",
+        "avatar": "https://gloxad-bucket.s3.amazonaws.com/avatars/alice.jpg",
+        "email": "alice.student@gloxad.com"
+      },
+      "rating": 5,
+      "comment": "Exceptional course! Very clear and easy to follow.",
+      "tutorReply": {
+        "comment": "",
+        "createdAt": null
+      },
+      "createdAt": "2026-10-02T19:30:00.000Z"
+    }
+  ],
+  "count": 1,
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20.3. POST /api/tutor/reviews/:id/reply -->
+      <div class="endpoint-card" id="ep-tutor-reply-review" data-search="tutor reply student review comment response post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/tutor/reviews/:id/reply</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Instructor)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Posts an instructor response to a student review on one of their courses. Enforces instructor ownership guard.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X POST https://gloxard-backend.onrender.com/api/tutor/reviews/674a2b3c4d5e6f7a8b9c0e99/reply \
+  -H "Authorization: Bearer &lt;instructor_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "comment": "Thank you Alice! Excited to see your projects."
+  }'</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Reply posted successfully",
+  "review": {
+    "_id": "674a2b3c4d5e6f7a8b9c0e99",
+    "course": "651a2b3c4d5e6f7a8b9c0d20",
+    "student": "651a2b3c4d5e6f7a8b9c0d12",
+    "rating": 5,
+    "comment": "Exceptional course! Very clear and easy to follow.",
+    "tutorReply": {
+      "comment": "Thank you Alice! Excited to see your projects.",
+      "createdAt": "2026-10-02T19:40:00.000Z"
+    }
+  }
+}</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -3367,6 +3751,63 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- 30.1. GET /api/admin/users/:id -->
+      <div class="endpoint-card" id="ep-admin-user-detail" data-search="admin user detail single profile experience proofs certifications credentials get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/users/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches complete user profile details including instructor onboarding verification fields, experience proofs, certifications, social links, and notification preferences.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET https://gloxard-backend.onrender.com/api/admin/users/651a2b3c4d5e6f7a8b9c0d10 \
+  -H "Authorization: Bearer &lt;admin_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "user": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d10",
+    "name": "Jane Tutor",
+    "firstName": "Jane",
+    "lastName": "Tutor",
+    "email": "jane.tutor@gloxad.com",
+    "role": "instructor",
+    "approvalStatus": "approved",
+    "isVerified": true,
+    "isEmailVerified": true,
+    "avatarUrl": "https://gloxad-bucket.s3.amazonaws.com/avatars/jane.jpg",
+    "avatar": "https://gloxad-bucket.s3.amazonaws.com/avatars/jane.jpg",
+    "title": "Senior Fullstack Lead",
+    "bio": "10+ years building web applications.",
+    "biography": "10+ years building web applications.",
+    "areaOfExpertise": "Web Development",
+    "experienceProofs": [
+      "https://gloxad-bucket.s3.amazonaws.com/certifications/jane-degree.pdf"
+    ],
+    "socials": {
+      "github": "https://github.com/janetutor"
+    },
+    "socialLinks": {
+      "github": "https://github.com/janetutor"
+    }
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 31. DELETE /api/admin/users/:id -->
       <div class="endpoint-card" id="ep-admin-deactivate-user" data-search="admin deactivate user delete soft delete disable account">
         <div class="endpoint-header-row">
@@ -3517,6 +3958,69 @@ Accept: application/json</code></pre>
     "totalPages": 1
   }
 }</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 34.1. GET /api/admin/courses/:id -->
+      <div class="endpoint-card" id="ep-admin-course-detail" data-search="admin course detail unshielded preview video answers get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/courses/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches complete, unshielded course curriculum and metadata for review regardless of status (including draft or pending). Video URLs and quiz answer keys remain unshielded for administrative auditing.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET https://gloxard-backend.onrender.com/api/admin/courses/651a2b3c4d5e6f7a8b9c0d20 \
+  -H "Authorization: Bearer &lt;admin_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "course": {
+    "_id": "651a2b3c4d5e6f7a8b9c0d20",
+    "title": "Fullstack JavaScript Mastery",
+    "slug": "fullstack-javascript-mastery",
+    "category": {
+      "_id": "651a1b2c3d4e5f6a7b8c9d01",
+      "name": "Web Development",
+      "slug": "web-development",
+      "icon": "code",
+      "imageUrl": "https://gloxad-bucket.s3.amazonaws.com/categories/web-dev.jpg"
+    },
+    "status": "pending",
+    "instructor": {
+      "_id": "651a2b3c4d5e6f7a8b9c0d10",
+      "name": "Jane Tutor",
+      "firstName": "Jane",
+      "lastName": "Tutor",
+      "email": "jane.tutor@gloxad.com"
+    },
+    "modules": [
+      {
+        "title": "Module 1: Foundations",
+        "lessons": [
+          {
+            "title": "Lesson 1: Architecture",
+            "videoUrl": "https://gloxad-bucket.s3.amazonaws.com/courses/node-intro.mp4",
+            "isFreePreview": false
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -3693,6 +4197,180 @@ Accept: application/json</code></pre>
     "createdAt": "2026-10-01T21:20:00.000Z"
   }
 }</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 39.1. GET /api/admin/settings -->
+      <div class="endpoint-card" id="ep-admin-settings-get" data-search="admin platform settings configuration allow signups grace days signature get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/settings</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Retrieves current platform configuration singleton document holding registration toggles, password reset permissions, account deletion grace days, and dean signature asset URL.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET https://gloxard-backend.onrender.com/api/admin/settings \
+  -H "Authorization: Bearer &lt;admin_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "settings": {
+    "_id": "674a1b2c3d4e5f6a7b8c9d01",
+    "allowSignups": true,
+    "allowPasswordReset": true,
+    "deletionGraceDays": 30,
+    "signatureUrl": "https://gloxad-bucket.s3.amazonaws.com/signatures/dean-signature.png",
+    "createdAt": "2026-10-02T19:00:00.000Z",
+    "updatedAt": "2026-10-02T19:00:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 39.2. PUT /api/admin/settings -->
+      <div class="endpoint-card" id="ep-admin-settings-put" data-search="admin platform settings update configuration toggles signature put">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/settings</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates platform configuration toggles, account deletion grace duration, and verified certificate authority signature image URL.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X PUT https://gloxard-backend.onrender.com/api/admin/settings \
+  -H "Authorization: Bearer &lt;admin_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "allowSignups": true,
+    "allowPasswordReset": true,
+    "deletionGraceDays": 45,
+    "signatureUrl": "https://gloxad-bucket.s3.amazonaws.com/signatures/dean-signature.png"
+  }'</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Platform settings updated successfully",
+  "settings": {
+    "_id": "674a1b2c3d4e5f6a7b8c9d01",
+    "allowSignups": true,
+    "allowPasswordReset": true,
+    "deletionGraceDays": 45,
+    "signatureUrl": "https://gloxad-bucket.s3.amazonaws.com/signatures/dean-signature.png",
+    "updatedAt": "2026-10-02T19:45:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 39.3. GET /api/admin/reviews -->
+      <div class="endpoint-card" id="ep-admin-reviews-get" data-search="admin reviews moderation list filter ratings comments get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/reviews</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Fetches all submitted student reviews platform-wide with optional filters for <code>course</code> (ID) and <code>rating</code> (1-5), and pagination.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X GET "https://gloxard-backend.onrender.com/api/admin/reviews?page=1&limit=10" \
+  -H "Authorization: Bearer &lt;admin_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "reviews": [
+    {
+      "_id": "674a2b3c4d5e6f7a8b9c0e99",
+      "course": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d20",
+        "title": "Complete Full-Stack Web Development BootCamp",
+        "slug": "complete-full-stack-web-development-bootcamp"
+      },
+      "student": {
+        "_id": "651a2b3c4d5e6f7a8b9c0d12",
+        "name": "Alice Student",
+        "email": "alice.student@gloxad.com"
+      },
+      "rating": 5,
+      "comment": "Exceptional course! Very clear and easy to follow.",
+      "createdAt": "2026-10-02T19:30:00.000Z"
+    }
+  ],
+  "pagination": {
+    "total": 1,
+    "page": 1,
+    "limit": 10,
+    "totalPages": 1
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 39.4. DELETE /api/admin/reviews/:id -->
+      <div class="endpoint-card" id="ep-admin-reviews-del" data-search="admin reviews moderation delete remove offensive inappropriate review delete">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-delete">DELETE</span>
+          <span class="endpoint-uri">/api/admin/reviews/:id</span>
+          <span class="endpoint-tag-pill tag-auth">Auth Required (Admin)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Moderates and deletes inappropriate or offensive course reviews. Automatically recalculates the associated course's average rating and ratings count.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Request Example</span>
+              </div>
+              <pre><code>curl -X DELETE https://gloxard-backend.onrender.com/api/admin/reviews/674a2b3c4d5e6f7a8b9c0e99 \
+  -H "Authorization: Bearer &lt;admin_token&gt;"</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "message": "Review deleted successfully"
+}</code></pre>
+            </div>
           </div>
         </div>
       </div>
@@ -4629,6 +5307,7 @@ Accept: application/json</code></pre>
         <li><a href="#ep-signup" class="toc-link">POST /signup</a></li>
         <li><a href="#ep-signin" class="toc-link">POST /signin</a></li>
         <li><a href="#ep-me" class="toc-link">GET /me</a></li>
+        <li><a href="#ep-refresh" class="toc-link">POST /auth/refresh</a></li>
         <li><a href="#ep-signout" class="toc-link">POST /signout</a></li>
         <li><a href="#ep-verify-email" class="toc-link">POST /verify-email</a></li>
         <li><a href="#ep-resend-verification" class="toc-link">POST /resend-verification</a></li>
@@ -4646,10 +5325,15 @@ Accept: application/json</code></pre>
         <li><a href="#course-catalog" class="toc-link">Course Catalog</a></li>
         <li><a href="#ep-courses-list" class="toc-link">GET /courses</a></li>
         <li><a href="#ep-course-detail" class="toc-link">GET /courses/:slugOrId</a></li>
+        <li><a href="#ep-create-course-review" class="toc-link">POST /courses/:id/reviews</a></li>
+        <li><a href="#ep-get-course-reviews" class="toc-link">GET /courses/:id/reviews</a></li>
         <li><a href="#tutor-onboarding" class="toc-link">Tutor Onboarding</a></li>
         <li><a href="#ep-showcase-expertise" class="toc-link">POST /tutor/showcase-expertise</a></li>
         <li><a href="#ep-dashboard-stats" class="toc-link">GET /tutor/dashboard-stats</a></li>
         <li><a href="#ep-earnings" class="toc-link">GET /tutor/earnings</a></li>
+        <li><a href="#ep-search-instructors" class="toc-link">GET /tutor/search-instructors</a></li>
+        <li><a href="#ep-tutor-reviews" class="toc-link">GET /tutor/reviews</a></li>
+        <li><a href="#ep-tutor-reply-review" class="toc-link">POST /tutor/reviews/:id/reply</a></li>
         <li><a href="#course-authoring" class="toc-link">Course Authoring & Review</a></li>
         <li><a href="#ep-create-course-draft" class="toc-link">POST /tutor/courses</a></li>
         <li><a href="#ep-update-course-draft" class="toc-link">PUT /tutor/courses/:id</a></li>
@@ -4663,14 +5347,20 @@ Accept: application/json</code></pre>
         <li><a href="#ep-admin-recent-transactions" class="toc-link">GET /admin/recent-transactions</a></li>
         <li><a href="#ep-admin-users" class="toc-link">GET /admin/users</a></li>
         <li><a href="#ep-admin-deactivate-user" class="toc-link">DELETE /admin/users/:id</a></li>
+        <li><a href="#ep-admin-user-detail" class="toc-link">GET /admin/users/:id</a></li>
         <li><a href="#ep-admin-tutor-approval" class="toc-link">PUT /admin/tutors/:id/approval</a></li>
         <li><a href="#ep-admin-courses-pending" class="toc-link">GET /admin/courses/pending</a></li>
         <li><a href="#ep-admin-courses-all" class="toc-link">GET /admin/courses/all</a></li>
         <li><a href="#ep-admin-course-status" class="toc-link">PUT /admin/courses/:id/status</a></li>
+        <li><a href="#ep-admin-course-detail" class="toc-link">GET /admin/courses/:id</a></li>
         <li><a href="#ep-admin-appeals" class="toc-link">GET /admin/appeals</a></li>
         <li><a href="#ep-admin-appeal-status" class="toc-link">PUT /admin/appeals/:id/status</a></li>
         <li><a href="#ep-admin-finance" class="toc-link">GET /admin/finance</a></li>
         <li><a href="#ep-admin-broadcast" class="toc-link">POST /admin/broadcast</a></li>
+        <li><a href="#ep-admin-settings-get" class="toc-link">GET /admin/settings</a></li>
+        <li><a href="#ep-admin-settings-put" class="toc-link">PUT /admin/settings</a></li>
+        <li><a href="#ep-admin-reviews-get" class="toc-link">GET /admin/reviews</a></li>
+        <li><a href="#ep-admin-reviews-del" class="toc-link">DELETE /admin/reviews/:id</a></li>
         <li><a href="#ep-enroll-free" class="toc-link">POST /enrollments/enroll/:courseId</a></li>
         <li><a href="#ep-enroll-checkout" class="toc-link">POST /enrollments/checkout</a></li>
         <li><a href="#ep-enroll-my-courses" class="toc-link">GET /enrollments/my-courses</a></li>

@@ -94,6 +94,10 @@ const userSchema = new Schema(
       type: String,
       default: "",
     },
+    avatar: {
+      type: String,
+      default: "",
+    },
     biography: {
       type: String,
       default: "",
@@ -122,6 +126,10 @@ const userSchema = new Schema(
     experienceYears: {
       type: Number,
       default: 0,
+    },
+    experienceProofs: {
+      type: [String],
+      default: [],
     },
     expertiseBio: {
       type: String,
@@ -180,10 +188,25 @@ const userSchema = new Schema(
         delete ret.password;
         delete ret.__v;
         delete ret.id;
-        ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
-        ret.biography = ret.biography || ret.bio || "";
-        ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";
-        ret.socialLinks = ret.socialLinks || ret.socials || {};
+
+        const isVer = ret.isVerified !== undefined ? Boolean(ret.isVerified) : Boolean(ret.isEmailVerified);
+        ret.isVerified = isVer;
+        ret.isEmailVerified = isVer;
+
+        const bioText = ret.biography || ret.bio || ret.expertiseBio || "";
+        ret.biography = bioText;
+        ret.bio = bioText;
+        ret.expertiseBio = bioText;
+
+        const socialsObj = ret.socialLinks || ret.socials || {};
+        ret.socialLinks = socialsObj;
+        ret.socials = socialsObj;
+
+        const avatarImg = ret.avatarUrl || ret.avatar || "";
+        ret.avatarUrl = avatarImg;
+        ret.avatar = avatarImg;
+
+        if (!ret.experienceProofs) ret.experienceProofs = [];
         if (!ret.certifications) ret.certifications = [];
         if (!ret.skills) ret.skills = [];
         if (ret.experienceYears === undefined) ret.experienceYears = 0;
@@ -197,10 +220,25 @@ const userSchema = new Schema(
         delete ret.password;
         delete ret.__v;
         delete ret.id;
-        ret.isEmailVerified = ret.isVerified !== undefined ? ret.isVerified : false;
-        ret.biography = ret.biography || ret.bio || "";
-        ret.expertiseBio = ret.expertiseBio || ret.biography || ret.bio || "";
-        ret.socialLinks = ret.socialLinks || ret.socials || {};
+
+        const isVer = ret.isVerified !== undefined ? Boolean(ret.isVerified) : Boolean(ret.isEmailVerified);
+        ret.isVerified = isVer;
+        ret.isEmailVerified = isVer;
+
+        const bioText = ret.biography || ret.bio || ret.expertiseBio || "";
+        ret.biography = bioText;
+        ret.bio = bioText;
+        ret.expertiseBio = bioText;
+
+        const socialsObj = ret.socialLinks || ret.socials || {};
+        ret.socialLinks = socialsObj;
+        ret.socials = socialsObj;
+
+        const avatarImg = ret.avatarUrl || ret.avatar || "";
+        ret.avatarUrl = avatarImg;
+        ret.avatar = avatarImg;
+
+        if (!ret.experienceProofs) ret.experienceProofs = [];
         if (!ret.certifications) ret.certifications = [];
         if (!ret.skills) ret.skills = [];
         if (ret.experienceYears === undefined) ret.experienceYears = 0;

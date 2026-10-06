@@ -1,9 +1,13 @@
+import mongoose from 'mongoose';
 import User from '../models/User.model.js';
 import Course from '../models/Course.model.js';
 import Appeal from '../models/Appeal.model.js';
 import Notification from '../models/Notification.model.js';
 import Enrollment from '../models/Enrollment.model.js';
 import Transaction from '../models/Transaction.model.js';
+import Category from '../models/Category.model.js';
+import Review from '../models/Review.model.js';
+import PlatformSettings from '../models/PlatformSettings.model.js';
 
 /**
  * 1. GET /api/admin/dashboard-stats
@@ -222,11 +226,37 @@ export const getPendingCoursesController = async (req, res, next) => {
 
     const filter = { status: 'pending' };
     const total = await Course.countDocuments(filter);
-    const courses = await Course.find(filter)
-      .populate('instructor', 'firstName lastName email')
+    let courses = await Course.find(filter)
+      .populate('instructor', 'firstName lastName email avatar avatarUrl')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
+
+    for (const course of courses) {
+      if (course.category && (typeof course.category === 'string' || !course.category.name)) {
+        let catDoc = null;
+        if (mongoose.Types.ObjectId.isValid(course.category)) {
+          catDoc = await Category.findById(course.category).select('_id name slug icon imageUrl').lean();
+        }
+        if (!catDoc && typeof course.category === 'string') {
+          catDoc = await Category.findOne({
+            $or: [{ name: course.category }, { slug: course.category }]
+          }).select('_id name slug icon imageUrl').lean();
+        }
+        if (catDoc) {
+          course.category = catDoc;
+        } else if (typeof course.category === 'string') {
+          course.category = {
+            _id: null,
+            name: course.category,
+            slug: course.category.toLowerCase().replace(/\s+/g, '-'),
+            icon: null,
+            imageUrl: null
+          };
+        }
+      }
+    }
 
     const totalPages = Math.ceil(total / limit) || 1;
 
@@ -515,6 +545,163 @@ export const broadcastNotificationController = async (req, res, next) => {
         dispatchedCount,
         createdAt: new Date()
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 14. GET /api/admin/users/:id
+ * Fetch complete user profile including onboarding credential fields.
+ */
+export const getUserDetailsController = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    return res.status(200).json({ user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 15. GET /api/admin/courses/:id
+ * Fetch full unshielded course details for review regardless of status.
+ */
+export const getAdminCourseDetailsController = async (req, res, next) => {
+  try {
+    let course = await Course.findById(req.params.id)
+      .populate('instructor', 'firstName lastName name email avatar avatarUrl areaOfExpertise')
+      .lean();
+
+    if (!course) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    if (course.category && (typeof course.category === 'string' || !course.category.name)) {
+      let catDoc = null;
+      if (mongoose.Types.ObjectId.isValid(course.category)) {
+        catDoc = await Category.findById(course.category).select('_id name slug icon imageUrl').lean();
+      }
+      if (!catDoc && typeof course.category === 'string') {
+        catDoc = await Category.findOne({
+          $or: [{ name: course.category }, { slug: course.category }]
+        }).select('_id name slug icon imageUrl').lean();
+      }
+      if (catDoc) {
+        course.category = catDoc;
+      } else if (typeof course.category === 'string') {
+        course.category = {
+          _id: null,
+          name: course.category,
+          slug: course.category.toLowerCase().replace(/\s+/g, '-'),
+          icon: null,
+          imageUrl: null
+        };
+      }
+    }
+
+    return res.status(200).json({ course });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 16. GET /api/admin/settings
+ * Retrieve current platform settings singleton.
+ */
+export const getPlatformSettingsController = async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.getOrCreateSettings();
+    return res.status(200).json({ settings });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 17. PUT /api/admin/settings
+ * Update platform settings toggles, grace days, and signature image.
+ */
+export const updatePlatformSettingsController = async (req, res, next) => {
+  try {
+    const settings = await PlatformSettings.getOrCreateSettings();
+    const { allowSignups, allowPasswordReset, deletionGraceDays, signatureUrl } = req.body || {};
+
+    if (allowSignups !== undefined) settings.allowSignups = Boolean(allowSignups);
+    if (allowPasswordReset !== undefined) settings.allowPasswordReset = Boolean(allowPasswordReset);
+    if (deletionGraceDays !== undefined) settings.deletionGraceDays = Number(deletionGraceDays) || 30;
+    if (signatureUrl !== undefined) settings.signatureUrl = String(signatureUrl).trim();
+
+    await settings.save();
+    return res.status(200).json({
+      message: 'Platform settings updated successfully',
+      settings
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 18. GET /api/admin/reviews
+ * List all platform course reviews with optional rating/course filtering.
+ */
+export const getAdminReviewsController = async (req, res, next) => {
+  try {
+    const { course, rating } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+
+    const filter = {};
+    if (course) filter.course = course;
+    if (rating) filter.rating = Number(rating);
+
+    const total = await Review.countDocuments(filter);
+    const reviews = await Review.find(filter)
+      .populate('course', 'title slug thumbnail')
+      .populate('student', 'name firstName lastName email avatar avatarUrl')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      reviews,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 19. DELETE /api/admin/reviews/:id
+ * Moderation delete of a review and auto-recalculate course rating.
+ */
+export const deleteAdminReviewController = async (req, res, next) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    const courseId = review.course;
+    await Review.findByIdAndDelete(req.params.id);
+    await Review.recalculateCourseRating(courseId);
+
+    return res.status(200).json({
+      message: 'Review deleted successfully'
     });
   } catch (error) {
     next(error);

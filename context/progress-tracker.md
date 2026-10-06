@@ -1,15 +1,15 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`15-seed-data-e2e-smoke-tests.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/15-seed-data-e2e-smoke-tests.md)
+> Current Active Spec: [`16-frontend-integration-gap-remediation.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/16-frontend-integration-gap-remediation.md)
 
 ---
 
 ## Current Phase
-- **Phase 1**: System Verification & End-to-End Quality Assurance
+- **Phase 1**: Frontend Integration Gap Remediation & System Synchronization
 
 ## Current Goal
-- [x] Milestone 11 (Unit 15: Seed Data & End-to-End System Smoke Tests) **COMPLETED & VERIFIED (100% COMPLIANCE)**.
+- [x] Milestone 12 (Unit 16: Frontend Integration Gap Remediation) [COMPLETED & VERIFIED].
 
 ---
 
@@ -33,6 +33,8 @@
   - [x] **Phase 1 Alignment**:
     - [x] Upload Presigned URL Generation (S3 offloading) implemented.
     - [x] Direct Media Upload Verification (Client -> S3) verified.
+    - [x] AWS S3 Bucket Policy (`s3:GetObject`) & Public Access permissions resolved for public asset rendering (`arn:aws:s3:::amzn-v3-buccket-gloxad-sstone/*`).
+    - [x] Frontend Integration Workflow documented in API Docs (`POST /api/upload/presigned-url` -> `PUT /api/auth/update-profile`).
     - [x] Full Profile Update with Collision Prevention & Nested Object Preservation implemented.
 - [x] **Unit 05**: Course Taxonomy & Category Management [COMPLETED & VERIFIED]
 - [x] **Unit 06**: Course Catalog & Public Discovery (with Content Protection) [COMPLETED & VERIFIED]
@@ -45,6 +47,7 @@
 - [x] **Unit 13**: Real-Time Messaging & In-App Notifications (REST + Socket.io) [COMPLETED & VERIFIED]
 - [x] **Unit 14**: Interactive API Documentation Web Page [COMPLETED & VERIFIED]
 - [x] **Unit 15**: Seed Data & End-to-End System Smoke Tests [COMPLETED & VERIFIED]
+- [x] **Unit 16**: Frontend Integration Gap Remediation & System Synchronization [COMPLETED & VERIFIED]
 
 ---
 
@@ -194,6 +197,37 @@
 - [x] `GET /`: Interactive API documentation portal served at `GET /` (`src/views/docs.html`) via `src/controllers/docs.controller.js`. Includes `#apiSearchInput` filter, `#globalJwtToken` persistence in `localStorage`, 5 Architectural Invariants banner, and dynamic "Try It Out" live HTTP sandbox drawers across all 43 REST endpoints.
 
 - [x] `npm run seed` & `npm run test:smoke`: Database seeding engine and automated E2E system smoke test suite fully implemented, enforcing 100% compliance across all 5 architectural invariants and 7 end-to-end user flows.
+
+---
+
+### Unit 16 (`16-frontend-integration-gap-remediation.md`) [COMPLETED & VERIFIED]
+1. **Data Models & Schema Updates**:
+   - [`src/models/Review.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Review.model.js): Implemented Course Review & Ratings engine with compound unique index `{ course: 1, student: 1 }`, `tutorReply` subdocument, and static method `recalculateCourseRating(courseId)` that keeps course average rating and count strictly updated.
+   - [`src/models/PlatformSettings.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/PlatformSettings.model.js): Singleton configuration model with `getOrCreateSettings()` holding platform-wide toggles and defaults.
+   - [`src/models/User.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/User.model.js): Added `experienceProofs`, `avatar`, and fully symmetric dual-key aliases in `toJSON`/`toObject` (`isVerified`/`isEmailVerified`, `bio`/`biography`/`expertiseBio`, `socials`/`socialLinks`, `avatar`/`avatarUrl`).
+   - [`src/models/Category.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Category.model.js): Added `imageUrl` field.
+   - [`src/models/Course.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Course.model.js): Added `ratingsCount` field and synchronized with `rating.count` in `toJSON`.
+2. **Configuration & Security**:
+   - [`src/config/env.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/config/env.js) & [`src/app.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/app.js): Multi-origin CORS support parsing comma-separated origins in `FRONTEND_ORIGIN` with origin callback.
+3. **Missing Workflows & REST Endpoints (12 new endpoints)**:
+   - `POST /api/auth/refresh`: Stateless JWT token refresh returning `{ token, user }`.
+   - `GET /api/admin/users/:id`: Full user profile detail including experience proofs and credential links.
+   - `GET /api/admin/courses/:id`: Full unshielded course details for admin moderation.
+   - `GET /api/admin/courses/pending`: Populated category object (`{ _id, name, slug, icon, imageUrl }`).
+   - `GET /api/admin/settings`: Fetch singleton platform settings.
+   - `PUT /api/admin/settings`: Update singleton platform settings.
+   - `GET /api/tutor/search-instructors`: Search approved instructors by name or email with regex.
+   - `POST /api/courses/:id/reviews`: Student review creation (enrolled students only, 1-5 rating, automatic course rating recalculation).
+   - `GET /api/courses/:id/reviews`: Public paginated course reviews listing.
+   - `GET /api/tutor/reviews`: Instructor course reviews listing with student details.
+   - `POST /api/tutor/reviews/:id/reply`: Tutor response to review with student notification.
+   - `GET /api/admin/reviews`: Admin review listing with moderation filters.
+   - `DELETE /api/admin/reviews/:id`: Admin review deletion with course rating recalculation.
+4. **Seed Engine & E2E Smoke Suite**:
+   - [`src/seed.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/seed.js): Added reviews, platform settings, pending course fixtures, and instructor proofs across 10 collections.
+   - [`scripts/test-e2e-smoke.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/scripts/test-e2e-smoke.js): Added `FLOW 8` covering all new Unit 16 endpoints. 13 suites, 47 assertions passing 100%.
+5. **Interactive API Documentation Portal Sync**:
+   - [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html): Added endpoint cards, parameter schemas, sidebar navigation pills, and right-hand TOC anchors for all Unit 16 endpoints (55 REST endpoints total).
 
 ---
 

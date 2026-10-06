@@ -652,6 +652,66 @@ export const updatePassword = async (req, res, next) => {
   }
 };
 
+/**
+ * 12. refreshTokenController (POST /api/auth/refresh)
+ * Refreshes access token using active Bearer token and current tokenVersion.
+ */
+export const refreshTokenController = async (req, res, next) => {
+  try {
+    let token = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
+    } else if (req.body && req.body.token) {
+      token = req.body.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        error: "Authentication token missing or malformed",
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = verifyToken(token);
+    } catch (err) {
+      return res.status(401).json({
+        error: "Authentication token missing or malformed",
+      });
+    }
+
+    const user = await User.findById(decoded.sub).select("-password");
+    if (!user || user.isActive === false || user.isDeactivated === true) {
+      return res.status(401).json({
+        error: "User account not found or deactivated",
+      });
+    }
+
+    if (decoded.tokenVersion !== undefined && user.tokenVersion !== undefined) {
+      if (decoded.tokenVersion !== user.tokenVersion) {
+        return res.status(401).json({
+          error: "Session expired or revoked. Please sign in again.",
+        });
+      }
+    }
+
+    const newToken = signToken({
+      sub: user._id,
+      email: user.email,
+      role: user.role,
+      tokenVersion: user.tokenVersion || 0,
+    });
+
+    return res.status(200).json({
+      token: newToken,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   signup,
   signin,
@@ -664,4 +724,5 @@ export default {
   verifyOtp,
   resetPassword,
   updatePassword,
+  refreshTokenController,
 };

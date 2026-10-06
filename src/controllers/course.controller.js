@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import { Course } from "../models/Course.model.js";
+import { Review } from "../models/Review.model.js";
+import { Enrollment } from "../models/Enrollment.model.js";
 
 /**
  * Content Shielding Helper: Redacts video URLs and quiz answers per Rule 3.
@@ -199,6 +201,109 @@ export const getCourseBySlugOrId = async (req, res, next) => {
     return res.status(200).json({
       course: sanitizedCourse,
       isEnrolled: isInstructorOrAdmin ? true : isEnrolled
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * POST /api/courses/:id/reviews
+ * Submit rating & review for an enrolled course. Updates course rating.
+ */
+export const createCourseReviewController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment, reviewText } = req.body || {};
+    const effectiveComment = (comment || reviewText || "").trim();
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const numRating = Number(rating);
+    if (!rating || isNaN(numRating) || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
+    }
+
+    if (!effectiveComment) {
+      return res.status(400).json({ error: "Review comment is required" });
+    }
+
+    // Verify enrollment
+    const enrollment = await Enrollment.findOne({
+      user: req.user._id,
+      course: course._id
+    });
+
+    if (!enrollment && req.user.role !== "admin") {
+      return res.status(403).json({ error: "You must be enrolled in this course to leave a review" });
+    }
+
+    // Upsert review
+    const review = await Review.findOneAndUpdate(
+      { course: course._id, student: req.user._id },
+      {
+        rating: numRating,
+        comment: effectiveComment
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    // Recalculate course rating
+    await Review.recalculateCourseRating(course._id);
+
+    return res.status(201).json({
+      message: "Review submitted successfully",
+      review
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/courses/:id/reviews
+ * Paginated list of student reviews for a course.
+ */
+export const getCourseReviewsController = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const course = await Course.findById(id);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+
+    const total = await Review.countDocuments({ course: course._id });
+    const reviews = await Review.find({ course: course._id })
+      .populate("student", "name firstName lastName avatar avatarUrl")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    return res.status(200).json({
+      reviews,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages
+      }
     });
   } catch (error) {
     next(error);

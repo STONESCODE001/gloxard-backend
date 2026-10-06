@@ -9,6 +9,9 @@ import {
   getInstructorCourseById,
   submitCourseForReview,
   appealCourseRejection,
+  searchInstructorsController,
+  getTutorReviewsController,
+  replyToReviewController,
 } from "../controllers/tutor.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -22,6 +25,11 @@ router.use(authMiddleware);
 router.post("/showcase-expertise", showcaseExpertiseController);
 router.get("/dashboard-stats", roleMiddleware("instructor"), getDashboardStatsController);
 router.get("/earnings", roleMiddleware("instructor"), getEarningsController);
+router.get("/search-instructors", roleMiddleware("instructor"), searchInstructorsController);
+
+// Tutor Review Management
+router.get("/reviews", roleMiddleware("instructor"), getTutorReviewsController);
+router.post("/reviews/:id/reply", roleMiddleware("instructor"), replyToReviewController);
 
 // Course Authoring Wizard & Review Pipeline
 router.post("/courses", roleMiddleware("instructor"), createCourseDraft);

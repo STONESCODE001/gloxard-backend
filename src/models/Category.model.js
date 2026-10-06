@@ -40,6 +40,11 @@ const categorySchema = new mongoose.Schema(
       type: String,
       default: ""
     },
+    imageUrl: {
+      type: String,
+      default: "",
+      trim: true
+    },
     order: {
       type: Number,
       default: 0

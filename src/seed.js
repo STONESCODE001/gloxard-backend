@@ -14,6 +14,8 @@ import { Conversation } from './models/Conversation.model.js';
 import { Message } from './models/Message.model.js';
 import { Notification } from './models/Notification.model.js';
 import { Appeal } from './models/Appeal.model.js';
+import { Review } from './models/Review.model.js';
+import { PlatformSettings } from './models/PlatformSettings.model.js';
 
 async function seedDatabase() {
   console.log('\x1b[36m==================================================\x1b[0m');
@@ -45,6 +47,8 @@ async function seedDatabase() {
     await Message.deleteMany({});
     await Notification.deleteMany({});
     await Appeal.deleteMany({});
+    await Review.deleteMany({});
+    await PlatformSettings.deleteMany({});
     console.log('\x1b[32m✔ Collections purged\x1b[0m');
 
     // 3. Pre-hash password for performance
@@ -85,6 +89,7 @@ async function seedDatabase() {
       biography: '10+ years building web applications.',
       expertiseBio: '10+ years building web applications.',
       areaOfExpertise: 'Web Development',
+      experienceProofs: ['https://gloxad-bucket.s3.amazonaws.com/certifications/jane-degree.pdf'],
       avatarUrl: 'https://gloxad-bucket.s3.amazonaws.com/avatars/jane.jpg',
       socials: { github: 'https://github.com/janetutor', twitter: 'https://twitter.com/janetutor' }
     };
@@ -105,6 +110,7 @@ async function seedDatabase() {
       biography: 'Specializing in Python and Machine Learning.',
       expertiseBio: 'Specializing in Python and Machine Learning.',
       areaOfExpertise: 'Data Science',
+      experienceProofs: ['https://gloxad-bucket.s3.amazonaws.com/certifications/john-cert.pdf'],
       avatarUrl: 'https://gloxad-bucket.s3.amazonaws.com/avatars/john.jpg'
     };
 
@@ -123,7 +129,8 @@ async function seedDatabase() {
       bio: 'Awaiting admin approval.',
       biography: 'Awaiting admin approval.',
       expertiseBio: 'Awaiting admin approval.',
-      areaOfExpertise: 'Design & UX'
+      areaOfExpertise: 'Design & UX',
+      experienceProofs: ['https://gloxad-bucket.s3.amazonaws.com/certifications/pending-proof.pdf']
     };
 
     const aliceStudent = {
@@ -175,6 +182,7 @@ async function seedDatabase() {
         name: 'Web Development',
         slug: 'web-development',
         icon: 'code',
+        imageUrl: 'https://gloxad-bucket.s3.amazonaws.com/categories/web-dev.jpg',
         order: 1,
         subCategories: [
           { name: 'Frontend', slug: 'frontend', topics: ['React'] },
@@ -185,6 +193,7 @@ async function seedDatabase() {
         name: 'Data Science',
         slug: 'data-science',
         icon: 'bar-chart',
+        imageUrl: 'https://gloxad-bucket.s3.amazonaws.com/categories/data-science.jpg',
         order: 2,
         subCategories: [
           { name: 'Machine Learning', slug: 'machine-learning', topics: ['PyTorch'] },
@@ -195,6 +204,7 @@ async function seedDatabase() {
         name: 'Design & UX',
         slug: 'design-ux',
         icon: 'figma',
+        imageUrl: 'https://gloxad-bucket.s3.amazonaws.com/categories/design-ux.jpg',
         order: 3,
         subCategories: [
           { name: 'Figma', slug: 'figma', topics: ['Prototyping'] },
@@ -356,9 +366,29 @@ async function seedDatabase() {
       modules: []
     };
 
-    const insertedCourses = await Course.insertMany([course1Data, course2Data, course3Data]);
+    const course4Data = {
+      title: 'Advanced Figma Design Systems',
+      subtitle: 'Build production-ready tokenized design systems',
+      slug: 'advanced-figma-design-systems',
+      category: insertedCategories[2]._id,
+      subCategory: 'Figma',
+      topic: 'Prototyping',
+      language: 'English',
+      level: 'intermediate',
+      courseType: 'paid',
+      price: 39.99,
+      thumbnail: 'https://gloxad-bucket.s3.amazonaws.com/courses/figma-sys.jpg',
+      description: 'Master advanced design systems and tokens.',
+      skills: ['Figma', 'Design Systems', 'Tokens'],
+      status: 'pending',
+      instructor: jane._id,
+      modules: []
+    };
+
+    const insertedCourses = await Course.insertMany([course1Data, course2Data, course3Data, course4Data]);
     const course1 = insertedCourses[0];
     const course2 = insertedCourses[1];
+    const course4 = insertedCourses[3];
 
     const c1Lesson1Id = course1.modules[0].lessons[0]._id;
     const c1Lesson2Id = course1.modules[0].lessons[1]._id;
@@ -483,20 +513,58 @@ async function seedDatabase() {
 
     const insertedNotifications = await Notification.insertMany(notifications);
 
-    // 10. Print Visual Summary Table
+    // 10. Create Seed Platform Settings
+    const platformSettings = await PlatformSettings.create({
+      allowSignups: true,
+      allowPasswordReset: true,
+      deletionGraceDays: 30,
+      signatureUrl: 'https://gloxad-bucket.s3.amazonaws.com/signatures/dean-signature.png'
+    });
+
+    // 11. Create Seed Course Reviews
+    const reviews = [
+      {
+        course: course1._id,
+        student: alice._id,
+        rating: 5,
+        comment: 'Exceptional course! Very clear and easy to follow.',
+        tutorReply: {
+          comment: 'Thank you Alice! Keep building amazing projects.',
+          createdAt: new Date()
+        }
+      },
+      {
+        course: course2._id,
+        student: bob._id,
+        rating: 5,
+        comment: 'The Pandas section was thorough and well structured.',
+        tutorReply: {
+          comment: '',
+          createdAt: null
+        }
+      }
+    ];
+
+    const insertedReviews = await Review.insertMany(reviews);
+    await Review.recalculateCourseRating(course1._id);
+    await Review.recalculateCourseRating(course2._id);
+
+    // 12. Print Visual Summary Table
     console.log('\x1b[32m✔ Seed data generated & inserted successfully!\x1b[0m\n');
-    console.log('+------------------+-------+');
-    console.log('| Entity           | Count |');
-    console.log('+------------------+-------+');
-    console.log(`| Users            | ${insertedUsers.length.toString().padEnd(5)} |`);
-    console.log(`| Categories       | ${insertedCategories.length.toString().padEnd(5)} |`);
-    console.log(`| Courses          | ${insertedCourses.length.toString().padEnd(5)} |`);
-    console.log(`| Enrollments      | ${insertedEnrollments.length.toString().padEnd(5)} |`);
-    console.log(`| Transactions     | ${insertedTransactions.length.toString().padEnd(5)} |`);
-    console.log(`| Messages         | ${insertedMessages.length.toString().padEnd(5)} |`);
-    console.log(`| Conversations    | ${insertedConversations.length.toString().padEnd(5)} |`);
-    console.log(`| Notifications    | ${insertedNotifications.length.toString().padEnd(5)} |`);
-    console.log('+------------------+-------+\n');
+    console.log('+--------------------+-------+');
+    console.log('| Entity             | Count |');
+    console.log('+--------------------+-------+');
+    console.log(`| Users              | ${insertedUsers.length.toString().padEnd(5)} |`);
+    console.log(`| Categories         | ${insertedCategories.length.toString().padEnd(5)} |`);
+    console.log(`| Courses            | ${insertedCourses.length.toString().padEnd(5)} |`);
+    console.log(`| Enrollments        | ${insertedEnrollments.length.toString().padEnd(5)} |`);
+    console.log(`| Transactions       | ${insertedTransactions.length.toString().padEnd(5)} |`);
+    console.log(`| Messages           | ${insertedMessages.length.toString().padEnd(5)} |`);
+    console.log(`| Conversations      | ${insertedConversations.length.toString().padEnd(5)} |`);
+    console.log(`| Notifications      | ${insertedNotifications.length.toString().padEnd(5)} |`);
+    console.log(`| Reviews            | ${insertedReviews.length.toString().padEnd(5)} |`);
+    console.log(`| Platform Settings  | 1     |`);
+    console.log('+--------------------+-------+\n');
 
     console.log('\x1b[32m[SEED SUCCESS] Database seeding completed cleanly!\x1b[0m');
     await mongoose.connection.close();

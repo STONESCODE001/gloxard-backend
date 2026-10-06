@@ -11,6 +11,7 @@ import {
   verifyOtp,
   resetPassword,
   updatePassword,
+  refreshTokenController,
 } from "../controllers/auth.controller.js";
 import { authGuard } from "../middlewares/auth.middleware.js";
 import {
@@ -29,6 +30,7 @@ const router = Router();
 
 router.post("/signup", signupLimiter, signup);
 router.post("/signin", signinLimiter, signin);
+router.post("/refresh", refreshTokenController);
 router.get("/me", authGuard, getMe);
 router.post("/signout", signout);
 router.post("/verify-email", verifyEmailLimiter, verifyEmail);

@@ -26,10 +26,19 @@ app.use(
   })
 );
 
-// Cross-Origin Resource Sharing
+// Cross-Origin Resource Sharing (Multi-Origin Support)
+const allowedOrigins = (env.FRONTEND_ORIGINS && env.FRONTEND_ORIGINS.length > 0)
+  ? env.FRONTEND_ORIGINS
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: env.FRONTEND_ORIGIN || "http://localhost:3000",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
     credentials: true,
   })
 );

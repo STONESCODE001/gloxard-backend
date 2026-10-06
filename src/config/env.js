@@ -20,6 +20,10 @@ export const env = {
   JWT_SECRET: process.env.JWT_SECRET || "gloxad_academy_super_secret_jwt_key_2026_xyz123!",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "7d",
   FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
+  FRONTEND_ORIGINS: (process.env.FRONTEND_ORIGIN || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   SMTP_HOST: process.env.SMTP_HOST || "",
   SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
   SMTP_USER: process.env.SMTP_USER || "",

@@ -607,6 +607,174 @@ async function runSmokeTests() {
     assert(false, 'Flow 7 exception', err.message);
   }
 
+  // ==========================================
+  // FLOW 8: Unit 16 Frontend Integration Gap Remediation Verification
+  // ==========================================
+  logSuite('FLOW 8: Unit 16 Frontend Integration Gap Remediation Verification');
+  try {
+    // 1. POST /api/auth/refresh
+    const refreshRes = await axios.post(`${API_URL}/auth/refresh`, {}, {
+      headers: { Authorization: `Bearer ${aliceToken}` }
+    });
+    assert(refreshRes.status === 200 && refreshRes.data.token, 'POST /api/auth/refresh returns 200 with refreshed token');
+    const refUser = refreshRes.data.user;
+    assert(
+      refUser &&
+      refUser.isVerified === refUser.isEmailVerified &&
+      refUser.bio === refUser.biography &&
+      refUser.avatarUrl !== undefined &&
+      refUser.avatar !== undefined &&
+      refUser.socials !== undefined &&
+      refUser.socialLinks !== undefined,
+      'User profile contains all standardized dual-key aliases (isVerified/isEmailVerified, bio/biography, socials/socialLinks, avatar/avatarUrl)'
+    );
+
+    // 2. GET /api/admin/users/:id
+    const adminUserRes = await axios.get(`${API_URL}/admin/users/${refUser._id}`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      adminUserRes.status === 200 &&
+      adminUserRes.data.user &&
+      Array.isArray(adminUserRes.data.user.experienceProofs),
+      'GET /api/admin/users/:id returns 200 with full user profile including experienceProofs'
+    );
+
+    // 3. GET /api/admin/courses/:id
+    const adminCourseRes = await axios.get(`${API_URL}/admin/courses/${publishedCourseId}`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      adminCourseRes.status === 200 &&
+      adminCourseRes.data.course &&
+      adminCourseRes.data.course._id === publishedCourseId,
+      'GET /api/admin/courses/:id returns 200 with unshielded course details'
+    );
+
+    // 4. GET /api/admin/courses/pending
+    const pendingCoursesRes = await axios.get(`${API_URL}/admin/courses/pending`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      pendingCoursesRes.status === 200 &&
+      Array.isArray(pendingCoursesRes.data.courses) &&
+      pendingCoursesRes.data.courses.length > 0 &&
+      pendingCoursesRes.data.courses[0].category &&
+      typeof pendingCoursesRes.data.courses[0].category === 'object' &&
+      pendingCoursesRes.data.courses[0].category.name,
+      'GET /api/admin/courses/pending returns populated category object with name and _id'
+    );
+
+    // 5. Platform Settings GET & PUT
+    const getSettingsRes = await axios.get(`${API_URL}/admin/settings`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      getSettingsRes.status === 200 &&
+      getSettingsRes.data.settings &&
+      getSettingsRes.data.settings.allowSignups !== undefined,
+      'GET /api/admin/settings returns 200 with platform settings singleton'
+    );
+
+    const updateSettingsRes = await axios.put(
+      `${API_URL}/admin/settings`,
+      {
+        deletionGraceDays: 45,
+        signatureUrl: 'https://gloxad-bucket.s3.amazonaws.com/signatures/dean-sig.png'
+      },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      updateSettingsRes.status === 200 &&
+      updateSettingsRes.data.settings.deletionGraceDays === 45 &&
+      updateSettingsRes.data.settings.signatureUrl === 'https://gloxad-bucket.s3.amazonaws.com/signatures/dean-sig.png',
+      'PUT /api/admin/settings successfully updates platform configuration'
+    );
+
+    // 6. GET /api/tutor/search-instructors
+    const searchInstRes = await axios.get(`${API_URL}/tutor/search-instructors?q=jane`, {
+      headers: { Authorization: `Bearer ${janeToken}` }
+    });
+    assert(
+      searchInstRes.status === 200 &&
+      Array.isArray(searchInstRes.data.instructors) &&
+      searchInstRes.data.instructors.some((inst) => inst.email === 'jane.tutor@gloxad.com'),
+      'GET /api/tutor/search-instructors?q=jane returns matching approved instructors'
+    );
+
+    // 7. Course Reviews: POST /api/courses/:id/reviews
+    const reviewPostRes = await axios.post(
+      `${API_URL}/courses/${publishedCourseId}/reviews`,
+      {
+        rating: 5,
+        comment: 'Absolutely top notch course on fullstack Node and Express!'
+      },
+      { headers: { Authorization: `Bearer ${aliceToken}` } }
+    );
+    assert(
+      reviewPostRes.status === 201 &&
+      reviewPostRes.data.review &&
+      reviewPostRes.data.review.rating === 5,
+      'POST /api/courses/:id/reviews creates student review and recalculates course rating'
+    );
+    const createdReviewId = reviewPostRes.data.review._id;
+
+    // 8. Public Reviews: GET /api/courses/:id/reviews
+    const publicReviewsRes = await axios.get(`${API_URL}/courses/${publishedCourseId}/reviews`);
+    assert(
+      publicReviewsRes.status === 200 &&
+      Array.isArray(publicReviewsRes.data.reviews) &&
+      publicReviewsRes.data.reviews.length > 0,
+      'GET /api/courses/:id/reviews returns paginated course reviews'
+    );
+
+    // 9. Tutor Review Management: GET /api/tutor/reviews & POST /api/tutor/reviews/:id/reply
+    const tutorReviewsRes = await axios.get(`${API_URL}/tutor/reviews`, {
+      headers: { Authorization: `Bearer ${janeToken}` }
+    });
+    assert(
+      tutorReviewsRes.status === 200 &&
+      Array.isArray(tutorReviewsRes.data.reviews) &&
+      tutorReviewsRes.data.reviews.length > 0,
+      'GET /api/tutor/reviews returns reviews for instructor courses'
+    );
+
+    const replyRes = await axios.post(
+      `${API_URL}/tutor/reviews/${createdReviewId}/reply`,
+      { comment: 'Thank you so much Alice! Delighted that you found it valuable.' },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      replyRes.status === 200 &&
+      replyRes.data.review.tutorReply &&
+      replyRes.data.review.tutorReply.comment.includes('Thank you so much Alice'),
+      'POST /api/tutor/reviews/:id/reply records tutor response to student review'
+    );
+
+    // 10. Admin Review Moderation: GET /api/admin/reviews & DELETE /api/admin/reviews/:id
+    const adminReviewsRes = await axios.get(`${API_URL}/admin/reviews`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      adminReviewsRes.status === 200 &&
+      Array.isArray(adminReviewsRes.data.reviews) &&
+      adminReviewsRes.data.reviews.length > 0,
+      'GET /api/admin/reviews returns all platform reviews'
+    );
+
+    const deleteReviewRes = await axios.delete(`${API_URL}/admin/reviews/${createdReviewId}`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      deleteReviewRes.status === 200 &&
+      deleteReviewRes.data.message === 'Review deleted successfully',
+      'DELETE /api/admin/reviews/:id deletes review and auto-recalculates course rating'
+    );
+
+  } catch (err) {
+    assert(false, 'Flow 8 exception', err.response?.data?.error || err.message);
+  }
+
   // Print Summary Table
   const durationMs = Date.now() - startTime;
   console.log(`\n\x1b[36m==================================================\x1b[0m`);

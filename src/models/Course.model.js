@@ -47,7 +47,11 @@ const courseSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true, index: true },
     subtitle: { type: String, trim: true, default: "" },
     slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
-    category: { type: String, required: true, trim: true, index: true },
+    category: {
+      type: mongoose.Schema.Types.Mixed,
+      required: true,
+      index: true
+    },
     subCategory: { type: String, trim: true, default: "" },
     topic: { type: String, trim: true, default: "" },
     language: { type: String, default: "English" },
@@ -99,6 +103,7 @@ const courseSchema = new mongoose.Schema(
       index: true
     },
     enrolledCount: { type: Number, default: 0, index: true },
+    ratingsCount: { type: Number, default: 0 },
     rating: {
       average: { type: Number, default: 0, min: 0, max: 5 },
       count: { type: Number, default: 0 }
@@ -110,6 +115,12 @@ const courseSchema = new mongoose.Schema(
       virtuals: true,
       transform: function (doc, ret) {
         delete ret.__v;
+        if (ret.rating && ret.rating.count !== undefined) {
+          ret.ratingsCount = ret.rating.count;
+        } else if (ret.ratingsCount !== undefined) {
+          if (!ret.rating) ret.rating = { average: 0, count: ret.ratingsCount };
+          else ret.rating.count = ret.ratingsCount;
+        }
         return ret;
       }
     }
