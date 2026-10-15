@@ -21,9 +21,18 @@ export const errorMiddleware = (err, req, res, next) => {
     message = "Authentication token missing or malformed";
   }
 
-  return res.status(statusCode).json({
+  const payload = {
     error: message,
-  });
+  };
+
+  if (typeof err.code === "string") {
+    payload.code = err.code;
+  }
+  if (err.fields && typeof err.fields === "object") {
+    payload.fields = err.fields;
+  }
+
+  return res.status(statusCode).json(payload);
 };
 
 export default errorMiddleware;

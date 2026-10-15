@@ -39,6 +39,11 @@ This build plan decomposes the Gloxad Academy Backend API into **15 focused, seq
 | **13** | Real-Time Messaging & Notifications | Real-Time & WebSockets | Socket.io server integration with JWT handshake, room-based chat, typing indicators, and REST conversation endpoints | `socket.io` |
 | **14** | Interactive API Documentation Portal | Developer Experience | Static HTML API documentation page served at `GET /` detailing all 35+ endpoints, payloads, and status codes | Vanilla HTML/CSS |
 | **15** | Seed Data & End-to-End System Smoke Tests | Verification & QA | Comprehensive database seed script and automated smoke test suite validating all core flows and architectural invariants | Native Node test runner |
+| **16** | Frontend Integration Gap Remediation | System Synchronization | 6 missing endpoints, reviews/ratings engine, dual aliases, and multi-origin CORS | None (Core Mongoose) |
+| **17** | Infrastructure Unblock & Partner Applications | Infrastructure & Applications | Decoupled health checks, private S3 URLs, partner applications lifecycle, and reviewer portal | None (Core Mongoose, S3) |
+| **18** | Institution Onboarding & Subscriptions | Multi-Tenant & Billing | Activation token, 6-step wizard persistence, departments, member CSV import, and Paystack subscriptions | None (Core Mongoose, Paystack) |
+| **19** | Trimester LMS Core | Academic LMS Engine | Independent cohorts, curriculum progress, server-timed quizzes, assignments, and grading queue | None (Core Mongoose) |
+| **20** | Live Classrooms, Community & Certificates | Live Video & Social | LiveKit WebRTC join tokens, Socket.io /live, cohort channels/posts, and QR-verifiable PDF certificates | `livekit-server-sdk`, `pdfkit`, `qrcode` |
 
 ---
 
@@ -315,6 +320,65 @@ This build plan decomposes the Gloxad Academy Backend API into **15 focused, seq
 - **Visible Result**: All 55+ endpoints operate with 100% compliance across all 5 architectural invariants and pass automated E2E smoke tests.
 
 ---
+
+### Unit 17: Infrastructure Unblock & Partner Applications
+- **System Boundary**: Infrastructure Readiness & Institution Partner Application Lifecycle
+- **What It Builds**:
+  - Decoupled health routes: `GET /api/health/liveness` and `GET /api/health/readiness`.
+  - Extended S3 upload folders (`logos`, `signatures`, `documents`, `submissions`, `certificates`) and private signed GET URLs (`GET /api/upload/signed-url`).
+  - S3 multipart upload endpoints for videos over 100MB (`POST /api/upload/multipart/*`).
+  - Validation error envelope standardization (`{ error, code, fields }`).
+  - Models: `InstitutionApplication`, `ReviewEvent`, `Institution` (in `pending_activation`).
+  - Public submission (`POST /api/institutions/applications` with `GLX-YYYY-XXXX` reference code) and status tracking (`GET /api/institutions/applications/:referenceId`).
+  - Reviewer Portal endpoints under `/api/admin/institution-applications/*` and `/api/admin/partners/*` (listing, drawer details, status update, request info, rejection, idempotent approval with 7-day single-use activation token generation, and partner metrics).
+- **Dependencies To Introduce**: None (Core stack + AWS SDK v3).
+- **Prerequisite Dependencies**: Units 01 through 16.
+- **Visible Result**: Partner applications can be submitted, tracked, reviewed by admins, approved with single-use activation tokens, and verified via automated smoke tests.
+
+---
+
+### Unit 18: Institution Onboarding, Workspace Management & Subscriptions
+- **System Boundary**: Multi-Tenant Workspace Activation & Recurring Billing
+- **What It Builds**:
+  - Activation endpoint (`POST /api/institutions/activate`) consuming 7-day token, enforcing 12+ character password, and upgrading to `institution_admin`.
+  - Models: `Department`, `InstitutionMember`, `Subscription`.
+  - 6-step onboarding wizard persistence: `GET /api/institutions/me` (step resumption), `PUT /api/institutions/me/branding`, `GET/POST/PUT/DELETE /api/institutions/me/departments`, `GET/POST/DELETE /api/institutions/me/members`.
+  - Bulk CSV / JSON member import with alias parsing, deduplication, and 500-seat limits on Premium.
+  - Paystack subscription checkout (`POST /api/institutions/me/subscription/checkout`) returning `{ reference, access_code }` and webhook reconciliation.
+  - Institution dashboard metrics (`GET /api/institutions/me/dashboard`).
+- **Dependencies To Introduce**: None (Core stack + Paystack HTTPS integration).
+- **Prerequisite Dependencies**: Unit 17.
+- **Visible Result**: Approved institutions activate their workspace, complete onboarding, import members via CSV, pay via Paystack Inline, and view tenant analytics.
+
+---
+
+### Unit 19: Trimester LMS Core
+- **System Boundary**: Academic LMS, Multi-Cohort Navigation, Quizzes & Assignments
+- **What It Builds**:
+  - Dedicated `/api/lms/*` namespace and multi-cohort resolution guard (`?cohortId=` or fallback to recent active cohort).
+  - Models: `Trimester`, `Cohort`, `LmsLessonProgress`, `LmsQuizAttempt`, `LmsAssignment`, `LmsSubmission`, `LmsLessonComment`.
+  - Student dashboard (`GET /api/lms/dashboard/student`) and curriculum tree (`GET /api/lms/cohorts/:cohortId/curriculum`).
+  - Lesson viewer (`GET /api/lms/lessons/:lessonId`), progress tracker, and threaded discussions with instructor badges.
+  - Timed quizzes: `expiresAt` countdown with 15s network grace, instant answer check option, 3 retakes retaining best score.
+  - Assignments: GitHub repo / S3 fileKey submissions, late work flagging, pre-grading resubmission, and instructor grading queue.
+- **Dependencies To Introduce**: None (Core stack).
+- **Prerequisite Dependencies**: Unit 18.
+- **Visible Result**: Enrolled cohort students see dashboard progress, navigate curriculum, complete timed quizzes, submit assignments, and instructors grade submissions.
+
+---
+
+### Unit 20: LMS Live Classrooms, Community, Certificates & Analytics
+- **System Boundary**: Real-Time Live Classes, Social Discussions, Certificates & Platform Analytics
+- **What It Builds**:
+  - LiveKit token generation (`POST /api/lms/live-sessions/:id/join`) compatible with `@livekit/components-react`.
+  - Socket.io `/live` namespace handling live chat, hand raising, polls, participant sync, and attendance tracking.
+  - Cohort community forum: auto-seeded channels ("General", "Q&A", "Project Showcase", "Study Groups"), posts feed, threaded replies, likes, and moderation.
+  - Verifiable PDF certificate generation with embedded verification QR code (`pdfkit` + `qrcode`).
+  - Instructor cohort overview & student roster with attendance rates (`GET /api/lms/instructor/cohorts/:id/*`).
+  - Admin LMS platform analytics (`GET /api/lms/admin/analytics`).
+- **Dependencies To Introduce**: `livekit-server-sdk`, `pdfkit`, `qrcode`.
+- **Prerequisite Dependencies**: Unit 19.
+- **Visible Result**: Scheduled classes connect live via LiveKit, community discussions are active, completed students receive verified PDF certificates with QR codes, and platform analytics display live KPIs.
 
 ## Invariants Checklist (Enforced on Every Unit)
 

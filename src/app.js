@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import helmet from "helmet";
+import mongoose from "mongoose";
 import { env } from "./config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
@@ -14,8 +15,10 @@ import webhookRoutes from "./routes/webhook.routes.js";
 import learningRouter from "./routes/learning.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import institutionRoutes from "./routes/institution.routes.js";
 import { renderApiDocs } from "./controllers/docs.controller.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { checkS3Readiness } from "./utils/s3.js";
 
 const app = express();
 
@@ -57,7 +60,33 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 // Interactive HTML API Documentation Portal
 app.get("/", renderApiDocs);
 
-// Health check endpoint
+// Health check endpoints
+// 1. Process uptime liveness check
+app.get("/api/health/liveness", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
+// 2. Connectivity probe readiness check (Database & S3 Storage)
+app.get("/api/health/readiness", async (req, res) => {
+  const isDbConnected = mongoose.connection.readyState === 1;
+  const isStorageConnected = await checkS3Readiness();
+
+  if (isDbConnected && isStorageConnected) {
+    return res.status(200).json({
+      status: "ready",
+      database: "connected",
+      storage: "connected",
+    });
+  }
+
+  return res.status(503).json({
+    status: "not_ready",
+    database: isDbConnected ? "connected" : "disconnected",
+    storage: isStorageConnected ? "connected" : "disconnected",
+  });
+});
+
+// 3. Backward-compatible /api/health endpoint
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", uptime: process.uptime() });
 });
@@ -73,6 +102,9 @@ app.use("/api/tutor", tutorRoutes);
 
 // Mount admin routes under /api/admin
 app.use("/api/admin", adminRouter);
+
+// Mount institution partner applications under /api/institutions
+app.use("/api/institutions", institutionRoutes);
 
 // Mount enrollment routes under /api/enrollments
 app.use("/api/enrollments", enrollmentRoutes);
@@ -92,7 +124,6 @@ app.use("/api/notifications", notificationRoutes);
 // Mount category taxonomy & course catalog routes under /api
 app.use("/api", categoryRoutes);
 app.use("/api", courseRoutes);
-
 
 // Global 404 handler for unmatched routes
 app.use((req, res) => {

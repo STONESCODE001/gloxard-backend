@@ -22,6 +22,20 @@ import {
   getAdminReviewsController,
   deleteAdminReviewController,
 } from '../controllers/admin.controller.js';
+import {
+  listApplications,
+  getApplicationDetail,
+  updateApplication,
+  approveApplication,
+  rejectApplication,
+  requestInfoApplication,
+  resendInvite,
+  downloadDocument,
+  getPartnersOverview,
+  getPartnersSummary,
+  getPartnersGeo,
+  getPartnersGrowth,
+} from '../controllers/reviewer.controller.js';
 
 const router = Router();
 
@@ -53,5 +67,21 @@ router.put('/settings', updatePlatformSettingsController);
 
 router.get('/reviews', getAdminReviewsController);
 router.delete('/reviews/:id', deleteAdminReviewController);
+
+// Institution Partner Applications Reviewer Portal
+router.get('/institution-applications', listApplications);
+router.get('/institution-applications/:id', getApplicationDetail);
+router.put('/institution-applications/:id', updateApplication);
+router.post('/institution-applications/:id/approve', approveApplication);
+router.post('/institution-applications/:id/reject', rejectApplication);
+router.post('/institution-applications/:id/request-info', requestInfoApplication);
+router.post('/institution-applications/:id/resend-invite', resendInvite);
+router.get('/institution-applications/:id/documents/:docId/download', downloadDocument);
+
+// Partner Analytics
+router.get('/partners/overview', getPartnersOverview);
+router.get('/partners/summary', getPartnersSummary);
+router.get('/partners/geo', getPartnersGeo);
+router.get('/partners/growth', getPartnersGrowth);
 
 export default router;

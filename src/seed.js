@@ -16,6 +16,9 @@ import { Notification } from './models/Notification.model.js';
 import { Appeal } from './models/Appeal.model.js';
 import { Review } from './models/Review.model.js';
 import { PlatformSettings } from './models/PlatformSettings.model.js';
+import { InstitutionApplication } from './models/InstitutionApplication.model.js';
+import { ReviewEvent } from './models/ReviewEvent.model.js';
+import { Institution } from './models/Institution.model.js';
 
 async function seedDatabase() {
   console.log('\x1b[36m==================================================\x1b[0m');
@@ -49,6 +52,9 @@ async function seedDatabase() {
     await Appeal.deleteMany({});
     await Review.deleteMany({});
     await PlatformSettings.deleteMany({});
+    await InstitutionApplication.deleteMany({});
+    await ReviewEvent.deleteMany({});
+    await Institution.deleteMany({});
     console.log('\x1b[32m✔ Collections purged\x1b[0m');
 
     // 3. Pre-hash password for performance
@@ -549,22 +555,223 @@ async function seedDatabase() {
     await Review.recalculateCourseRating(course1._id);
     await Review.recalculateCourseRating(course2._id);
 
-    // 12. Print Visual Summary Table
+    // 12. Create Seed Partner Applications
+    const applications = [
+      {
+        referenceId: "GLX-2026-1001",
+        institutionName: "Apex Institute of Technology",
+        type: "Technical College",
+        website: "https://apextech.edu",
+        address: {
+          line1: "42 Innovation Boulevard",
+          city: "Lagos",
+          country: "NG"
+        },
+        representative: {
+          name: "Dr. Sarah Adams",
+          role: "Academic Dean",
+          email: "sarah.adams@apextech.edu",
+          phone: "+2348012345678"
+        },
+        expectedStudents: "1,000 - 2,500",
+        expectedStudentsCount: 1800,
+        requestedFeatures: "LMS, WebRTC Classrooms, API Access",
+        message: "We would like to partner with Gloxad Academy for our upcoming engineering semester.",
+        documents: [
+          {
+            name: "Apex_Accreditation.pdf",
+            key: "documents/seed-apex-accreditation.pdf",
+            size: 1048576,
+            verifiedAt: null
+          }
+        ],
+        status: "pending",
+        plan: "Enterprise",
+        accessCode: "APX101",
+        submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+      },
+      {
+        referenceId: "GLX-2026-1002",
+        institutionName: "Horizon Vocational Academy",
+        type: "Vocational School",
+        website: "https://horizon.edu.ng",
+        address: {
+          line1: "15 Marina Way",
+          city: "Abuja",
+          country: "NG"
+        },
+        representative: {
+          name: "Marcus Vance",
+          role: "Director of Studies",
+          email: "marcus.vance@horizon.edu.ng",
+          phone: "+2348098765432"
+        },
+        expectedStudents: "500 - 1,000",
+        expectedStudentsCount: 750,
+        requestedFeatures: "Automated Certificate Issuance",
+        message: "Requesting onboarding for our vocational training programs.",
+        documents: [
+          {
+            name: "Horizon_License.pdf",
+            key: "documents/seed-horizon-license.pdf",
+            size: 524288,
+            verifiedAt: null
+          }
+        ],
+        status: "under_review",
+        plan: "Premium",
+        accessCode: "HRZ202",
+        submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      },
+      {
+        referenceId: "GLX-2026-1003",
+        institutionName: "Heritage Maritime University",
+        type: "Private University",
+        website: "https://heritagemaritime.edu",
+        address: {
+          line1: "8 Harbor View Drive",
+          city: "Port Harcourt",
+          country: "NG"
+        },
+        representative: {
+          name: "Capt. David Cole",
+          role: "Registrar",
+          email: "david.cole@heritagemaritime.edu",
+          phone: "+2348033334444"
+        },
+        expectedStudents: "2,500 - 5,000",
+        expectedStudentsCount: 3200,
+        requestedFeatures: "Full Campus Isolation and White-Label LMS",
+        message: "Full enterprise workspace requested for maritime studies.",
+        documents: [
+          {
+            name: "Heritage_Federal_Charter.pdf",
+            key: "documents/seed-heritage-charter.pdf",
+            size: 2097152,
+            verifiedAt: new Date()
+          }
+        ],
+        status: "approved",
+        plan: "Enterprise",
+        accessCode: "HRT303",
+        submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        reviewedBy: admin._id,
+        updatedBy: "System Admin"
+      },
+      {
+        referenceId: "GLX-2026-1004",
+        institutionName: "Nova Online College",
+        type: "Online University",
+        website: "https://novacollege.com",
+        address: {
+          line1: "100 Virtual Boulevard",
+          city: "Accra",
+          country: "GH"
+        },
+        representative: {
+          name: "Alan Miller",
+          role: "Admissions Head",
+          email: "alan.miller@novacollege.com",
+          phone: "+233201112222"
+        },
+        expectedStudents: "100 - 500",
+        expectedStudentsCount: 250,
+        requestedFeatures: "Course Quizzes only",
+        message: "Looking for an external LMS for short courses.",
+        documents: [],
+        status: "rejected",
+        plan: "Premium",
+        accessCode: "NOV404",
+        submittedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        reviewedBy: admin._id,
+        updatedBy: "System Admin"
+      }
+    ];
+
+    const insertedApps = await InstitutionApplication.insertMany(applications);
+
+    // 13. Create Seed Institution & Review Events
+    const approvedApp = insertedApps.find(a => a.status === "approved");
+    const underReviewApp = insertedApps.find(a => a.status === "under_review");
+    const rejectedApp = insertedApps.find(a => a.status === "rejected");
+
+    const seedToken = "seed_activation_token_1234567890abcdef1234567890abcdef";
+    const hashedSeedToken = bcrypt.hashSync(seedToken, 10);
+
+    const institution = await Institution.create({
+      name: approvedApp.institutionName,
+      slug: "heritage-maritime-university",
+      logoUrl: "https://gloxad-bucket.s3.amazonaws.com/logos/heritage-maritime-logo.png",
+      branding: {
+        displayName: "Heritage Maritime University",
+        color: "#1E3A8A",
+        tagline: "Excellence in Oceanic Leadership"
+      },
+      plan: "Enterprise",
+      billing: "monthly",
+      status: "pending_activation",
+      representativeEmail: approvedApp.representative.email,
+      applicationId: approvedApp._id,
+      activationToken: hashedSeedToken,
+      activationExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      activationUsed: false,
+      seatLimit: 5000
+    });
+
+    const reviewEvents = [
+      {
+        applicationId: approvedApp._id,
+        actorId: admin._id,
+        actorName: "System Admin",
+        action: "approve",
+        from: "under_review",
+        to: "approved",
+        note: "Verified Federal Charter accreditation. Enterprise tier approved.",
+        createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000)
+      },
+      {
+        applicationId: underReviewApp._id,
+        actorId: admin._id,
+        actorName: "System Admin",
+        action: "request_info",
+        from: "pending",
+        to: "under_review",
+        note: "Please provide updated state vocational council certification.",
+        createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
+      },
+      {
+        applicationId: rejectedApp._id,
+        actorId: admin._id,
+        actorName: "System Admin",
+        action: "reject",
+        from: "pending",
+        to: "rejected",
+        note: "Does not meet minimum student body accreditation threshold.",
+        createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+      }
+    ];
+
+    const insertedEvents = await ReviewEvent.insertMany(reviewEvents);
+
+    // 14. Print Visual Summary Table
     console.log('\x1b[32m✔ Seed data generated & inserted successfully!\x1b[0m\n');
-    console.log('+--------------------+-------+');
-    console.log('| Entity             | Count |');
-    console.log('+--------------------+-------+');
-    console.log(`| Users              | ${insertedUsers.length.toString().padEnd(5)} |`);
-    console.log(`| Categories         | ${insertedCategories.length.toString().padEnd(5)} |`);
-    console.log(`| Courses            | ${insertedCourses.length.toString().padEnd(5)} |`);
-    console.log(`| Enrollments        | ${insertedEnrollments.length.toString().padEnd(5)} |`);
-    console.log(`| Transactions       | ${insertedTransactions.length.toString().padEnd(5)} |`);
-    console.log(`| Messages           | ${insertedMessages.length.toString().padEnd(5)} |`);
-    console.log(`| Conversations      | ${insertedConversations.length.toString().padEnd(5)} |`);
-    console.log(`| Notifications      | ${insertedNotifications.length.toString().padEnd(5)} |`);
-    console.log(`| Reviews            | ${insertedReviews.length.toString().padEnd(5)} |`);
-    console.log(`| Platform Settings  | 1     |`);
-    console.log('+--------------------+-------+\n');
+    console.log('+--------------------------+-------+');
+    console.log('| Entity                   | Count |');
+    console.log('+--------------------------+-------+');
+    console.log(`| Users                    | ${insertedUsers.length.toString().padEnd(5)} |`);
+    console.log(`| Categories               | ${insertedCategories.length.toString().padEnd(5)} |`);
+    console.log(`| Courses                  | ${insertedCourses.length.toString().padEnd(5)} |`);
+    console.log(`| Enrollments              | ${insertedEnrollments.length.toString().padEnd(5)} |`);
+    console.log(`| Transactions             | ${insertedTransactions.length.toString().padEnd(5)} |`);
+    console.log(`| Messages                 | ${insertedMessages.length.toString().padEnd(5)} |`);
+    console.log(`| Conversations            | ${insertedConversations.length.toString().padEnd(5)} |`);
+    console.log(`| Notifications            | ${insertedNotifications.length.toString().padEnd(5)} |`);
+    console.log(`| Reviews                  | ${insertedReviews.length.toString().padEnd(5)} |`);
+    console.log(`| Platform Settings        | 1     |`);
+    console.log(`| Partner Applications     | ${insertedApps.length.toString().padEnd(5)} |`);
+    console.log(`| Review Events            | ${insertedEvents.length.toString().padEnd(5)} |`);
+    console.log(`| Institutions             | 1     |`);
+    console.log('+--------------------------+-------+\n');
 
     console.log('\x1b[32m[SEED SUCCESS] Database seeding completed cleanly!\x1b[0m');
     await mongoose.connection.close();

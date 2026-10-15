@@ -775,6 +775,372 @@ async function runSmokeTests() {
     assert(false, 'Flow 8 exception', err.response?.data?.error || err.message);
   }
 
+  // ==========================================
+  // FLOW 9: PARTNER APPLICATION, REVIEWER DECISION & ACTIVATION FLOW
+  // ==========================================
+  logSuite('FLOW 9: Partner Applications, Reviewer Portal & Infrastructure');
+  try {
+    // 1. Health Checks Decoupling
+    const livenessRes = await axios.get(`${BASE_URL}/api/health/liveness`);
+    assert(
+      livenessRes.status === 200 &&
+      livenessRes.data.status === 'ok' &&
+      typeof livenessRes.data.uptime === 'number',
+      'GET /api/health/liveness returns 200 with uptime'
+    );
+
+    const readinessRes = await axios.get(`${BASE_URL}/api/health/readiness`);
+    assert(
+      readinessRes.status === 200 &&
+      readinessRes.data.status === 'ready' &&
+      readinessRes.data.database === 'connected' &&
+      readinessRes.data.storage === 'connected',
+      'GET /api/health/readiness returns 200 with connected database and storage'
+    );
+
+    // 2. S3 Folder Expansion & Private Isolation
+    const privateDocUploadRes = await axios.post(`${API_URL}/upload/presigned-url`, {
+      filename: 'Charter.pdf',
+      fileType: 'application/pdf',
+      folder: 'documents'
+    });
+    assert(
+      privateDocUploadRes.status === 200 &&
+      typeof privateDocUploadRes.data.uploadUrl === 'string' &&
+      typeof privateDocUploadRes.data.key === 'string' &&
+      privateDocUploadRes.data.fileUrl === undefined,
+      'POST /api/upload/presigned-url permits unauthenticated document upload and isolates private folder key without fileUrl'
+    );
+
+    const signedGetRes = await axios.get(`${API_URL}/upload/signed-url?key=documents/test.pdf`, {
+      headers: { Authorization: `Bearer ${janeToken}` }
+    });
+    assert(
+      signedGetRes.status === 200 &&
+      typeof signedGetRes.data.signedUrl === 'string' &&
+      signedGetRes.data.expiresIn === 300,
+      'GET /api/upload/signed-url returns 5-minute signed GET URL for authenticated caller'
+    );
+
+    // S3 Multipart Upload Flow
+    const multiInitRes = await axios.post(
+      `${API_URL}/upload/multipart/initiate`,
+      { filename: 'lecture-large.mp4', fileType: 'video/mp4', folder: 'courses' },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      multiInitRes.status === 200 &&
+      typeof multiInitRes.data.uploadId === 'string' &&
+      typeof multiInitRes.data.key === 'string',
+      'POST /api/upload/multipart/initiate initiates multipart upload'
+    );
+    const multiKey = multiInitRes.data.key;
+    const multiUploadId = multiInitRes.data.uploadId;
+
+    const multiPartRes = await axios.post(
+      `${API_URL}/upload/multipart/presign-part`,
+      { key: multiKey, uploadId: multiUploadId, partNumber: 1 },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      multiPartRes.status === 200 &&
+      typeof multiPartRes.data.presignedUrl === 'string' &&
+      multiPartRes.data.partNumber === 1,
+      'POST /api/upload/multipart/presign-part returns presigned URL for part'
+    );
+
+    const multiAbortRes = await axios.post(
+      `${API_URL}/upload/multipart/abort`,
+      { key: multiKey, uploadId: multiUploadId },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      multiAbortRes.status === 200 &&
+      multiAbortRes.data.message === 'Multipart upload aborted',
+      'POST /api/upload/multipart/abort aborts incomplete multipart upload'
+    );
+
+    const multiCompleteRes = await axios.post(
+      `${API_URL}/upload/multipart/complete`,
+      {
+        key: multiKey,
+        uploadId: 'mock-complete-id',
+        parts: [{ partNumber: 1, etag: '"mock-etag-part-1"' }]
+      },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      multiCompleteRes.status === 200 &&
+      typeof multiCompleteRes.data.fileUrl === 'string',
+      'POST /api/upload/multipart/complete finalizes multipart upload'
+    );
+
+    // 3. Public Partner Applications
+    const plansRes = await axios.get(`${API_URL}/institutions/plans`);
+    assert(
+      plansRes.status === 200 &&
+      Array.isArray(plansRes.data.plans) &&
+      plansRes.data.plans.some(p => p.name === 'Premium' && p.monthlyPrice === 249) &&
+      plansRes.data.plans.some(p => p.name === 'Enterprise' && p.monthlyPrice === 599),
+      'GET /api/institutions/plans returns canonical Premium & Enterprise plans'
+    );
+
+    // Validation Error Envelope Check
+    let valErrRes;
+    try {
+      await axios.post(`${API_URL}/institutions/applications`, {
+        institutionName: 'AB' // Too short, missing required fields
+      });
+    } catch (e) {
+      valErrRes = e.response;
+    }
+    assert(
+      valErrRes?.status === 400 &&
+      valErrRes?.data?.code === 'VALIDATION_ERROR' &&
+      typeof valErrRes?.data?.fields === 'object' &&
+      Boolean(valErrRes?.data?.fields?.institutionName),
+      'POST /api/institutions/applications returns HTTP 400 with VALIDATION_ERROR and nested fields envelope'
+    );
+
+    // Successful Partnership Application Submission
+    const testAppEmail = `rector.smoke_${Date.now()}@polytechnic.edu.ng`;
+    const submitAppRes = await axios.post(`${API_URL}/institutions/applications`, {
+      institutionName: 'Federal Polytechnic Smoke Institute',
+      type: 'Technical College',
+      website: 'https://fedpolysmoke.edu.ng',
+      address: {
+        line1: '10 Poly Road',
+        city: 'Kaduna',
+        country: 'NG'
+      },
+      representative: {
+        name: 'Prof. Ibrahim Bello',
+        role: 'Rector',
+        email: testAppEmail,
+        phone: '+2348055551234'
+      },
+      expectedStudents: '2,500 - 5,000',
+      expectedStudentsCount: 3000,
+      plan: 'Enterprise',
+      documents: [
+        {
+          name: 'Federal_Gazette_Establishment.pdf',
+          key: 'documents/smoke-poly-gazette.pdf',
+          size: 1548290
+        }
+      ]
+    });
+    assert(
+      submitAppRes.status === 201 &&
+      submitAppRes.data.application &&
+      /^GLX-\d{4}-\d{4}$/.test(submitAppRes.data.application.referenceId) &&
+      submitAppRes.data.application.status === 'pending',
+      'POST /api/institutions/applications generates reference ID (GLX-YYYY-XXXX) and saves application'
+    );
+    const createdAppRef = submitAppRes.data.application.referenceId;
+    const createdAppId = submitAppRes.data.application._id;
+
+    // Duplicate Pending Rejection Check (HTTP 409 DUPLICATE_APPLICATION)
+    let duplicateAppRes;
+    try {
+      await axios.post(`${API_URL}/institutions/applications`, {
+        institutionName: 'Federal Polytechnic Duplicate Attempt',
+        type: 'Technical College',
+        representative: {
+          name: 'Prof. Ibrahim Bello',
+          role: 'Rector',
+          email: testAppEmail,
+          phone: '+2348055551234'
+        }
+      });
+    } catch (e) {
+      duplicateAppRes = e.response;
+    }
+    assert(
+      duplicateAppRes?.status === 409 &&
+      duplicateAppRes?.data?.code === 'DUPLICATE_APPLICATION',
+      'POST /api/institutions/applications rejects duplicate pending submission with 409 DUPLICATE_APPLICATION'
+    );
+
+    // Public Status Tracking (Safe Envelope)
+    const trackRes = await axios.get(`${API_URL}/institutions/applications/${createdAppRef}`);
+    assert(
+      trackRes.status === 200 &&
+      trackRes.data.referenceId === createdAppRef &&
+      trackRes.data.status === 'pending' &&
+      trackRes.data.estimatedReviewHours === 48 &&
+      trackRes.data.representative === undefined,
+      'GET /api/institutions/applications/:referenceId returns safe public tracking data without sensitive representative fields'
+    );
+
+    // 4. Admin Reviewer Portal Operations
+    const listAppsRes = await axios.get(`${API_URL}/admin/institution-applications?status=pending`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      listAppsRes.status === 200 &&
+      Array.isArray(listAppsRes.data.applications) &&
+      listAppsRes.data.total >= 1,
+      'GET /api/admin/institution-applications returns paginated, filtered applications for admin'
+    );
+
+    const appDetailRes = await axios.get(`${API_URL}/admin/institution-applications/${createdAppId}`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      appDetailRes.status === 200 &&
+      appDetailRes.data.application &&
+      appDetailRes.data.application.documents?.[0]?.previewUrl &&
+      Array.isArray(appDetailRes.data.reviewHistory),
+      'GET /api/admin/institution-applications/:id returns review drawer data with signed document preview URLs and audit history'
+    );
+    const docId = appDetailRes.data.application.documents[0]._id;
+
+    // Document download endpoint
+    const docDownloadRes = await axios.get(
+      `${API_URL}/admin/institution-applications/${createdAppId}/documents/${docId}/download`,
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      docDownloadRes.status === 200 &&
+      typeof docDownloadRes.data.downloadUrl === 'string' &&
+      docDownloadRes.data.expiresIn === 300,
+      'GET /api/admin/institution-applications/:id/documents/:docId/download returns 5-min signed GET URL'
+    );
+
+    // Staff Reviewer: Request Info
+    const reqInfoRes = await axios.post(
+      `${API_URL}/admin/institution-applications/${createdAppId}/request-info`,
+      { message: 'Please provide certified NBTE accreditation document' },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      reqInfoRes.status === 200 &&
+      reqInfoRes.data.application?.status === 'under_review',
+      'POST /api/admin/institution-applications/:id/request-info sets status to under_review and logs ReviewEvent'
+    );
+
+    // Staff Reviewer: Update internal notes & plan
+    const updateAppRes = await axios.put(
+      `${API_URL}/admin/institution-applications/${createdAppId}`,
+      { internalNotes: 'NBTE verification confirmed via phone call with registrar' },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      updateAppRes.status === 200 &&
+      updateAppRes.data.application?.internalNotes?.includes('NBTE verification confirmed'),
+      'PUT /api/admin/institution-applications/:id updates internal notes and audit history'
+    );
+
+    // Staff Reviewer: Approve Application (Idempotent 7-day token & Institution creation)
+    const approveRes = await axios.post(
+      `${API_URL}/admin/institution-applications/${createdAppId}/approve`,
+      { note: 'Accreditation verified. Approved for Enterprise tier onboarding.' },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      approveRes.status === 200 &&
+      approveRes.data.institution &&
+      approveRes.data.institution.status === 'pending_activation' &&
+      approveRes.data.institution.slug &&
+      approveRes.data.application?.status === 'approved',
+      'POST /api/admin/institution-applications/:id/approve creates Institution (pending_activation) and issues 7-day activation token'
+    );
+
+    // Duplicate Approval Prevention (HTTP 409 ALREADY_APPROVED)
+    let dupApproveRes;
+    try {
+      await axios.post(
+        `${API_URL}/admin/institution-applications/${createdAppId}/approve`,
+        {},
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+    } catch (e) {
+      dupApproveRes = e.response;
+    }
+    assert(
+      dupApproveRes?.status === 409 &&
+      dupApproveRes?.data?.code === 'ALREADY_APPROVED',
+      'POST /api/admin/institution-applications/:id/approve prevents duplicate approval with 409 ALREADY_APPROVED'
+    );
+
+    // Staff Reviewer: Resend Invite
+    const resendInviteRes = await axios.post(
+      `${API_URL}/admin/institution-applications/${createdAppId}/resend-invite`,
+      {},
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    assert(
+      resendInviteRes.status === 200 &&
+      resendInviteRes.data.message === 'Activation invite resent successfully',
+      'POST /api/admin/institution-applications/:id/resend-invite regenerates and resends activation token'
+    );
+
+    // Staff Reviewer: Reject Application (using seeded rejected application)
+    const seededHorizon = listAppsRes.data.applications.find(a => a.status === 'under_review') ||
+      (await axios.get(`${API_URL}/admin/institution-applications`, { headers: { Authorization: `Bearer ${adminToken}` } })).data.applications.find(a => a.status !== 'approved');
+
+    if (seededHorizon) {
+      const rejectRes = await axios.post(
+        `${API_URL}/admin/institution-applications/${seededHorizon._id}/reject`,
+        { reason: 'Document verification failed' },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+      assert(
+        rejectRes.status === 200 &&
+        rejectRes.data.application?.status === 'rejected',
+        'POST /api/admin/institution-applications/:id/reject marks application rejected and logs event'
+      );
+    }
+
+    // 5. Partner Analytics
+    const overviewRes = await axios.get(`${API_URL}/admin/partners/overview`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      overviewRes.status === 200 &&
+      overviewRes.data.overview &&
+      typeof overviewRes.data.overview.totalInstitutions === 'number' &&
+      Array.isArray(overviewRes.data.overview.timeSeries),
+      'GET /api/admin/partners/overview returns total institutions, active students, revenue, and 30-day time series'
+    );
+
+    const summaryRes = await axios.get(`${API_URL}/admin/partners/summary`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      summaryRes.status === 200 &&
+      summaryRes.data.summary &&
+      typeof summaryRes.data.summary.activeInstitutions === 'number' &&
+      typeof summaryRes.data.summary.pendingApprovals === 'number',
+      'GET /api/admin/partners/summary returns active institutions, pending approvals, and approval success rate'
+    );
+
+    const geoRes = await axios.get(`${API_URL}/admin/partners/geo`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      geoRes.status === 200 &&
+      Array.isArray(geoRes.data.locations) &&
+      geoRes.data.locations.length > 0 &&
+      typeof geoRes.data.locations[0].lat === 'number',
+      'GET /api/admin/partners/geo returns country application counts with coordinates for dashboard map pins'
+    );
+
+    const growthRes = await axios.get(`${API_URL}/admin/partners/growth`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    assert(
+      growthRes.status === 200 &&
+      Array.isArray(growthRes.data.months) &&
+      growthRes.data.months.length === 7,
+      'GET /api/admin/partners/growth returns monthly partner onboarding trend for the last 7 months'
+    );
+
+  } catch (err) {
+    assert(false, 'Flow 9 exception', err.response?.data?.error || err.message);
+  }
+
   // Print Summary Table
   const durationMs = Date.now() - startTime;
   console.log(`\n\x1b[36m==================================================\x1b[0m`);

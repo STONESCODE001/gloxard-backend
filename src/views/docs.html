@@ -1278,6 +1278,121 @@
               <span class="nav-method-pill" style="background: var(--error-bg); color: var(--error-text); font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-right: 8px;">DEL</span> Delete Review
             </a>
           </li>
+          <li style="margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--accent-orange); letter-spacing: 0.5px; padding: 4px 8px;">
+              Partner & Reviewer Portal
+            </div>
+          </li>
+          <li>
+            <a href="#ep-health-liveness" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Health Liveness
+            </a>
+          </li>
+          <li>
+            <a href="#ep-health-readiness" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Health Readiness
+            </a>
+          </li>
+          <li>
+            <a href="#ep-signed-url" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Signed S3 GET URL
+            </a>
+          </li>
+          <li>
+            <a href="#ep-multipart-init" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> S3 Multipart Initiate
+            </a>
+          </li>
+          <li>
+            <a href="#ep-multipart-presign-part" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> S3 Multipart Part
+            </a>
+          </li>
+          <li>
+            <a href="#ep-multipart-complete" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> S3 Multipart Complete
+            </a>
+          </li>
+          <li>
+            <a href="#ep-multipart-abort" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> S3 Multipart Abort
+            </a>
+          </li>
+          <li>
+            <a href="#ep-partner-plans" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Partner Plans
+            </a>
+          </li>
+          <li>
+            <a href="#ep-partner-application-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Application
+            </a>
+          </li>
+          <li>
+            <a href="#ep-partner-track" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Track Application
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-applications-list" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Applications Queue
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Application Detail
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-update" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Application
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-approve" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Approve Application
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-reject" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reject Application
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-request-info" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Request Info
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-application-resend-invite" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Resend Activation Invite
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-document-download" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Download Document
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-partners-overview" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Partners Overview
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-partners-summary" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Partners Summary
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-partners-geo" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Partners Geo Map
+            </a>
+          </li>
+          <li>
+            <a href="#ep-admin-partners-growth" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Partners Growth Trend
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -5255,6 +5370,692 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Institution Partner Applications & Staff Reviewer Portal -->
+      <section class="doc-section" id="partner-applications-portal">
+        <h2 class="section-heading">13. Institution Partner & Staff Reviewer Portal (Phase 1)</h2>
+        <p>
+          Complete lifecycle for Institutional Partnerships, public application registration, tracking, AWS S3 multipart video uploads & private document signing, and Gloxad Staff Reviewer moderation with 7-day single-use activation tokens and partner analytics.
+        </p>
+      </section>
+
+      <!-- 44. GET /api/health/liveness -->
+      <div class="endpoint-card" id="ep-health-liveness" data-search="health liveness process uptime check get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/health/liveness</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Process uptime probe for orchestrators and container health monitoring. Returns HTTP 200 with current process uptime in seconds.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "status": "ok",
+  "uptime": 1420.52
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 45. GET /api/health/readiness -->
+      <div class="endpoint-card" id="ep-health-readiness" data-search="health readiness probe database storage s3 connected get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/health/readiness</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Connectivity probe checking MongoDB Atlas connection state and AWS S3 bucket head reachability. Returns HTTP 200 when ready, 503 when disconnected.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "status": "ready",
+  "database": "connected",
+  "storage": "connected"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 46. GET /api/upload/signed-url -->
+      <div class="endpoint-card" id="ep-signed-url" data-search="upload signed url get s3 private document preview">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/upload/signed-url</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Generates a short-lived (5-minute TTL) signed GET URL for accessing private S3 assets such as application documents, certifications, and student assignment submissions.
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>Param</th><th>Type</th><th>Status</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>key</code></td><td>string (query)</td><td><span class="tag-req">Required</span></td><td>S3 object key (e.g. <code>documents/1729000-charter.pdf</code>)</td></tr>
+                <tr><td><code>expiresIn</code></td><td>number (query)</td><td><span class="tag-opt">Optional</span></td><td>URL expiration in seconds (default 300 / 5 minutes)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Response <span class="code-status-pill status-badge-200">200 OK</span></span>
+                <button class="copy-code-btn" onclick="copySnippet(this)">Copy</button>
+              </div>
+              <pre><code>{
+  "signedUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/documents/1729000-charter.pdf?X-Amz-Signature=...",
+  "key": "documents/1729000-charter.pdf",
+  "expiresIn": 300
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 47. POST /api/upload/multipart/initiate -->
+      <div class="endpoint-card" id="ep-multipart-init" data-search="upload multipart initiate s3 video large file post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/upload/multipart/initiate</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Initiates an AWS S3 multipart upload for large video files (&gt;100MB), allocating an S3 Upload ID and destination key.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "filename": "full-lecture.mp4",
+  "fileType": "video/mp4",
+  "folder": "courses"
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "uploadId": "VwAbc902kKx991...",
+  "key": "courses/1729000000000-abc1_full-lecture.mp4"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 48. POST /api/upload/multipart/presign-part -->
+      <div class="endpoint-card" id="ep-multipart-presign-part" data-search="upload multipart presign part s3 post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/upload/multipart/presign-part</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Generates an authenticated S3 presigned PUT URL for uploading a specific part chunk in a multipart upload.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "key": "courses/1729000000000-abc1_full-lecture.mp4",
+  "uploadId": "VwAbc902kKx991...",
+  "partNumber": 1
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "presignedUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/courses/...?partNumber=1&uploadId=...",
+  "partNumber": 1
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 49. POST /api/upload/multipart/complete -->
+      <div class="endpoint-card" id="ep-multipart-complete" data-search="upload multipart complete finalize s3 post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/upload/multipart/complete</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Finalizes S3 multipart upload with the collected ETag manifest and returns the permanent object URL.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "key": "courses/1729000000000-abc1_full-lecture.mp4",
+  "uploadId": "VwAbc902kKx991...",
+  "parts": [
+    { "partNumber": 1, "etag": "\"1b2cf535f27731c974343645a3985328\"" }
+  ]
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "fileUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/courses/1729000000000-abc1_full-lecture.mp4",
+  "key": "courses/1729000000000-abc1_full-lecture.mp4"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 50. POST /api/upload/multipart/abort -->
+      <div class="endpoint-card" id="ep-multipart-abort" data-search="upload multipart abort cancel s3 post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/upload/multipart/abort</span>
+          <span class="endpoint-tag-pill tag-bearer">Bearer Token Required</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Aborts an incomplete multipart upload and clears staged chunks from S3 storage.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "key": "courses/1729000000000-abc1_full-lecture.mp4",
+  "uploadId": "VwAbc902kKx991..."
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Multipart upload aborted"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 51. GET /api/institutions/plans -->
+      <div class="endpoint-card" id="ep-partner-plans" data-search="institutions plans pricing premium enterprise public get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/institutions/plans</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Returns the official institutional plans catalogue ($249/mo Premium, $599/mo Enterprise, with 20% annual discount options).
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "plans": [
+    {
+      "id": "premium",
+      "name": "Premium",
+      "monthlyPrice": 249,
+      "annualPrice": 2390,
+      "seatLimit": 500,
+      "features": ["Up to 500 Active Students", "Full LMS Platform", "Verifiable Certificates"]
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "monthlyPrice": 599,
+      "annualPrice": 5750,
+      "seatLimit": 5000,
+      "features": ["Up to 5,000+ Active Students", "LiveKit WebRTC Classroom", "Custom White-Label"]
+    }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 52. POST /api/institutions/applications -->
+      <div class="endpoint-card" id="ep-partner-application-post" data-search="institutions applications partnership apply request register post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/institutions/applications</span>
+          <span class="endpoint-tag-pill tag-public">Public (Rate Limited)</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Submits a new institutional partnership application, auto-generates a unique Reference ID (<code>GLX-YYYY-XXXX</code>), enforces duplicate pending collision prevention (HTTP 409), and dispatches a confirmation email.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "institutionName": "Apex Institute of Technology",
+  "type": "Technical College",
+  "website": "https://apextech.edu",
+  "address": {
+    "line1": "42 Innovation Boulevard",
+    "city": "Lagos",
+    "country": "NG"
+  },
+  "representative": {
+    "name": "Dr. Sarah Adams",
+    "role": "Academic Dean",
+    "email": "sarah.adams@apextech.edu",
+    "phone": "+2348012345678"
+  },
+  "expectedStudents": "1,000 - 2,500",
+  "plan": "Enterprise",
+  "documents": [
+    { "name": "Accreditation.pdf", "key": "documents/1729-apex.pdf", "size": 1048576 }
+  ]
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">201 Created</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Partnership application submitted successfully",
+  "application": {
+    "_id": "673f8a92b234fa001234a111",
+    "referenceId": "GLX-2026-9012",
+    "status": "pending",
+    "submittedAt": "2026-10-15T15:00:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 53. GET /api/institutions/applications/:referenceId -->
+      <div class="endpoint-card" id="ep-partner-track" data-search="institutions applications track status referenceId get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/institutions/applications/:referenceId</span>
+          <span class="endpoint-tag-pill tag-public">Public</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Public status tracking endpoint returning safe metadata without exposing private institutional or representative details.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "referenceId": "GLX-2026-9012",
+  "status": "pending",
+  "submittedAt": "2026-10-15T15:00:00.000Z",
+  "estimatedReviewHours": 48
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 54. GET /api/admin/institution-applications -->
+      <div class="endpoint-card" id="ep-admin-applications-list" data-search="admin institution applications queue list filter search get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/institution-applications</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Searchable, filterable, paginated applications table for staff reviewers. Filters by status, institution type, plan, and free-text search.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "applications": [
+    {
+      "_id": "673f8a92b234fa001234a111",
+      "referenceId": "GLX-2026-9012",
+      "institutionName": "Apex Institute of Technology",
+      "type": "Technical College",
+      "status": "pending",
+      "plan": "Enterprise",
+      "submittedAt": "2026-10-15T15:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "totalPages": 1
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 55. GET /api/admin/institution-applications/:id -->
+      <div class="endpoint-card" id="ep-admin-application-detail" data-search="admin institution application detail review drawer audit events get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Detailed review drawer payload with complete representative details, uploaded documents with 5-minute signed preview URLs, and complete ReviewEvent audit history.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "application": {
+    "_id": "673f8a92b234fa001234a111",
+    "referenceId": "GLX-2026-9012",
+    "institutionName": "Apex Institute of Technology",
+    "documents": [
+      {
+        "name": "Accreditation.pdf",
+        "key": "documents/1729-apex.pdf",
+        "previewUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/..."
+      }
+    ]
+  },
+  "reviewHistory": [
+    {
+      "action": "request_info",
+      "actorName": "System Admin",
+      "note": "Please submit updated state charter",
+      "createdAt": "2026-10-15T16:00:00.000Z"
+    }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 56. PUT /api/admin/institution-applications/:id -->
+      <div class="endpoint-card" id="ep-admin-application-update" data-search="admin institution application update status plan notes put">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-put">PUT</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Updates internal notes, status, or plan tier and logs an immutable ReviewEvent audit record.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "plan": "Enterprise",
+  "internalNotes": "Verified through state ministry directory."
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Application updated successfully"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 57. POST /api/admin/institution-applications/:id/approve -->
+      <div class="endpoint-card" id="ep-admin-application-approve" data-search="admin institution application approve activate token email post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id/approve</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Idempotent approval: initializes an <code>Institution</code> record in <code>pending_activation</code>, generates a secure 32-byte 7-day activation token, and emails the applicant. Prevents duplicate approval (HTTP 409).
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Application approved successfully",
+  "institution": {
+    "_id": "673f8a92b234fa001234c888",
+    "name": "Apex Institute of Technology",
+    "slug": "apex-institute-of-technology",
+    "status": "pending_activation",
+    "activationExpiresAt": "2026-10-22T15:00:00.000Z"
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 58. POST /api/admin/institution-applications/:id/reject -->
+      <div class="endpoint-card" id="ep-admin-application-reject" data-search="admin institution application reject decline post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id/reject</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Sets application status to <code>rejected</code>, records the rejection rationale in a ReviewEvent, and dispatches a rejection update email.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "reason": "Does not meet minimum student capacity requirement"
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Application rejected successfully"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 59. POST /api/admin/institution-applications/:id/request-info -->
+      <div class="endpoint-card" id="ep-admin-application-request-info" data-search="admin institution application request info inquiry under_review post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id/request-info</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Sets status to <code>under_review</code>, records reviewer question in a ReviewEvent, and emails inquiry to applicant representative.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Request Body</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Please attach government accreditation certificate."
+}</code></pre>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Information request dispatched successfully"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 60. POST /api/admin/institution-applications/:id/resend-invite -->
+      <div class="endpoint-card" id="ep-admin-application-resend-invite" data-search="admin institution application resend invite activation token post">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-post">POST</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id/resend-invite</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Regenerates and resends single-use 7-day activation link for approved applications. Returns HTTP 409 if application is not approved.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "message": "Activation invite resent successfully"
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 61. GET /api/admin/institution-applications/:id/documents/:docId/download -->
+      <div class="endpoint-card" id="ep-admin-document-download" data-search="admin institution application document download signed url get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/institution-applications/:id/documents/:docId/download</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Issues a 5-minute signed GET URL for downloading private application documents and logs an audit record in ReviewEvent.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "downloadUrl": "https://gloxad-media-bucket.s3.us-east-1.amazonaws.com/documents/...",
+  "name": "Accreditation.pdf",
+  "key": "documents/1729-apex.pdf",
+  "expiresIn": 300
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 62. GET /api/admin/partners/overview -->
+      <div class="endpoint-card" id="ep-admin-partners-overview" data-search="admin partners overview kpis institutions students revenue timeseries get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/partners/overview</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Aggregated reviewer dashboard metrics: total institutions, active enrolled students, estimated monthly subscription revenue, and 30-day time series.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "overview": {
+    "totalInstitutions": 12,
+    "activeStudents": 6400,
+    "estimatedMonthlyRevenue": 5688,
+    "monthlyGrowthPercent": 18.5,
+    "timeSeries": [
+      { "date": "2026-10-01", "count": 2 }
+    ]
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 63. GET /api/admin/partners/summary -->
+      <div class="endpoint-card" id="ep-admin-partners-summary" data-search="admin partners summary active pending approvals rate get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/partners/summary</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Summary metrics: active tenant count, pending reviewer approval queues, and institutional approval success rate percentage.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "summary": {
+    "activeInstitutions": 10,
+    "pendingApprovals": 3,
+    "approvalRate": "88%",
+    "totalApplications": 24
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 64. GET /api/admin/partners/geo -->
+      <div class="endpoint-card" id="ep-admin-partners-geo" data-search="admin partners geo map locations country coordinates pins get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/partners/geo</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Country-level application breakdown with latitude and longitude coordinates for rendering dashboard map pins.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "locations": [
+    { "country": "NG", "countryName": "Nigeria", "count": 18, "lat": 9.082, "lng": 8.6753 },
+    { "country": "GH", "countryName": "Ghana", "count": 4, "lat": 7.9465, "lng": -1.0232 }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 65. GET /api/admin/partners/growth -->
+      <div class="endpoint-card" id="ep-admin-partners-growth" data-search="admin partners growth trend monthly onboarding get">
+        <div class="endpoint-header-row">
+          <span class="method-badge method-get">GET</span>
+          <span class="endpoint-uri">/api/admin/partners/growth</span>
+          <span class="endpoint-tag-pill tag-bearer">Admin Only</span>
+        </div>
+        <div class="endpoint-content">
+          <div class="endpoint-desc">
+            Monthly institutional onboarding progression and application approval trends over the past 7 months.
+          </div>
+          <div class="code-grid">
+            <div class="code-block">
+              <div class="code-header"><span>Response <span class="code-status-pill status-badge-200">200 OK</span></span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+              <pre><code>{
+  "months": [
+    { "month": "2026-04", "applications": 1, "approved": 1 },
+    { "month": "2026-05", "applications": 3, "approved": 2 },
+    { "month": "2026-06", "applications": 5, "approved": 4 },
+    { "month": "2026-07", "applications": 6, "approved": 5 },
+    { "month": "2026-08", "applications": 8, "approved": 7 },
+    { "month": "2026-09", "applications": 10, "approved": 8 },
+    { "month": "2026-10", "applications": 14, "approved": 11 }
+  ]
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -5357,7 +6158,29 @@ Accept: application/json</code></pre>
         <li><a href="#ep-messages-send-post" class="toc-link">POST /messages/:conversationId</a></li>
         <li><a href="#ep-notifications-get" class="toc-link">GET /notifications</a></li>
         <li><a href="#ep-notifications-mark-read" class="toc-link">POST /notifications/mark-read</a></li>
-        <li><a href="#realtime-ws-events" class="toc-link">Socket.io Events</a></li>
+        <li><a href="#partner-applications-portal" class="toc-link">Institution Partner & Reviewer Portal</a></li>
+        <li><a href="#ep-health-liveness" class="toc-link">GET /api/health/liveness</a></li>
+        <li><a href="#ep-health-readiness" class="toc-link">GET /api/health/readiness</a></li>
+        <li><a href="#ep-signed-url" class="toc-link">GET /api/upload/signed-url</a></li>
+        <li><a href="#ep-multipart-init" class="toc-link">POST /api/upload/multipart/initiate</a></li>
+        <li><a href="#ep-multipart-presign-part" class="toc-link">POST /api/upload/multipart/presign-part</a></li>
+        <li><a href="#ep-multipart-complete" class="toc-link">POST /api/upload/multipart/complete</a></li>
+        <li><a href="#ep-multipart-abort" class="toc-link">POST /api/upload/multipart/abort</a></li>
+        <li><a href="#ep-partner-plans" class="toc-link">GET /api/institutions/plans</a></li>
+        <li><a href="#ep-partner-application-post" class="toc-link">POST /api/institutions/applications</a></li>
+        <li><a href="#ep-partner-track" class="toc-link">GET /api/institutions/applications/:referenceId</a></li>
+        <li><a href="#ep-admin-applications-list" class="toc-link">GET /api/admin/institution-applications</a></li>
+        <li><a href="#ep-admin-application-detail" class="toc-link">GET /api/admin/institution-applications/:id</a></li>
+        <li><a href="#ep-admin-application-update" class="toc-link">PUT /api/admin/institution-applications/:id</a></li>
+        <li><a href="#ep-admin-application-approve" class="toc-link">POST /api/admin/institution-applications/:id/approve</a></li>
+        <li><a href="#ep-admin-application-reject" class="toc-link">POST /api/admin/institution-applications/:id/reject</a></li>
+        <li><a href="#ep-admin-application-request-info" class="toc-link">POST /api/admin/institution-applications/:id/request-info</a></li>
+        <li><a href="#ep-admin-application-resend-invite" class="toc-link">POST /api/admin/institution-applications/:id/resend-invite</a></li>
+        <li><a href="#ep-admin-document-download" class="toc-link">GET /api/admin/institution-applications/:id/documents/:docId/download</a></li>
+        <li><a href="#ep-admin-partners-overview" class="toc-link">GET /api/admin/partners/overview</a></li>
+        <li><a href="#ep-admin-partners-summary" class="toc-link">GET /api/admin/partners/summary</a></li>
+        <li><a href="#ep-admin-partners-geo" class="toc-link">GET /api/admin/partners/geo</a></li>
+        <li><a href="#ep-admin-partners-growth" class="toc-link">GET /api/admin/partners/growth</a></li>
       </ul>
     </aside>
 

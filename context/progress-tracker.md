@@ -1,15 +1,15 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`16-frontend-integration-gap-remediation.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/16-frontend-integration-gap-remediation.md)
+> Current Active Spec: [`17-infrastructure-partner-applications.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/17-infrastructure-partner-applications.md)
 
 ---
 
 ## Current Phase
-- **Phase 1**: Frontend Integration Gap Remediation & System Synchronization
+- **Phase 2**: Institution Partnerships, Workspaces & Infrastructure Unblock
 
 ## Current Goal
-- [x] Milestone 12 (Unit 16: Frontend Integration Gap Remediation) [COMPLETED & VERIFIED].
+- [x] Milestone 13 (Unit 17: Infrastructure Unblock & Partner Applications) [COMPLETED & VERIFIED].
 
 ---
 
@@ -48,6 +48,7 @@
 - [x] **Unit 14**: Interactive API Documentation Web Page [COMPLETED & VERIFIED]
 - [x] **Unit 15**: Seed Data & End-to-End System Smoke Tests [COMPLETED & VERIFIED]
 - [x] **Unit 16**: Frontend Integration Gap Remediation & System Synchronization [COMPLETED & VERIFIED]
+- [x] **Unit 17**: Infrastructure Unblock & Partner Applications (Phase 1) [COMPLETED & VERIFIED]
 
 ---
 
@@ -231,8 +232,47 @@
 
 ---
 
+### Unit 17 (`17-infrastructure-partner-applications.md`) [COMPLETED & VERIFIED]
+1. **Data Models & Schemas**:
+   - [`src/models/InstitutionApplication.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/InstitutionApplication.model.js): Implemented partnership application model with compound unique index on `{ "representative.email": 1, status: 1 }` preventing duplicate pending submissions, auto-generating reference IDs (`GLX-YYYY-XXXX`), and supporting document manifests.
+   - [`src/models/ReviewEvent.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/ReviewEvent.model.js): Immutable audit log model recording reviewer status changes, notes, plan updates, approvals, rejections, information inquiries, and token resends.
+   - [`src/models/Institution.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Institution.model.js): Core tenant workspace model holding `pending_activation` status, cryptographic hash of single-use 7-day activation token (`activationToken`), 7-day expiration timestamp, and onboarding progress states.
+2. **Infrastructure & Uploads**:
+   - [`src/app.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/app.js): Decoupled `/api/health` into `/api/health/liveness` (process uptime) and `/api/health/readiness` (MongoDB Atlas connectivity + S3 storage probe).
+   - [`src/utils/s3.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/utils/s3.js): Expanded folder prefixes (`logos`, `signatures`, `documents`, `submissions`, `certificates`); enforced private folder key isolation (returning `key` only without public `fileUrl` for private folders); implemented `generateSignedGetUrl(key, expiresIn = 300)` for 5-minute signed GET URLs; implemented S3 multipart helpers (`createMultipartUpload`, `getPresignedPartUrl`, `completeMultipartUpload`, `abortMultipartUpload`).
+   - [`src/controllers/upload.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/upload.controller.js) & [`src/routes/upload.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/upload.routes.js): Mounted `GET /api/upload/signed-url` and multipart endpoints under `/api/upload/multipart/*`. Allowed public presigned URL generation for partner application documents.
+   - [`src/middlewares/error.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/error.middleware.js): Enhanced error handler to support `{ error, code, fields }` payload envelopes while preserving strict `{ error }` backward compatibility for existing simple error callers.
+3. **Public Partner Applications**:
+   - [`src/controllers/institution.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/institution.controller.js) & [`src/routes/institution.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/institution.routes.js):
+     - `POST /api/institutions/applications`: Public submission with rate limiting, input validation returning `{ error, code, fields }`, duplicate pending email check returning `409 DUPLICATE_APPLICATION`, reference ID generator, and confirmation email dispatch.
+     - `GET /api/institutions/applications/:referenceId`: Public safe tracking endpoint returning status metadata without sensitive representative data.
+     - `GET /api/institutions/plans`: Canonical pricing catalogue ($249/mo Premium, $599/mo Enterprise, 20% annual discount).
+4. **Gloxad Staff Reviewer Portal & Partner Analytics**:
+   - [`src/controllers/reviewer.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/reviewer.controller.js) & [`src/routes/admin.routes.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/routes/admin.routes.js):
+     - `GET /api/admin/institution-applications`: Searchable, filterable, paginated applications table.
+     - `GET /api/admin/institution-applications/:id`: Review drawer context with documents (signed preview URLs) and audit history.
+     - `PUT /api/admin/institution-applications/:id`: Updates status, plan, internal notes and creates `ReviewEvent`.
+     - `POST /api/admin/institution-applications/:id/approve`: Idempotent approval creating `Institution` (`pending_activation`), issuing single-use 7-day hashed activation token, sending activation email, preventing duplicate approvals (`409 ALREADY_APPROVED`).
+     - `POST /api/admin/institution-applications/:id/reject`: Transitions status to `rejected`, records reason in `ReviewEvent`, dispatches rejection email.
+     - `POST /api/admin/institution-applications/:id/request-info`: Sets status to `under_review`, records question in `ReviewEvent`, dispatches inquiry email.
+     - `POST /api/admin/institution-applications/:id/resend-invite`: Regenerates and resends single-use 7-day activation link for approved applications (409 if not approved).
+     - `GET /api/admin/institution-applications/:id/documents/:docId/download`: Emits 5-minute signed GET URL for document key and logs download event.
+     - `GET /api/admin/partners/overview`: Computed dashboard KPIs (total institutions, active students, revenue, 30-day time series).
+     - `GET /api/admin/partners/summary`: Active institutions, pending approvals, approval success rates.
+     - `GET /api/admin/partners/geo`: Country-level application breakdown with latitude/longitude coordinates.
+     - `GET /api/admin/partners/growth`: Monthly partner onboarding progression for the last 7 months.
+5. **Transactional Email Templates**:
+   - [`src/utils/email.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/utils/email.js): Added `sendPartnerApplicationConfirmationEmail`, `sendPartnerActivationEmail`, `sendPartnerRejectionEmail`, and `sendPartnerRequestInfoEmail`.
+6. **Seed Engine & E2E Smoke Tests**:
+   - [`src/seed.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/seed.js): Seeded applications (`pending`, `under_review`, `approved`, `rejected`), pre-seeded `Institution` record, and `ReviewEvent` audit logs across 13 collections.
+   - [`scripts/test-e2e-smoke.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/scripts/test-e2e-smoke.js): Added `FLOW 9` testing all 15 Phase 1 endpoints. 14 suites, 73 assertions passing 100%.
+7. **Interactive API Documentation Portal Sync**:
+   - [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html): Added Section 13 ("Institution Partner & Staff Reviewer Portal"), left sidebar navigation links, right-hand TOC anchors, and dynamic "Try It Out" live sandbox drawers for all 15 new endpoints (70 REST endpoints total).
+
+---
+
 ## Next Up
-- **All Phase 1 Units Completed & Fully Verified (100%)**
+- **Unit 18**: Institution Onboarding, Workspace Setup & Multi-Currency Billing
 
 
 ---

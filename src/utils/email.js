@@ -183,8 +183,100 @@ export const sendWelcomeEmail = async (email, name) => {
   return await sendMail({ to: email, subject, text, html });
 };
 
+export const sendPartnerApplicationConfirmationEmail = async ({ to, name, referenceId, trackingUrl }) => {
+  const subject = `Gloxad Academy - Partnership Application Received (${referenceId})`;
+  const text = `Hello ${name || "Representative"},\n\nThank you for applying to partner with Gloxad Academy! We have received your application with Reference ID: ${referenceId}.\n\nOur team is reviewing your application and will respond within 48 hours.\nTrack your application status here: ${trackingUrl || "https://gloxadacademy.com/partners/status"}\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #4F46E5; margin-top: 0;">Gloxad Academy Partnership</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Representative"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Thank you for your interest in partnering with Gloxad Academy. We have successfully received your institutional application.</p>
+      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; margin: 20px 0; text-align: center;">
+        <span style="font-size: 13px; color: #64748B; text-transform: uppercase; letter-spacing: 1px;">Application Reference ID</span>
+        <div style="font-size: 26px; font-weight: 700; color: #4F46E5; margin-top: 6px; letter-spacing: 2px;">
+          ${referenceId}
+        </div>
+      </div>
+      <p style="font-size: 14px; color: #475569;">Our admissions and partner committee typically reviews applications within <strong>48 hours</strong>.</p>
+      ${trackingUrl ? `<div style="text-align: center; margin: 24px 0;"><a href="${trackingUrl}" style="background: #4F46E5; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">Track Application Status</a></div>` : ''}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
+export const sendPartnerActivationEmail = async ({ to, name, institutionName, activationUrl, expiresAt }) => {
+  const subject = `Welcome to Gloxad Academy! Activate ${institutionName || "Your Institution Workspace"}`;
+  const expiryDateStr = expiresAt ? new Date(expiresAt).toLocaleDateString() : "7 days";
+  const text = `Hello ${name || "Representative"},\n\nCongratulations! Your partnership application for ${institutionName} has been approved.\n\nPlease activate your institutional workspace using the link below (valid for 7 days until ${expiryDateStr}):\n${activationUrl}\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #4F46E5; margin-top: 0;">Application Approved! 🎉</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Representative"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Congratulations! Your institutional partnership application for <strong>${institutionName}</strong> has been officially approved.</p>
+      <p style="font-size: 14px; color: #475569;">To finalize your setup, set your administrative password, and launch your campus portal, click the button below:</p>
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${activationUrl}" style="background: #16A34A; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-block;">
+          Activate Institutional Workspace
+        </a>
+      </div>
+      <p style="font-size: 13px; color: #64748B;">This secure single-use activation link expires in <strong>7 days</strong> (${expiryDateStr}).</p>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
+export const sendPartnerRejectionEmail = async ({ to, name, institutionName, reason }) => {
+  const subject = `Gloxad Academy - Partnership Application Update (${institutionName})`;
+  const text = `Hello ${name || "Representative"},\n\nThank you for your interest in partnering with Gloxad Academy for ${institutionName}.\n\nAfter thorough review, we regret to inform you that we are unable to approve your application at this time.\n\nReason: ${reason || "Requirements criteria not met"}\n\nYou are welcome to re-apply in the future once prerequisites are fulfilled.\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #475569; margin-top: 0;">Partnership Application Update</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Representative"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Thank you for your interest in Gloxad Academy and for taking the time to apply on behalf of <strong>${institutionName}</strong>.</p>
+      <p style="font-size: 14px; color: #475569;">After careful evaluation by our admissions team, we regret to inform you that we are unable to advance your application at this stage.</p>
+      ${reason ? `<div style="background: #FEF2F2; border-left: 4px solid #DC2626; padding: 12px 16px; margin: 16px 0; font-size: 14px; color: #991B1B;"><strong>Feedback:</strong> ${reason}</div>` : ''}
+      <p style="font-size: 13px; color: #64748B;">You may re-apply in the future if your institution's profile or requirements change.</p>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
+export const sendPartnerRequestInfoEmail = async ({ to, name, institutionName, message }) => {
+  const subject = `Action Required: Additional Information for Gloxad Academy Partnership (${institutionName})`;
+  const text = `Hello ${name || "Representative"},\n\nOur review team is currently evaluating the partnership application for ${institutionName} and requires additional information:\n\n${message}\n\nPlease reply directly to this email with the requested details.\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #4F46E5; margin-top: 0;">Additional Information Requested</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Representative"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Our reviewer team is currently assessing your partnership application for <strong>${institutionName}</strong>.</p>
+      <p style="font-size: 14px; color: #475569;">To complete our review, please provide the following details:</p>
+      <div style="background: #F0FDF4; border-left: 4px solid #16A34A; padding: 14px 18px; margin: 18px 0; font-size: 14px; color: #166534;">
+        ${message}
+      </div>
+      <p style="font-size: 13px; color: #64748B;">You can reply directly to this email with the requested details or supporting documents.</p>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
 export default {
   sendEmailVerificationOtp,
   sendPasswordResetOtp,
   sendWelcomeEmail,
+  sendPartnerApplicationConfirmationEmail,
+  sendPartnerActivationEmail,
+  sendPartnerRejectionEmail,
+  sendPartnerRequestInfoEmail,
 };

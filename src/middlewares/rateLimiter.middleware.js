@@ -23,6 +23,7 @@ export const verifyOtpLimiter = createLimiter(10);
 export const resetPasswordLimiter = createLimiter(5);
 export const updatePasswordLimiter = createLimiter(10);
 export const updateProfileLimiter = createLimiter(30);
+export const partnerApplicationLimiter = createLimiter(20);
 
 // Backward compatibility exports
 export const authLimiter = signinLimiter;
