@@ -16,6 +16,10 @@ import learningRouter from "./routes/learning.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import institutionRoutes from "./routes/institution.routes.js";
+import institutionAdminRoutes from "./routes/institutionAdmin.routes.js";
+import { authGuard } from "./middlewares/auth.middleware.js";
+import { roleGuard } from "./middlewares/role.middleware.js";
+import { institutionContext } from "./middlewares/institution.middleware.js";
 import { renderApiDocs } from "./controllers/docs.controller.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { checkS3Readiness } from "./utils/s3.js";
@@ -102,6 +106,15 @@ app.use("/api/tutor", tutorRoutes);
 
 // Mount admin routes under /api/admin
 app.use("/api/admin", adminRouter);
+
+// Mount tenant institution workspace routes under /api/institutions/me
+app.use(
+  "/api/institutions/me",
+  authGuard,
+  roleGuard("institution_admin"),
+  institutionContext,
+  institutionAdminRoutes
+);
 
 // Mount institution partner applications under /api/institutions
 app.use("/api/institutions", institutionRoutes);

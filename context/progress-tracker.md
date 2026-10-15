@@ -1,7 +1,7 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`17-infrastructure-partner-applications.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/17-infrastructure-partner-applications.md)
+> Current Active Spec: [`18-institution-onboarding-workspace-billing.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/18-institution-onboarding-workspace-billing.md)
 
 ---
 
@@ -9,7 +9,7 @@
 - **Phase 2**: Institution Partnerships, Workspaces & Infrastructure Unblock
 
 ## Current Goal
-- [x] Milestone 13 (Unit 17: Infrastructure Unblock & Partner Applications) [COMPLETED & VERIFIED].
+- [x] Milestone 14 (Unit 18: Institution Onboarding, Workspace Management & Subscriptions) [COMPLETED & VERIFIED].
 
 ---
 
@@ -49,6 +49,7 @@
 - [x] **Unit 15**: Seed Data & End-to-End System Smoke Tests [COMPLETED & VERIFIED]
 - [x] **Unit 16**: Frontend Integration Gap Remediation & System Synchronization [COMPLETED & VERIFIED]
 - [x] **Unit 17**: Infrastructure Unblock & Partner Applications (Phase 1) [COMPLETED & VERIFIED]
+- [x] **Unit 18**: Institution Onboarding, Workspace Setup & Multi-Currency Billing [COMPLETED & VERIFIED]
 
 ---
 
@@ -271,8 +272,57 @@
 
 ---
 
+## Completed in Milestone 14
+
+### Unit 18: Institution Onboarding, Workspace Management & Multi-Currency Billing (`18-institution-onboarding-workspace-billing.md`)
+1. **Multi-Tenant Data Architecture & Schemas**:
+   - [`src/models/Department.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Department.model.js): Compound unique index `{ institutionId: 1, code: 1 }`, academic metadata (`name`, `code`, `faculty`, `headName`, `description`, `status`).
+   - [`src/models/InstitutionMember.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/InstitutionMember.model.js): Scoped unique email `{ institutionId: 1, email: 1 }`, roles (`tutor`, `student`), department references, invite lifecycle tracking (`pending`, `accepted`, `revoked`, `lastInviteSentAt`).
+   - [`src/models/Subscription.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Subscription.model.js): Tiered subscriptions (`plan: Premium | Enterprise`, `billing: monthly | annual`, `currency: USD | NGN`), Paystack plan/customer/subscription codes, and historical invoices subdocument.
+   - [`src/models/User.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/User.model.js): Added `"institution_admin"` to role enum and `institutionId` ObjectId reference field.
+2. **Tenant Security & Guard Infrastructure**:
+   - [`src/middlewares/institution.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/institution.middleware.js): Created `institutionContext` middleware resolving authenticated admin workspace, enforcing tenant status (`pending_activation`, `onboarding`, `active`, `suspended`), and scoping queries strictly to `req.institutionId`.
+   - [`src/middlewares/role.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/role.middleware.js): Added explicit 403 authorization guard for `institution_admin`.
+   - [`src/middlewares/rateLimiter.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/rateLimiter.middleware.js): Configured `memberInviteLimiter` and optimized test/development ceiling to allow seamless automated verification without tripping false positive IP limits.
+3. **Workspace Activation & 6-Step Onboarding Wizard**:
+   - [`src/controllers/activation.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/activation.controller.js):
+     - `POST /api/institutions/activate`: Validates 12+ char password, consumes single-use 7-day token (SHA-256 hashed), creates `institution_admin` user account, activates workspace to `onboarding`, and issues 7-day JWT session.
+   - [`src/controllers/institutionAdmin.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/institutionAdmin.controller.js):
+     - `GET /api/institutions/me`: Resumes onboarding wizard state (`currentStep`, `completedSteps`), workspace configuration, and limits.
+     - `PUT /api/institutions/me/branding`: Step 1 configuration verifying S3 `logos/` key isolation and updating branding colors, display name, and tagline.
+4. **Multi-Tenant Departments & Member Management**:
+   - [`src/controllers/department.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/department.controller.js):
+     - `GET /api/institutions/me/departments`: Scoped listing of departments with assigned member counts.
+     - `POST /api/institutions/me/departments`: Creates department enforcing 10 department cap for Premium plan and unique code per institution.
+     - `PUT /api/institutions/me/departments/:id`: Metadata updates.
+     - `DELETE /api/institutions/me/departments/:id`: Deletion safeguard rejecting request (`409 DEPARTMENT_HAS_MEMBERS`) if active tutors/students belong to department.
+   - [`src/controllers/member.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/member.controller.js):
+     - `GET /api/institutions/me/members`: Paginated, filterable roster by role (`student`, `tutor`), department, and search.
+     - `POST /api/institutions/me/members`: Enforces 500 seat limit for Premium, duplicate email check (`409 DUPLICATE_MEMBER`), and dispatches branded email invite.
+     - `POST /api/institutions/me/members/import`: Bulk CSV/JSON roster parser supporting flexible column aliases (`Full Name`, `Professional Email`, `Department Code`) and returning `{ imported, skipped }`.
+     - `POST /api/institutions/me/members/:id/invite`: Rate-limited invite resend enforcing 30-second cooldown (`429 RATE_LIMITED`).
+     - `DELETE /api/institutions/me/members/:id`: Removes member record and detaches linked user.
+5. **Paystack Subscription Checkout & Webhook Reconciliation**:
+   - [`src/controllers/subscription.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/subscription.controller.js):
+     - `POST /api/institutions/me/subscription/checkout`: Canonical pricing computation with 20% annual discount ($2,390.40/yr Premium, $5,750.40/yr Enterprise) and Paystack transaction initialization.
+     - `GET /api/institutions/me/subscription`: Returns active subscription, billing schedule, and invoice history.
+   - [`src/controllers/webhook.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/webhook.controller.js): Extended Paystack webhook to process `charge.success` with `metadata.type === 'institution_subscription'`, upserting `Subscription`, transitioning workspace to `active`, completing Step 6, appending invoice record, and sending receipt email.
+6. **Workspace Dashboard & Real-Time Analytics**:
+   - [`src/controllers/institutionDashboard.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/institutionDashboard.controller.js):
+     - `GET /api/institutions/me/dashboard`: Aggregates real-time metrics (`totalStudents`, `totalTutors`, `activeDepartments`, `seatLimit`, `seatsOccupied`, `seatUtilizationPercentage`), workspace status, and recent activity logs.
+7. **Transactional Emails**:
+   - [`src/utils/email.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/utils/email.js): Added `sendInstitutionMemberInviteEmail` and `sendSubscriptionReceiptEmail`.
+8. **Interactive API Documentation Portal Sync**:
+   - [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html): Added Section 14 ("Institution Workspace & Billing Portal"), sidebar navigation, right-hand TOC anchors, and dynamic "Try It Out" live sandbox drawers for all 15 workspace endpoints (85 REST endpoints documented).
+9. **Seed Engine & E2E Smoke Tests**:
+   - [`src/seed.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/seed.js): Seeded `departments`, `institutionmembers`, `subscriptions`, active Apex Technical University workspace, pending Heritage Maritime University workspace, and expired St. Jude Institute workspace across 16 database collections.
+   - [`scripts/test-e2e-smoke.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/scripts/test-e2e-smoke.js): Added `FLOW 10` covering activation, weak password rejection, token replay protection, branding S3 key verification, department limits and collision, member roster import with aliases, invite rate limiting, department deletion guards, Paystack checkout math, webhook reconciliation, and isolated tenant dashboard analytics.
+   - **Verification**: 15 test suites, 97 assertions passing with 100% compliance.
+
+---
+
 ## Next Up
-- **Unit 18**: Institution Onboarding, Workspace Setup & Multi-Currency Billing
+- **Unit 19**: Institution Classroom, Multi-Tenant LMS & Live Sessions
 
 
 ---

@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import axios from 'axios';
+import crypto from 'crypto';
 import { io } from 'socket.io-client';
 
 const PORT = process.env.PORT || 3001;
@@ -1139,6 +1140,403 @@ async function runSmokeTests() {
 
   } catch (err) {
     assert(false, 'Flow 9 exception', err.response?.data?.error || err.message);
+  }
+
+  // ==========================================
+  // FLOW 10: INSTITUTION ACTIVATION, ONBOARDING WIZARD, MEMBERS & BILLING
+  // ==========================================
+  logSuite('FLOW 10: Institution Activation, Wizard Step Persistence, Member Import & Subscription Checkout');
+  try {
+    let instToken = '';
+    let activatedInstId = '';
+    const seedToken = 'seed_activation_token_1234567890abcdef1234567890abcdef';
+
+    // 1. Activation Validation: Weak Password (< 12 characters)
+    let weakPassRes;
+    try {
+      await axios.post(`${API_URL}/institutions/activate`, {
+        token: seedToken,
+        password: 'weak'
+      });
+    } catch (e) {
+      weakPassRes = e.response;
+    }
+    assert(
+      weakPassRes?.status === 400 && weakPassRes?.data?.code === 'WEAK_PASSWORD',
+      'POST /api/institutions/activate validates 12+ char password and rejects weak passwords with 400 WEAK_PASSWORD'
+    );
+
+    // 2. Activation Validation: Expired / Invalid Token
+    let expiredTokenRes;
+    try {
+      await axios.post(`${API_URL}/institutions/activate`, {
+        token: 'expired_token_test_1234567890abcdef',
+        password: 'SuperSecretAdmin123!'
+      });
+    } catch (e) {
+      expiredTokenRes = e.response;
+    }
+    assert(
+      expiredTokenRes?.status === 410 && expiredTokenRes?.data?.code === 'TOKEN_EXPIRED',
+      'POST /api/institutions/activate rejects expired activation token with 410 TOKEN_EXPIRED'
+    );
+
+    // 3. Successful Workspace Activation (Single-Use 7-Day Token)
+    const activateRes = await axios.post(`${API_URL}/institutions/activate`, {
+      token: seedToken,
+      password: 'SuperSecretAdmin123!',
+      firstName: 'Capt. Thomas',
+      lastName: 'Briggs'
+    });
+    assert(
+      activateRes.status === 200 &&
+      typeof activateRes.data.token === 'string' &&
+      activateRes.data.user?.role === 'institution_admin' &&
+      activateRes.data.institution?.status === 'onboarding',
+      'POST /api/institutions/activate consumes 7-day token, creates admin user, and returns 200 { token, user, institution }'
+    );
+    instToken = activateRes.data.token;
+    activatedInstId = activateRes.data.institution?._id;
+
+    // 4. Token Replay Protection (Single-Use Verification)
+    let replayRes;
+    try {
+      await axios.post(`${API_URL}/institutions/activate`, {
+        token: seedToken,
+        password: 'SuperSecretAdmin123!'
+      });
+    } catch (e) {
+      replayRes = e.response;
+    }
+    assert(
+      replayRes?.status === 410 && replayRes?.data?.code === 'TOKEN_EXPIRED',
+      'POST /api/institutions/activate rejects already used token with 410 TOKEN_EXPIRED'
+    );
+
+    // 5. Tenant RBAC Isolation Guard
+    let studentMeRes;
+    try {
+      await axios.get(`${API_URL}/institutions/me`, {
+        headers: { Authorization: `Bearer ${aliceToken}` }
+      });
+    } catch (e) {
+      studentMeRes = e.response;
+    }
+    assert(
+      studentMeRes?.status === 403,
+      'GET /api/institutions/me enforces roleGuard("institution_admin") and rejects non-admin users with 403'
+    );
+
+    // 6. Resume Wizard State
+    const meRes = await axios.get(`${API_URL}/institutions/me`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      meRes.status === 200 &&
+      meRes.data.institution?._id === activatedInstId &&
+      typeof meRes.data.onboarding?.currentStep === 'number' &&
+      Array.isArray(meRes.data.onboarding?.completedSteps),
+      'GET /api/institutions/me returns currentStep and completedSteps for onboarding state persistence'
+    );
+
+    // 7. Step 1: Branding Configuration & S3 Key Verification
+    let invalidLogoRes;
+    try {
+      await axios.put(
+        `${API_URL}/institutions/me/branding`,
+        { logoUrl: 'avatars/not-a-logo.png' },
+        { headers: { Authorization: `Bearer ${instToken}` } }
+      );
+    } catch (e) {
+      invalidLogoRes = e.response;
+    }
+    assert(
+      invalidLogoRes?.status === 400 && invalidLogoRes?.data?.code === 'INVALID_LOGO_KEY',
+      'PUT /api/institutions/me/branding rejects unverified non-logos/ S3 keys with 400 INVALID_LOGO_KEY'
+    );
+
+    const brandingRes = await axios.put(
+      `${API_URL}/institutions/me/branding`,
+      {
+        displayName: 'Heritage Maritime University',
+        color: '#1E3A8A',
+        tagline: 'Leading Global Maritime Studies',
+        logoUrl: 'logos/heritage-seal-verified.png'
+      },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      brandingRes.status === 200 &&
+      brandingRes.data.institution?.branding?.displayName === 'Heritage Maritime University' &&
+      brandingRes.data.institution?.onboarding?.completedSteps.includes(1),
+      'PUT /api/institutions/me/branding updates branding, saves verified S3 key, and marks Step 1 complete'
+    );
+
+    // 8. Step 2: Multi-Tenant Department Management
+    const createDeptRes = await axios.post(
+      `${API_URL}/institutions/me/departments`,
+      {
+        name: 'Maritime Operations & Logistics',
+        code: 'MAR-101',
+        faculty: 'Faculty of Maritime Sciences',
+        headName: 'Dr. Arthur Vance'
+      },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      createDeptRes.status === 201 &&
+      createDeptRes.data.department?.code === 'MAR-101' &&
+      createDeptRes.data.department?.institutionId === activatedInstId,
+      'POST /api/institutions/me/departments creates department scoped to institutionId'
+    );
+    const createdDeptId = createDeptRes.data.department?._id;
+
+    // Unique Code Collision in same Tenant
+    let dupDeptRes;
+    try {
+      await axios.post(
+        `${API_URL}/institutions/me/departments`,
+        { name: 'Duplicate Dept', code: 'MAR-101' },
+        { headers: { Authorization: `Bearer ${instToken}` } }
+      );
+    } catch (e) {
+      dupDeptRes = e.response;
+    }
+    assert(
+      dupDeptRes?.status === 409 && dupDeptRes?.data?.code === 'DUPLICATE_DEPARTMENT_CODE',
+      'POST /api/institutions/me/departments rejects duplicate department code within tenant with 409'
+    );
+
+    // List and Update Department
+    const listDeptRes = await axios.get(`${API_URL}/institutions/me/departments`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      listDeptRes.status === 200 &&
+      Array.isArray(listDeptRes.data.departments) &&
+      listDeptRes.data.departments.some(d => d.code === 'MAR-101'),
+      'GET /api/institutions/me/departments returns all departments scoped to current tenant'
+    );
+
+    const updateDeptRes = await axios.put(
+      `${API_URL}/institutions/me/departments/${createdDeptId}`,
+      { name: 'Advanced Maritime Operations & Systems' },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      updateDeptRes.status === 200 &&
+      updateDeptRes.data.department?.name === 'Advanced Maritime Operations & Systems',
+      'PUT /api/institutions/me/departments/:id updates department metadata'
+    );
+
+    // 9. Step 3 & 4: Member Roster Management
+    const addMemberRes = await axios.post(
+      `${API_URL}/institutions/me/members`,
+      {
+        role: 'tutor',
+        name: 'Senior Lecturer Alan',
+        email: 'alan.tutor@heritagemaritime.edu',
+        departmentIds: [createdDeptId],
+        designation: 'Senior Maritime Lecturer',
+        autoInvite: true
+      },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      addMemberRes.status === 201 &&
+      addMemberRes.data.member?.role === 'tutor' &&
+      addMemberRes.data.member?.inviteStatus === 'pending',
+      'POST /api/institutions/me/members adds tutor, dispatches invitation, and tracks inviteStatus: pending'
+    );
+    const tutorMemberId = addMemberRes.data.member?._id;
+
+    // Duplicate Member Email Check
+    let dupMemberRes;
+    try {
+      await axios.post(
+        `${API_URL}/institutions/me/members`,
+        {
+          role: 'student',
+          name: 'Alan Copy',
+          email: 'alan.tutor@heritagemaritime.edu'
+        },
+        { headers: { Authorization: `Bearer ${instToken}` } }
+      );
+    } catch (e) {
+      dupMemberRes = e.response;
+    }
+    assert(
+      dupMemberRes?.status === 409 && dupMemberRes?.data?.code === 'DUPLICATE_MEMBER',
+      'POST /api/institutions/me/members prevents duplicate email within tenant with 409 DUPLICATE_MEMBER'
+    );
+
+    // Bulk Import with Column Aliases
+    const bulkImportRes = await axios.post(
+      `${API_URL}/institutions/me/members/import`,
+      {
+        members: [
+          { 'Full Name': 'Cadet James Hook', 'Professional Email': 'jhook@heritagemaritime.edu', role: 'student', department: 'MAR-101' },
+          { 'Full Name': 'Cadet Wendy Darling', 'Professional Email': 'wendy@heritagemaritime.edu', role: 'student' }
+        ]
+      },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      bulkImportRes.status === 200 &&
+      bulkImportRes.data.imported === 2 &&
+      Array.isArray(bulkImportRes.data.skipped),
+      'POST /api/institutions/me/members/import parses CSV/JSON with aliases (Full Name, Professional Email) and returns imported count'
+    );
+
+    // Member Invite Rate Limiting (429)
+    let rateLimitInviteRes;
+    try {
+      await axios.post(
+        `${API_URL}/institutions/me/members/${tutorMemberId}/invite`,
+        {},
+        { headers: { Authorization: `Bearer ${instToken}` } }
+      );
+    } catch (e) {
+      rateLimitInviteRes = e.response;
+    }
+    assert(
+      rateLimitInviteRes?.status === 429 && rateLimitInviteRes?.data?.code === 'RATE_LIMITED',
+      'POST /api/institutions/me/members/:id/invite rate limits rapid resend attempts with 429 RATE_LIMITED'
+    );
+
+    // Department Deletion Safeguard (Blocked when active members are assigned)
+    let blockedDeleteDeptRes;
+    try {
+      await axios.delete(`${API_URL}/institutions/me/departments/${createdDeptId}`, {
+        headers: { Authorization: `Bearer ${instToken}` }
+      });
+    } catch (e) {
+      blockedDeleteDeptRes = e.response;
+    }
+    assert(
+      blockedDeleteDeptRes?.status === 409 && blockedDeleteDeptRes?.data?.code === 'DEPARTMENT_HAS_MEMBERS',
+      'DELETE /api/institutions/me/departments/:id blocks deletion if assigned members exist (409 DEPARTMENT_HAS_MEMBERS)'
+    );
+
+    // Delete Member
+    const deleteMemberRes = await axios.delete(`${API_URL}/institutions/me/members/${tutorMemberId}`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      deleteMemberRes.status === 200 &&
+      deleteMemberRes.data.message === 'Member removed successfully',
+      'DELETE /api/institutions/me/members/:id detaches user/removes member record'
+    );
+
+    // 10. Step 5: Paystack Subscription Checkout & Canonical Calculations
+    const checkoutRes = await axios.post(
+      `${API_URL}/institutions/me/subscription/checkout`,
+      { plan: 'Premium', billing: 'annual', currency: 'USD' },
+      { headers: { Authorization: `Bearer ${instToken}` } }
+    );
+    assert(
+      checkoutRes.status === 200 &&
+      checkoutRes.data.amount === 2988 &&
+      checkoutRes.data.discount === 597.6 &&
+      checkoutRes.data.total === 2390.4 &&
+      typeof checkoutRes.data.reference === 'string' &&
+      typeof checkoutRes.data.access_code === 'string',
+      'POST /api/institutions/me/subscription/checkout computes canonical 20% annual discount ($2,390.40) and returns Paystack access_code'
+    );
+    const checkoutRef = checkoutRes.data.reference;
+
+    // Subscription Status Get
+    const getSubRes = await axios.get(`${API_URL}/institutions/me/subscription`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      getSubRes.status === 200 &&
+      getSubRes.data.plan === 'Premium' &&
+      getSubRes.data.billing === 'annual',
+      'GET /api/institutions/me/subscription returns active billing cycle and plan'
+    );
+
+    // 11. Paystack Webhook Reconciliation for Institution Subscription
+    const webhookPayload = {
+      event: 'charge.success',
+      data: {
+        reference: checkoutRef,
+        amount: 239040, // $2,390.40 in cents
+        currency: 'USD',
+        status: 'success',
+        receipt_url: 'https://checkout.paystack.com/receipts/test_rec_001.pdf',
+        metadata: {
+          type: 'institution_subscription',
+          institutionId: String(activatedInstId),
+          plan: 'Premium',
+          billing: 'annual',
+          amountGross: 2988,
+          discount: 597.6
+        }
+      }
+    };
+    const rawPayloadStr = JSON.stringify(webhookPayload);
+    const secretKey = process.env.PAYSTACK_SECRET_KEY || 'sk_test_mock';
+    const signature = crypto.createHmac('sha512', secretKey).update(rawPayloadStr).digest('hex');
+
+    const webhookRes = await axios.post(`${API_URL}/webhooks/paystack`, webhookPayload, {
+      headers: {
+        'x-paystack-signature': signature,
+        'Content-Type': 'application/json'
+      }
+    });
+    assert(
+      webhookRes.status === 200 &&
+      webhookRes.data.status === 'success' &&
+      webhookRes.data.message === 'Institution subscription activated successfully',
+      'POST /api/webhooks/paystack reconciles institution subscription, activates workspace, and appends invoice'
+    );
+
+    // Verify workspace status is now active
+    const postWebhookMeRes = await axios.get(`${API_URL}/institutions/me`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      postWebhookMeRes.status === 200 &&
+      postWebhookMeRes.data.status === 'active' &&
+      postWebhookMeRes.data.onboarding?.currentStep === 6,
+      'Workspace status transitions to "active" and wizard completes (Step 6) upon successful subscription webhook'
+    );
+
+    // 12. Workspace Dashboard Analytics
+    const dashboardRes = await axios.get(`${API_URL}/institutions/me/dashboard`, {
+      headers: { Authorization: `Bearer ${instToken}` }
+    });
+    assert(
+      dashboardRes.status === 200 &&
+      dashboardRes.data.metrics &&
+      typeof dashboardRes.data.metrics.totalStudents === 'number' &&
+      typeof dashboardRes.data.metrics.activeDepartments === 'number' &&
+      dashboardRes.data.metrics.status === 'active' &&
+      Array.isArray(dashboardRes.data.recentActivity),
+      'GET /api/institutions/me/dashboard returns real-time calculated metrics for students, tutors, departments, and seat utilization'
+    );
+
+    // 13. Pre-seeded Apex Tech Workspace & Seat Limit Safeguard Check
+    const apexLoginRes = await axios.post(`${API_URL}/auth/signin`, {
+      email: 'sarah.conner@apextech.edu',
+      password: 'Password123!'
+    });
+    const apexToken = apexLoginRes.data.token;
+
+    const apexDashRes = await axios.get(`${API_URL}/institutions/me/dashboard`, {
+      headers: { Authorization: `Bearer ${apexToken}` }
+    });
+    assert(
+      apexDashRes.status === 200 &&
+      apexDashRes.data.institution?.name === 'Apex Technical University' &&
+      apexDashRes.data.metrics?.totalStudents >= 1 &&
+      apexDashRes.data.metrics?.totalTutors >= 1,
+      'Seeded Apex Tech workspace loads authenticated metrics with strict multi-tenant isolation'
+    );
+
+  } catch (err) {
+    assert(false, 'Flow 10 exception', err.response?.data?.error || err.message);
   }
 
   // Print Summary Table

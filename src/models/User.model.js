@@ -66,8 +66,14 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["student", "instructor", "admin"],
+      enum: ["student", "instructor", "admin", "institution_admin"],
       default: "student",
+    },
+    institutionId: {
+      type: Schema.Types.ObjectId,
+      ref: "Institution",
+      default: null,
+      index: true,
     },
     approvalStatus: {
       type: String,

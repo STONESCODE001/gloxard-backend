@@ -12,7 +12,22 @@ export const verifyToken = (token) => {
   return jwt.verify(token, secret);
 };
 
+export const generateToken = (payload, options = {}) => {
+  if (payload && payload._id) {
+    return signToken(
+      {
+        sub: payload._id,
+        role: payload.role,
+        tokenVersion: payload.tokenVersion || 0,
+      },
+      options
+    );
+  }
+  return signToken(payload, options);
+};
+
 export default {
   signToken,
   verifyToken,
+  generateToken,
 };

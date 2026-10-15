@@ -12,6 +12,7 @@ import { Transaction } from './models/Transaction.model.js';
 import { Question, Note, Announcement } from './models/QuestionNoteMisc.model.js';
 import { Conversation } from './models/Conversation.model.js';
 import { Message } from './models/Message.model.js';
+import crypto from 'crypto';
 import { Notification } from './models/Notification.model.js';
 import { Appeal } from './models/Appeal.model.js';
 import { Review } from './models/Review.model.js';
@@ -19,6 +20,9 @@ import { PlatformSettings } from './models/PlatformSettings.model.js';
 import { InstitutionApplication } from './models/InstitutionApplication.model.js';
 import { ReviewEvent } from './models/ReviewEvent.model.js';
 import { Institution } from './models/Institution.model.js';
+import { Department } from './models/Department.model.js';
+import { InstitutionMember } from './models/InstitutionMember.model.js';
+import { Subscription } from './models/Subscription.model.js';
 
 async function seedDatabase() {
   console.log('\x1b[36m==================================================\x1b[0m');
@@ -55,6 +59,9 @@ async function seedDatabase() {
     await InstitutionApplication.deleteMany({});
     await ReviewEvent.deleteMany({});
     await Institution.deleteMany({});
+    await Department.deleteMany({});
+    await InstitutionMember.deleteMany({});
+    await Subscription.deleteMany({});
     console.log('\x1b[32m✔ Collections purged\x1b[0m');
 
     // 3. Pre-hash password for performance
@@ -690,18 +697,19 @@ async function seedDatabase() {
 
     const insertedApps = await InstitutionApplication.insertMany(applications);
 
-    // 13. Create Seed Institution & Review Events
+    // 13. Create Seed Institutions, Departments, Members & Subscriptions
     const approvedApp = insertedApps.find(a => a.status === "approved");
     const underReviewApp = insertedApps.find(a => a.status === "under_review");
     const rejectedApp = insertedApps.find(a => a.status === "rejected");
 
     const seedToken = "seed_activation_token_1234567890abcdef1234567890abcdef";
-    const hashedSeedToken = bcrypt.hashSync(seedToken, 10);
+    const hashedSeedToken = crypto.createHash("sha256").update(seedToken).digest("hex");
 
-    const institution = await Institution.create({
+    // A. Pending Activation Institution (ready to test activation flow)
+    const pendingInstitution = await Institution.create({
       name: approvedApp.institutionName,
       slug: "heritage-maritime-university",
-      logoUrl: "https://gloxad-bucket.s3.amazonaws.com/logos/heritage-maritime-logo.png",
+      logoUrl: "logos/heritage-maritime-logo.png",
       branding: {
         displayName: "Heritage Maritime University",
         color: "#1E3A8A",
@@ -715,7 +723,136 @@ async function seedDatabase() {
       activationToken: hashedSeedToken,
       activationExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       activationUsed: false,
-      seatLimit: 5000
+      seatLimit: 5000,
+      onboarding: { currentStep: 1, completedSteps: [] }
+    });
+
+    // B. Expired Token Institution (ready to test 410 TOKEN_EXPIRED)
+    const expiredToken = "expired_token_test_1234567890abcdef";
+    const hashedExpiredToken = crypto.createHash("sha256").update(expiredToken).digest("hex");
+    await Institution.create({
+      name: "St. Jude Classical Academy",
+      slug: "st-jude-classical-academy",
+      logoUrl: "logos/st-jude-logo.png",
+      branding: { displayName: "St. Jude Academy", color: "#DC2626", tagline: "Knowledge & Faith" },
+      plan: "Premium",
+      billing: "monthly",
+      status: "pending_activation",
+      representativeEmail: "stjude.rep@stjude.edu",
+      applicationId: underReviewApp._id,
+      activationToken: hashedExpiredToken,
+      activationExpiresAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // Expired 2 days ago
+      activationUsed: false,
+      seatLimit: 500
+    });
+
+    // C. Fully Activated Workspace (Apex Technical University)
+    const activeInstitution = await Institution.create({
+      name: "Apex Technical University",
+      slug: "apex-technical-university",
+      logoUrl: "logos/apex-tech-logo.png",
+      branding: {
+        displayName: "Apex Tech Portal",
+        color: "#4F46E5",
+        tagline: "Empowering Tomorrow's Engineers"
+      },
+      plan: "Premium",
+      billing: "annual",
+      status: "active",
+      representativeEmail: "sarah.conner@apextech.edu",
+      applicationId: rejectedApp._id,
+      activationToken: crypto.createHash("sha256").update("already_used_token_12345").digest("hex"),
+      activationExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      activationUsed: true,
+      seatLimit: 500,
+      onboarding: { currentStep: 6, completedSteps: [1, 2, 3, 4, 5, 6] }
+    });
+
+    // D. Institution Admin User for Apex Tech
+    const instAdminUser = await User.create({
+      firstName: "Dr. Sarah",
+      lastName: "Conner",
+      name: "Dr. Sarah Conner",
+      username: "sarahconner",
+      email: "sarah.conner@apextech.edu",
+      password: plainPassword,
+      role: "institution_admin",
+      institutionId: activeInstitution._id,
+      isVerified: true,
+      approvalStatus: "approved",
+      isActive: true,
+      title: "Dean of Academic Technology",
+      bio: "Academic administrator leading institutional tech programs."
+    });
+
+    activeInstitution.adminUserId = instAdminUser._id;
+    await activeInstitution.save();
+
+    // E. Seed Departments for Apex Tech
+    const deptCse = await Department.create({
+      institutionId: activeInstitution._id,
+      name: "Computer Science & Engineering",
+      code: "CSE-100",
+      faculty: "Faculty of Technology",
+      headName: "Prof. David Miller",
+      description: "Undergraduate & Graduate Computer Science Programs"
+    });
+
+    const deptEe = await Department.create({
+      institutionId: activeInstitution._id,
+      name: "Electrical & Electronics Engineering",
+      code: "EEE-101",
+      faculty: "Faculty of Technology",
+      headName: "Dr. Eleanor Vance",
+      description: "Department of Electrical & Systems Engineering"
+    });
+
+    // F. Seed Members for Apex Tech
+    const memberTutor = await InstitutionMember.create({
+      institutionId: activeInstitution._id,
+      role: "tutor",
+      name: "Dr. Grace Hopper",
+      email: "ghopper@apextech.edu",
+      departmentIds: [deptCse._id],
+      designation: "Senior Lecturer",
+      inviteStatus: "accepted",
+      userId: jane._id
+    });
+
+    const memberStudent = await InstitutionMember.create({
+      institutionId: activeInstitution._id,
+      role: "student",
+      name: "Alex River",
+      email: "alex.student@apextech.edu",
+      departmentIds: [deptCse._id],
+      inviteStatus: "accepted",
+      userId: alice._id
+    });
+
+    // G. Seed Active Subscription for Apex Tech
+    const seedSubscription = await Subscription.create({
+      institutionId: activeInstitution._id,
+      plan: "Premium",
+      billing: "annual",
+      currency: "USD",
+      amountGross: 2988,
+      discount: 597.6,
+      amountTotal: 2390.4,
+      status: "active",
+      provider: "paystack",
+      providerReference: "PAYSTACK_SUB_SEED_001",
+      periodStart: new Date(),
+      periodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      invoices: [
+        {
+          invoiceId: "INV-SEED-2026-001",
+          amount: 2390.4,
+          currency: "USD",
+          paidAt: new Date(),
+          status: "paid",
+          receiptUrl: "https://checkout.paystack.com/receipts/mock_receipt_001.pdf"
+        }
+      ]
     });
 
     const reviewEvents = [
@@ -770,7 +907,10 @@ async function seedDatabase() {
     console.log(`| Platform Settings        | 1     |`);
     console.log(`| Partner Applications     | ${insertedApps.length.toString().padEnd(5)} |`);
     console.log(`| Review Events            | ${insertedEvents.length.toString().padEnd(5)} |`);
-    console.log(`| Institutions             | 1     |`);
+    console.log(`| Institutions             | 3     |`);
+    console.log(`| Departments              | 2     |`);
+    console.log(`| Institution Members      | 2     |`);
+    console.log(`| Subscriptions            | 1     |`);
     console.log('+--------------------------+-------+\n');
 
     console.log('\x1b[32m[SEED SUCCESS] Database seeding completed cleanly!\x1b[0m');

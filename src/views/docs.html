@@ -1393,6 +1393,82 @@
               <span class="nav-method-pill pill-get">GET</span> Partners Growth Trend
             </a>
           </li>
+          <!-- Institution Workspace & Subscriptions (Unit 18) -->
+          <li>
+            <a href="#ep-inst-activate" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Activate Workspace
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-me" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Workspace State
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-branding" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Branding
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-departments-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> List Departments
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-departments-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Department
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-departments-put" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Edit Department
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-departments-delete" class="nav-link">
+              <span class="nav-method-pill pill-del">DEL</span> Delete Department
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-members-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> List Members
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-members-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Add Member
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-members-import" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Bulk Import Members
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-members-invite" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Resend Member Invite
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-members-delete" class="nav-link">
+              <span class="nav-method-pill pill-del">DEL</span> Remove Member
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-sub-checkout" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Subscription Checkout
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-sub-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Subscription Status
+            </a>
+          </li>
+          <li>
+            <a href="#ep-inst-dashboard" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Institution Dashboard
+            </a>
+          </li>
         </ul>
       </div>
     </aside>
@@ -6056,6 +6132,499 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Institution Onboarding, Workspace Management & Subscriptions (Phase 2) -->
+      <section class="doc-section" id="institution-workspaces">
+        <div class="section-header">
+          <h2 class="doc-title">Institution Onboarding, Workspace & Subscriptions (Phase 2)</h2>
+        </div>
+        <p>
+          Enables approved educational partners to claim and activate their isolated multi-tenant workspace via a 7-day single-use token, persist their 6-step onboarding wizard across sessions, manage departments and faculty/student rosters (with manual additions and bulk CSV/JSON import up to seat limits), execute recurring Paystack checkouts in USD/NGN, and view workspace KPI analytics.
+        </p>
+      </section>
+
+      <!-- POST /api/institutions/activate -->
+      <div class="endpoint-card" id="ep-inst-activate" data-search="activate institution workspace onboarding token password">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/activate</span>
+            <span class="badge-public" style="background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Public Activation</span>
+          </div>
+          <p class="endpoint-desc">Validates 7-day single-use activation token & min 12-character administrative password. Activates admin user account, sets workspace status to onboarding, and returns session token with workspace data.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "token": "4f9a3c7e8102d9b4c6e18f25a74e92b3105d76ac89e0fb23a1c849e75f1a234b",
+  "password": "SecurePassword123!",
+  "firstName": "Dr. Sarah",
+  "lastName": "Conner"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Institution workspace activated successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "_id": "67b0981a2f4c9a0012bc8901",
+    "firstName": "Dr. Sarah",
+    "lastName": "Conner",
+    "email": "sarah.conner@apextech.edu",
+    "role": "institution_admin",
+    "institutionId": "67b097ff2f4c9a0012bc88fa"
+  },
+  "institution": {
+    "_id": "67b097ff2f4c9a0012bc88fa",
+    "name": "Apex Technical University",
+    "slug": "apex-technical-university",
+    "status": "onboarding",
+    "plan": "Premium",
+    "onboarding": { "currentStep": 1, "completedSteps": [] }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/institutions/me -->
+      <div class="endpoint-card" id="ep-inst-me" data-search="get institution me profile onboarding wizard resume">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/institutions/me</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Resumes onboarding wizard state. Returns tenant metadata, current and completed wizard steps, active plan, billing cycle, and branding.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "institution": {
+    "_id": "67b097ff2f4c9a0012bc88fa",
+    "name": "Apex Technical University",
+    "slug": "apex-technical-university",
+    "status": "onboarding",
+    "branding": {
+      "displayName": "Apex Tech Portal",
+      "color": "#4F46E5",
+      "tagline": "Empowering Future Engineers"
+    }
+  },
+  "onboarding": {
+    "currentStep": 2,
+    "completedSteps": [1]
+  },
+  "plan": "Premium",
+  "billing": "monthly",
+  "seatLimit": 500
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PUT /api/institutions/me/branding -->
+      <div class="endpoint-card" id="ep-inst-branding" data-search="branding display color tagline logo update step 1">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/institutions/me/branding</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 1 & 6: Configures campus branding (displayName, hex color, tagline, and S3 logos/ URL). Advances wizard progression.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "displayName": "Apex Tech Portal",
+  "color": "#4F46E5",
+  "tagline": "Empowering Tomorrow's Engineers",
+  "logoUrl": "logos/1718293847-uuid_apex_logo.png"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Branding updated successfully",
+  "institution": {
+    "_id": "67b097ff2f4c9a0012bc88fa",
+    "branding": {
+      "displayName": "Apex Tech Portal",
+      "color": "#4F46E5",
+      "tagline": "Empowering Tomorrow's Engineers"
+    },
+    "logoUrl": "logos/1718293847-uuid_apex_logo.png",
+    "onboarding": { "currentStep": 2, "completedSteps": [1] }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/institutions/me/departments -->
+      <div class="endpoint-card" id="ep-inst-departments-get" data-search="get departments list multi-tenant faculty">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/institutions/me/departments</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 2: Lists all academic departments created for the tenant institution.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "departments": [
+    {
+      "_id": "67b098ab2f4c9a0012bc8910",
+      "name": "Computer Science & Engineering",
+      "code": "CSE-100",
+      "faculty": "Faculty of Technology",
+      "headName": "Prof. David Miller"
+    }
+  ],
+  "count": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/institutions/me/departments -->
+      <div class="endpoint-card" id="ep-inst-departments-post" data-search="create department code limit premium enterprise">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/me/departments</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 2: Creates a new department. Enforces unique department code per tenant and 10-department ceiling on Premium plan.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "name": "Mechanical Engineering",
+  "code": "MECH-200",
+  "faculty": "Faculty of Technology",
+  "headName": "Dr. Alan Grant",
+  "description": "Department of Mechanical & Robotics Engineering"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Department created successfully",
+  "department": {
+    "_id": "67b098ab2f4c9a0012bc8922",
+    "name": "Mechanical Engineering",
+    "code": "MECH-200",
+    "faculty": "Faculty of Technology",
+    "headName": "Dr. Alan Grant"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PUT /api/institutions/me/departments/:id -->
+      <div class="endpoint-card" id="ep-inst-departments-put" data-search="update department name faculty head">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/institutions/me/departments/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Updates department metadata, name, code, or department head within the tenant.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "name": "Mechanical & Aerospace Engineering",
+  "headName": "Dr. Alan Grant Ph.D."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Department updated successfully",
+  "department": {
+    "_id": "67b098ab2f4c9a0012bc8922",
+    "name": "Mechanical & Aerospace Engineering",
+    "code": "MECH-200"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELETE /api/institutions/me/departments/:id -->
+      <div class="endpoint-card" id="ep-inst-departments-delete" data-search="delete department safeguard members assigned">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-del">DELETE</span>
+            <span class="endpoint-path">/api/institutions/me/departments/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Deletes a department. Blocked with 409 if any faculty or students are currently assigned to it.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Department deleted successfully"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/institutions/me/members -->
+      <div class="endpoint-card" id="ep-inst-members-get" data-search="members roster tutors students filter pagination">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/institutions/me/members</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 3 & 4: Paginated list of tutors and students with role, department, and query search filters.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "members": [
+    {
+      "_id": "67b0991c2f4c9a0012bc8930",
+      "role": "tutor",
+      "name": "Dr. Grace Hopper",
+      "email": "ghopper@apextech.edu",
+      "designation": "Associate Professor",
+      "inviteStatus": "pending"
+    }
+  ],
+  "pagination": { "total": 1, "page": 1, "limit": 20, "totalPages": 1 }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/institutions/me/members -->
+      <div class="endpoint-card" id="ep-inst-members-post" data-search="add member tutor student autoinvite seat limit">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/me/members</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 3 & 4: Enrolls an individual tutor or student. Enforces 500 seat limit on Premium plan and rejects duplicate emails with 409.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "role": "student",
+  "name": "Jane Student",
+  "email": "jane.student@apextech.edu",
+  "departmentIds": ["67b098ab2f4c9a0012bc8910"],
+  "autoInvite": true
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Member added successfully",
+  "member": {
+    "_id": "67b0993e2f4c9a0012bc8945",
+    "role": "student",
+    "name": "Jane Student",
+    "email": "jane.student@apextech.edu",
+    "inviteStatus": "pending"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/institutions/me/members/import -->
+      <div class="endpoint-card" id="ep-inst-members-import" data-search="bulk import members csv json aliases seat limit">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/me/members/import</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 3 & 4: Bulk imports members via CSV or JSON rows. Supports column aliases (Full Name, Professional Email) and returns imported/skipped summary.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "members": [
+    { "Full Name": "Alice Young", "Professional Email": "ayoung@apextech.edu", "role": "student" },
+    { "Full Name": "Bob Miller", "Professional Email": "bmiller@apextech.edu", "role": "student" }
+  ]
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Bulk member import processed",
+  "imported": 2,
+  "skipped": []
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/institutions/me/members/:id/invite -->
+      <div class="endpoint-card" id="ep-inst-members-invite" data-search="resend invite member email rate limit 429">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/me/members/:id/invite</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Regenerates and resends an invitation email to a pending member. Rate-limited to prevent spam (429).</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Invitation resent successfully",
+  "member": {
+    "_id": "67b0993e2f4c9a0012bc8945",
+    "inviteStatus": "pending",
+    "invitedAt": "2026-10-15T18:00:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELETE /api/institutions/me/members/:id -->
+      <div class="endpoint-card" id="ep-inst-members-delete" data-search="remove member delete draft roster">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-del">DELETE</span>
+            <span class="endpoint-path">/api/institutions/me/members/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Removes a member from the institution workspace roster.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Member removed successfully"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/institutions/me/subscription/checkout -->
+      <div class="endpoint-card" id="ep-inst-sub-checkout" data-search="subscription checkout paystack pricing 249 599 annual discount">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/institutions/me/subscription/checkout</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Step 5: Enforces canonical pricing server-side ($249/mo, $599/mo, 20% annual discount) and initializes Paystack checkout popup.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "plan": "Premium",
+  "billing": "annual",
+  "currency": "USD"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "reference": "PAYSTACK_SUB_1718293948_ABC123",
+  "access_code": "01928301928301",
+  "checkoutUrl": "https://checkout.paystack.com/01928301928301",
+  "amount": 2988,
+  "currency": "USD",
+  "discount": 597.6,
+  "total": 2390.4
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/institutions/me/subscription -->
+      <div class="endpoint-card" id="ep-inst-sub-get" data-search="get subscription active invoices renewal">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/institutions/me/subscription</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Returns the active institution subscription details, renewal timestamp, and billing invoice history.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "plan": "Premium",
+  "billing": "annual",
+  "status": "active",
+  "renewalDate": "2027-10-15T00:00:00.000Z",
+  "invoices": [
+    {
+      "invoiceId": "INV-1718293948-1234",
+      "amount": 2390.4,
+      "currency": "USD",
+      "paidAt": "2026-10-15T18:00:00.000Z",
+      "status": "paid"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/institutions/me/dashboard -->
+      <div class="endpoint-card" id="ep-inst-dashboard" data-search="dashboard metrics students tutors departments seat utilization analytics">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/institutions/me/dashboard</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">institution_admin</span>
+          </div>
+          <p class="endpoint-desc">Aggregates real-time workspace metrics: total students, total faculty tutors, active departments, seat utilization %, and recent activity log.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "metrics": {
+    "totalStudents": 42,
+    "totalTeachers": 6,
+    "totalTutors": 6,
+    "activeDepartments": 3,
+    "seatUtilization": 8,
+    "seatLimit": 500,
+    "plan": "Premium",
+    "status": "active",
+    "subscriptionStatus": "active"
+  },
+  "recentActivity": [
+    { "type": "member_added", "title": "New Student: Jane Student", "timestamp": "2026-10-15T18:00:00.000Z" }
+  ],
+  "weeklyActivity": []
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -6181,6 +6750,22 @@ Accept: application/json</code></pre>
         <li><a href="#ep-admin-partners-summary" class="toc-link">GET /api/admin/partners/summary</a></li>
         <li><a href="#ep-admin-partners-geo" class="toc-link">GET /api/admin/partners/geo</a></li>
         <li><a href="#ep-admin-partners-growth" class="toc-link">GET /api/admin/partners/growth</a></li>
+        <li><a href="#institution-workspaces" class="toc-link">Institution Onboarding & Subscriptions</a></li>
+        <li><a href="#ep-inst-activate" class="toc-link">POST /api/institutions/activate</a></li>
+        <li><a href="#ep-inst-me" class="toc-link">GET /api/institutions/me</a></li>
+        <li><a href="#ep-inst-branding" class="toc-link">PUT /api/institutions/me/branding</a></li>
+        <li><a href="#ep-inst-departments-get" class="toc-link">GET /api/institutions/me/departments</a></li>
+        <li><a href="#ep-inst-departments-post" class="toc-link">POST /api/institutions/me/departments</a></li>
+        <li><a href="#ep-inst-departments-put" class="toc-link">PUT /api/institutions/me/departments/:id</a></li>
+        <li><a href="#ep-inst-departments-delete" class="toc-link">DELETE /api/institutions/me/departments/:id</a></li>
+        <li><a href="#ep-inst-members-get" class="toc-link">GET /api/institutions/me/members</a></li>
+        <li><a href="#ep-inst-members-post" class="toc-link">POST /api/institutions/me/members</a></li>
+        <li><a href="#ep-inst-members-import" class="toc-link">POST /api/institutions/me/members/import</a></li>
+        <li><a href="#ep-inst-members-invite" class="toc-link">POST /api/institutions/me/members/:id/invite</a></li>
+        <li><a href="#ep-inst-members-delete" class="toc-link">DELETE /api/institutions/me/members/:id</a></li>
+        <li><a href="#ep-inst-sub-checkout" class="toc-link">POST /api/institutions/me/subscription/checkout</a></li>
+        <li><a href="#ep-inst-sub-get" class="toc-link">GET /api/institutions/me/subscription</a></li>
+        <li><a href="#ep-inst-dashboard" class="toc-link">GET /api/institutions/me/dashboard</a></li>
       </ul>
     </aside>
 

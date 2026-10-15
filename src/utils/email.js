@@ -271,6 +271,68 @@ export const sendPartnerRequestInfoEmail = async ({ to, name, institutionName, m
   return await sendMail({ to, subject, text, html });
 };
 
+export const sendInstitutionMemberInviteEmail = async ({
+  to,
+  name,
+  institutionName,
+  role = "student",
+  inviteUrl,
+}) => {
+  const roleLabel = role === "tutor" ? "Faculty Tutor" : "Student";
+  const subject = `Invitation to join ${institutionName || "Institution Workspace"} on Gloxad Academy`;
+  const text = `Hello ${name || "Member"},\n\nYou have been invited to join ${institutionName} as a ${roleLabel} on Gloxad Academy.\n\nAccept your invite here: ${inviteUrl}\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #4F46E5; margin-top: 0;">Workspace Invitation 🎓</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Member"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">You have been invited to join the <strong>${institutionName || "Institution Workspace"}</strong> on Gloxad Academy as a <strong>${roleLabel}</strong>.</p>
+      <p style="font-size: 14px; color: #475569;">Click the button below to accept your invitation and activate your account:</p>
+      <div style="text-align: center; margin: 28px 0;">
+        <a href="${inviteUrl}" style="background: #4F46E5; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: 600; font-size: 15px; display: inline-block;">
+          Accept Invitation
+        </a>
+      </div>
+      <p style="font-size: 13px; color: #64748B;">If you did not expect this invitation, you can safely ignore this email.</p>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
+export const sendSubscriptionReceiptEmail = async ({
+  to,
+  name,
+  institutionName,
+  plan,
+  billing,
+  amount,
+  currency = "USD",
+  reference,
+  receiptUrl,
+}) => {
+  const subject = `Payment Receipt: ${institutionName} Subscription (${plan} Plan)`;
+  const text = `Hello ${name || "Administrator"},\n\nThank you for your payment! Your subscription to Gloxad Academy (${plan} Plan - ${billing}) has been processed successfully.\n\nAmount: ${currency} ${amount}\nReference: ${reference}\n\nBest regards,\nThe Gloxad Academy Team`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 550px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 8px;">
+      <h2 style="color: #16A34A; margin-top: 0;">Payment Confirmed! 💳</h2>
+      <p style="font-size: 15px; color: #1E293B;">Hello <strong>${name || "Administrator"}</strong>,</p>
+      <p style="font-size: 15px; color: #1E293B;">Your payment for <strong>${institutionName}</strong> has been successfully processed.</p>
+      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Plan:</strong> ${plan} (${billing})</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Amount Paid:</strong> ${currency} ${amount}</p>
+        <p style="margin: 4px 0; font-size: 14px; color: #334155;"><strong>Transaction Ref:</strong> ${reference}</p>
+      </div>
+      ${receiptUrl ? `<div style="text-align: center; margin: 24px 0;"><a href="${receiptUrl}" style="background: #4F46E5; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">Download Official Receipt</a></div>` : ''}
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #E2E8F0; font-size: 12px; color: #94A3B8;">
+        The Gloxad Academy Team
+      </div>
+    </div>
+  `;
+  return await sendMail({ to, subject, text, html });
+};
+
 export default {
   sendEmailVerificationOtp,
   sendPasswordResetOtp,
@@ -279,4 +341,6 @@ export default {
   sendPartnerActivationEmail,
   sendPartnerRejectionEmail,
   sendPartnerRequestInfoEmail,
+  sendInstitutionMemberInviteEmail,
+  sendSubscriptionReceiptEmail,
 };

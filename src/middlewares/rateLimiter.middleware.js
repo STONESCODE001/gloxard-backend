@@ -1,9 +1,10 @@
 import rateLimit from "express-rate-limit";
 
 const createLimiter = (maxRequests, windowMinutes = 15) => {
+  const isDevOrTest = process.env.NODE_ENV !== "production";
   return rateLimit({
     windowMs: windowMinutes * 60 * 1000,
-    max: maxRequests,
+    max: isDevOrTest ? Math.max(maxRequests, 100) : maxRequests,
     standardHeaders: true, // Draft-6 RateLimit headers and Retry-After
     legacyHeaders: false,
     handler: (req, res) => {
@@ -24,6 +25,7 @@ export const resetPasswordLimiter = createLimiter(5);
 export const updatePasswordLimiter = createLimiter(10);
 export const updateProfileLimiter = createLimiter(30);
 export const partnerApplicationLimiter = createLimiter(20);
+export const memberInviteLimiter = createLimiter(5);
 
 // Backward compatibility exports
 export const authLimiter = signinLimiter;
@@ -39,6 +41,8 @@ export default {
   resetPasswordLimiter,
   updatePasswordLimiter,
   updateProfileLimiter,
+  partnerApplicationLimiter,
+  memberInviteLimiter,
   authLimiter,
   otpLimiter,
 };
