@@ -25,6 +25,32 @@ import { renderApiDocs } from "./controllers/docs.controller.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { checkS3Readiness } from "./utils/s3.js";
 
+// Ensure all Mongoose schemas are registered on startup
+import "./models/User.model.js";
+import "./models/Trimester.model.js";
+import "./models/Cohort.model.js";
+import "./models/Course.model.js";
+import "./models/Enrollment.model.js";
+import "./models/Transaction.model.js";
+import "./models/Review.model.js";
+import "./models/Institution.model.js";
+import "./models/Department.model.js";
+import "./models/InstitutionMember.model.js";
+import "./models/Subscription.model.js";
+import "./models/LmsLessonProgress.model.js";
+import "./models/LmsQuizAttempt.model.js";
+import "./models/LmsAssignment.model.js";
+import "./models/LmsSubmission.model.js";
+import "./models/LmsLessonComment.model.js";
+import "./models/LmsLiveSession.model.js";
+import "./models/LmsAttendance.model.js";
+import "./models/LmsPoll.model.js";
+import "./models/LmsChatMessage.model.js";
+import "./models/LmsChannel.model.js";
+import "./models/LmsPost.model.js";
+import "./models/LmsReply.model.js";
+import "./models/LmsCertificate.model.js";
+
 const app = express();
 
 // Security headers
@@ -64,6 +90,7 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 
 // Interactive HTML API Documentation Portal
 app.get("/", renderApiDocs);
+
 
 // Health check endpoints
 // 1. Process uptime liveness check

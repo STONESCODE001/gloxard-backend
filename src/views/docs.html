@@ -1572,6 +1572,142 @@
           </li>
         </ul>
       </div>
+
+      <div class="nav-group">
+        <div class="nav-heading">LMS Live, Community & Certificates</div>
+        <ul class="nav-list">
+          <li>
+            <a href="#ep-lms-live-sessions-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Live Sessions List
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Schedule Live Lecture
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-put" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Live Session
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-delete" class="nav-link">
+              <span class="nav-method-pill pill-del">DEL</span> Cancel Live Session
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-join" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Join Live Classroom
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-chat" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Live Room Chat History
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-polls" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Launch Class Poll
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-polls-vote" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Poll Vote
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-attendance-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Session Attendance Roster
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-live-sessions-attendance-put" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Override Attendance Status
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-channels-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Cohort Channels
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Community Posts Feed
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Discussion Post
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-like" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Toggle Post Like
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-replies-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Read Threaded Replies
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-replies-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reply to Post
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-delete" class="nav-link">
+              <span class="nav-method-pill pill-del">DEL</span> Delete Discussion Post
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-posts-report" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Flag Post for Moderation
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-certificates-me" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> My Certificates
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-certificates-pdf" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Download Certificate PDF
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-certificates-verify" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Verify Certificate Publicly
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-instructor-cohorts" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Instructor Cohorts
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-instructor-overview" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Cohort Performance KPIs
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-instructor-roster" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Student Performance Roster
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-admin-analytics" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Platform LMS Analytics
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-admin-certificates-recent" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Recent Certificates Audit
+            </a>
+          </li>
+        </ul>
+      </div>
     </aside>
 
 
@@ -7502,6 +7638,777 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      
+      <!-- ============================================================== -->
+      <!-- SECTION 16: LMS LIVE CLASSROOMS, COMMUNITY & CERTIFICATES     -->
+      <!-- ============================================================== -->
+      <section class="doc-section" id="lms-live-community-certificates">
+        <h2 class="section-title">16. LMS Live Classrooms, Community, Certificates & Analytics (Phase 4)</h2>
+        <p class="section-lead">
+          Real-time interactive WebRTC live classrooms backed by LiveKit Cloud and Socket.io <code>/live</code> namespace, cohort community discussion channels with threaded moderation, automated verifiable PDF certificate issuance with embedded verification QR codes, and comprehensive instructor & admin analytics.
+        </p>
+      </section>
+
+      <!-- 1. GET /api/lms/live-sessions -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-get" data-search="live sessions list countdown upcoming livekit">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/live-sessions</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Returns scheduled sessions for the cohort or enrolled user, plus real-time countdown info for the soonest upcoming or active session.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>QUERY PARAMETERS</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>?cohortId=650000000000000000000010</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "sessions": [
+    {
+      "_id": "670000000000000000000101",
+      "title": "Architecture Deep Dive & Live Q&A",
+      "description": "Comprehensive live review of microservices and WebRTC streaming.",
+      "startsAt": "2026-10-15T22:00:00.000Z",
+      "endsAt": "2026-10-16T00:00:00.000Z",
+      "status": "scheduled",
+      "provider": "livekit",
+      "roomName": "cohort-alpha-session-1"
+    }
+  ],
+  "next": {
+    "_id": "670000000000000000000101",
+    "title": "Architecture Deep Dive & Live Q&A",
+    "startsAt": "2026-10-15T22:00:00.000Z",
+    "status": "scheduled"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. POST /api/lms/live-sessions -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-post" data-search="live sessions schedule lecture create room livekit instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/live-sessions</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Schedules a live lecture for a cohort. Generates unique LiveKit room name and prepares session attendance rosters.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000010",
+  "title": "Microservices & Distributed Systems Deep Dive",
+  "description": "Hands-on implementation of event-driven microservices",
+  "startsAt": "2026-10-16T18:00:00.000Z",
+  "endsAt": "2026-10-16T20:00:00.000Z"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Live session scheduled successfully",
+  "session": {
+    "_id": "670000000000000000000102",
+    "title": "Microservices & Distributed Systems Deep Dive",
+    "status": "scheduled",
+    "provider": "livekit",
+    "roomName": "cohort-650000000000000000000010-1792098000"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. PUT /api/lms/live-sessions/:id -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-put" data-search="live sessions update reschedule title status instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Updates session schedule, title, description, or recording URL.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "title": "Microservices & Event-Driven Architecture (Updated)",
+  "recordingUrl": "https://s3.amazonaws.com/gloxad-media-bucket/courses/recordings/session1.mp4"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Live session updated successfully",
+  "session": {
+    "_id": "670000000000000000000102",
+    "title": "Microservices & Event-Driven Architecture (Updated)"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. DELETE /api/lms/live-sessions/:id -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-delete" data-search="live sessions cancel delete instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-del">DELETE</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Cancels and removes a scheduled live lecture.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Live session cancelled successfully"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. POST /api/lms/live-sessions/:id/join -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-join" data-search="live session join token credentials webrtc livekit host viewer">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id/join</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Generates cryptographic LiveKit WebRTC credentials (<code>roomToken</code>, <code>serverUrl</code>) with role-mapped grants (<code>host</code> for instructor, <code>viewer</code> for students) and records attendance.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE (STUDENT VIEWER)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "provider": "livekit",
+  "serverUrl": "https://livekit.gloxad.com",
+  "roomToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "roomName": "cohort-alpha-session-1",
+  "role": "viewer"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. GET /api/lms/live-sessions/:id/chat -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-chat" data-search="live room chat messages history backwards paging">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id/chat</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Retrieves backwards-paginated chat history (up to 50 messages) for room mount loading.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>QUERY PARAMETERS</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>?limit=50&before=2026-10-15T22:30:00.000Z</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "messages": [
+    {
+      "_id": "670000000000000000000105",
+      "authorId": "67b0981a2f4c9a0012bc8999",
+      "authorName": "Jane Doe",
+      "authorRole": "instructor",
+      "text": "Welcome everyone! Please test your audio.",
+      "createdAt": "2026-10-15T21:55:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. POST /api/lms/live-sessions/:id/polls -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-polls" data-search="live polls launch question broadcast socket instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id/polls</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Launches a live classroom poll and broadcasts the question and options to all participants via the socket <code>/live</code> namespace.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "question": "Which state management pattern do you prefer for WebRTC signaling?",
+  "options": [
+    "Socket.io Namespaces",
+    "Server-Sent Events (SSE)",
+    "Peer-to-peer Data Channels"
+  ]
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Poll launched successfully",
+  "poll": {
+    "_id": "670000000000000000000108",
+    "question": "Which state management pattern do you prefer for WebRTC signaling?",
+    "options": ["Socket.io Namespaces", "Server-Sent Events (SSE)", "Peer-to-peer Data Channels"],
+    "status": "open",
+    "votes": []
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. POST /api/lms/polls/:pollId/votes -->
+      <div class="endpoint-card" id="ep-lms-polls-vote" data-search="poll vote option index vote single enrolled">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/polls/:pollId/votes</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Submits a single vote per user on an open poll. Prevents duplicate votes and tallies results in real time.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "optionIndex": 0
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Vote recorded successfully",
+  "poll": {
+    "_id": "670000000000000000000108",
+    "status": "open",
+    "votes": [{ "userId": "67b0981a2f4c9a0012bc8001", "optionIndex": 0 }]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. GET /api/lms/live-sessions/:id/attendance -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-attendance-get" data-search="session attendance roster present absent excused instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id/attendance</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Retrieves the complete attendance roster for a live session, including joined timestamps and active duration minutes.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "sessionId": "670000000000000000000101",
+  "totalEnrolled": 24,
+  "presentCount": 20,
+  "absentCount": 3,
+  "excusedCount": 1,
+  "roster": [
+    {
+      "userId": "67b0981a2f4c9a0012bc8001",
+      "name": "Alice Student",
+      "email": "alice.student@gloxad.com",
+      "status": "present",
+      "joinedAt": "2026-10-15T22:01:00.000Z",
+      "durationMinutes": 115
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. PUT /api/lms/live-sessions/:id/attendance -->
+      <div class="endpoint-card" id="ep-lms-live-sessions-attendance-put" data-search="session attendance override status excused present instructor">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/lms/live-sessions/:id/attendance</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Manually overrides student attendance status (present / absent / excused).</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "userId": "67b0981a2f4c9a0012bc8002",
+  "status": "excused"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Attendance status updated successfully",
+  "attendance": {
+    "userId": "67b0981a2f4c9a0012bc8002",
+    "status": "excused"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. GET /api/lms/channels -->
+      <div class="endpoint-card" id="ep-lms-channels-get" data-search="community channels list cohort general qa showcase study groups">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/channels</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Lists discussion channels for a cohort. Automatically seeds the 4 standard channels (General, Q&A, Project Showcase, Study Groups) if none exist.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>QUERY PARAMETERS</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>?cohortId=650000000000000000000010</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "channels": [
+    { "_id": "670000000000000000000120", "name": "General", "slug": "general", "postCount": 12 },
+    { "_id": "670000000000000000000121", "name": "Q&A", "slug": "qa", "postCount": 8 },
+    { "_id": "670000000000000000000122", "name": "Project Showcase", "slug": "project-showcase", "postCount": 5 },
+    { "_id": "670000000000000000000123", "name": "Study Groups", "slug": "study-groups", "postCount": 3 }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 12. GET /api/lms/posts -->
+      <div class="endpoint-card" id="ep-lms-posts-get" data-search="community posts feed list channel filter discussion">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/posts</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Paginated feed of community posts filtered by channel, cohort, or tag.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>QUERY PARAMETERS</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>?cohortId=650000000000000000000010&channelId=670000000000000000000120&page=1&limit=10</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "posts": [
+    {
+      "_id": "670000000000000000000130",
+      "title": "Building scalable real-time systems with Node.js",
+      "body": "Here are key architecture patterns from our recent live lecture...",
+      "tag": "Discussion",
+      "likesCount": 5,
+      "repliesCount": 2,
+      "isLiked": true,
+      "authorId": { "firstName": "Alice", "lastName": "Student", "role": "student" }
+    }
+  ],
+  "page": 1,
+  "limit": 10,
+  "total": 1,
+  "totalPages": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 13. POST /api/lms/posts -->
+      <div class="endpoint-card" id="ep-lms-posts-post" data-search="community create post discussion sanitized xss title body">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/posts</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Creates a community discussion post. Validates title (max 120) and body (max 5000) with XSS sanitization.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000010",
+  "channelId": "670000000000000000000120",
+  "title": "Best practices for microservice resilience",
+  "body": "Let us discuss circuit breakers and retry policies in Node.js services.",
+  "tag": "Discussion"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Post created successfully",
+  "post": {
+    "_id": "670000000000000000000135",
+    "title": "Best practices for microservice resilience",
+    "likesCount": 0,
+    "repliesCount": 0
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 14. POST /api/lms/posts/:id/like -->
+      <div class="endpoint-card" id="ep-lms-posts-like" data-search="community post like unlike toggle">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/posts/:id/like</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Toggles like on a community post. Call DELETE to explicitly remove like.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Post liked",
+  "isLiked": true,
+  "likesCount": 6
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 15. GET & POST /api/lms/posts/:id/replies -->
+      <div class="endpoint-card" id="ep-lms-posts-replies-get" data-search="community threaded replies read post reply">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/posts/:id/replies</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Reads and appends threaded replies to a community discussion post.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>POST REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "body": "Excellent point! Circuit breakers prevent cascading failures."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Reply created successfully",
+  "reply": {
+    "_id": "670000000000000000000140",
+    "body": "Excellent point! Circuit breakers prevent cascading failures.",
+    "authorId": { "firstName": "Jane", "lastName": "Doe", "role": "instructor" }
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 16. DELETE /api/lms/posts/:id -->
+      <div class="endpoint-card" id="ep-lms-posts-delete" data-search="community post delete soft delete author admin">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-del">DELETE</span>
+            <span class="endpoint-path">/api/lms/posts/:id</span>
+            <span class="badge-guard" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Author / Admin</span>
+          </div>
+          <p class="endpoint-desc">Soft deletes a discussion post.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Post deleted successfully"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 17. POST /api/lms/posts/:id/report -->
+      <div class="endpoint-card" id="ep-lms-posts-report" data-search="community post report flag moderation">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/posts/:id/report</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Flags a community post for staff moderation.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Post has been flagged for moderation"
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 18. GET /api/lms/certificates/me -->
+      <div class="endpoint-card" id="ep-lms-certificates-me" data-search="certificates credentials earned in progress student me">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/certificates/me</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Student / Auth</span>
+          </div>
+          <p class="endpoint-desc">Returns user in-progress cohort progress cards and earned verifiable certificates.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "inProgress": [
+    {
+      "cohortId": "650000000000000000000010",
+      "cohortName": "Cohort Alpha",
+      "title": "Full-Stack Web Development",
+      "progressPercentage": 75
+    }
+  ],
+  "earned": [
+    {
+      "certificateId": "GLX-CERT-9A8B7C6D5E4F",
+      "title": "Full-Stack Web Development Mastery",
+      "badge": "Gloxad Certified",
+      "issuedAt": "2026-10-15T20:00:00.000Z",
+      "pdfKey": "certificates/GLX-CERT-9A8B7C6D5E4F.pdf"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 19. GET /api/lms/certificates/:id/pdf -->
+      <div class="endpoint-card" id="ep-lms-certificates-pdf" data-search="certificate pdf download signed url qr code verified">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/certificates/:id/pdf</span>
+            <span class="badge-guard" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enrolled / Auth</span>
+          </div>
+          <p class="endpoint-desc">Generates on-demand Sheybi-branded PDF with embedded QR code, uploads to S3, and emits short-lived signed GET URL.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "url": "https://gloxad-media-bucket.s3.amazonaws.com/certificates/GLX-CERT-9A8B7C6D5E4F.pdf?X-Amz-Signature=...",
+  "certificateId": "GLX-CERT-9A8B7C6D5E4F",
+  "pdfKey": "certificates/GLX-CERT-9A8B7C6D5E4F.pdf",
+  "expiresIn": 300
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 20. GET /api/learning/verify-certificate/:certificateId -->
+      <div class="endpoint-card" id="ep-lms-certificates-verify" data-search="verify certificate public credential qr code">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/learning/verify-certificate/:certificateId</span>
+            <span class="badge-guard" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Public Access</span>
+          </div>
+          <p class="endpoint-desc">Public certificate validation endpoint powering QR code scans on certificates.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "valid": true,
+  "message": "Certificate verified successfully",
+  "certificate": {
+    "certificateId": "GLX-CERT-9A8B7C6D5E4F",
+    "studentName": "Alice Student",
+    "courseTitle": "Full-Stack Web Development Mastery",
+    "cohortName": "Cohort Alpha",
+    "badge": "Gloxad Certified",
+    "issuedAt": "2026-10-15T20:00:00.000Z",
+    "isRevoked": false
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 21. GET /api/lms/instructor/cohorts -->
+      <div class="endpoint-card" id="ep-lms-instructor-cohorts" data-search="instructor cohorts list assigned trimester course">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/instructor/cohorts</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Lists cohorts assigned to the authenticated instructor.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohorts": [
+    {
+      "_id": "650000000000000000000010",
+      "name": "Cohort Alpha",
+      "currentWeek": 1,
+      "status": "active"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 22. GET /api/lms/instructor/cohorts/:id/overview -->
+      <div class="endpoint-card" id="ep-lms-instructor-overview" data-search="instructor cohort overview kpi completion active grade trend">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/instructor/cohorts/:id/overview</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Cohort performance KPIs: average completion percentage, active students count, average grade, and weekly grade trend.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000010",
+  "cohortName": "Cohort Alpha",
+  "totalStudents": 24,
+  "activeStudents": 22,
+  "avgCompletionPercentage": 68,
+  "avgGrade": 88,
+  "gradeTrend": [
+    { "week": 1, "avgGrade": 82 },
+    { "week": 2, "avgGrade": 86 },
+    { "week": 3, "avgGrade": 88 }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 23. GET /api/lms/instructor/cohorts/:id/roster -->
+      <div class="endpoint-card" id="ep-lms-instructor-roster" data-search="instructor cohort student roster attendance progress last active">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/instructor/cohorts/:id/roster</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Paginated student roster with individual attendance %, progress %, and last active timestamps.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "roster": [
+    {
+      "userId": "67b0981a2f4c9a0012bc8001",
+      "name": "Alice Student",
+      "email": "alice.student@gloxad.com",
+      "attendancePercentage": 100,
+      "progressPercentage": 75,
+      "lastActiveDate": "2026-10-15T21:40:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 24. GET /api/lms/admin/analytics -->
+      <div class="endpoint-card" id="ep-lms-admin-analytics" data-search="admin analytics total revenue enrollments completion rate platform health uptime trends">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/admin/analytics</span>
+            <span class="badge-guard" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">admin only</span>
+          </div>
+          <p class="endpoint-desc">Global LMS analytics: platform revenue, active enrollments, overall completion rates, system uptime health, and multi-month enrollment trends.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "totalRevenue": 1540000,
+  "enrollments": 1420,
+  "completionRate": 84,
+  "platformHealth": {
+    "uptime": "99.98%",
+    "status": "healthy",
+    "database": "connected",
+    "storage": "connected"
+  },
+  "enrollmentTrends": [
+    { "month": "May", "year": 2026, "count": 180 },
+    { "month": "Jun", "year": 2026, "count": 220 }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- 25. GET /api/lms/admin/certificates/recent -->
+      <div class="endpoint-card" id="ep-lms-admin-certificates-recent" data-search="admin recent certificates audit feed credentials issued">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/admin/certificates/recent</span>
+            <span class="badge-guard" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">admin only</span>
+          </div>
+          <p class="endpoint-desc">Audit feed of recently issued verified certificates across all courses and cohorts.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "certificates": [
+    {
+      "certificateId": "GLX-CERT-9A8B7C6D5E4F",
+      "title": "Full-Stack Web Development Mastery",
+      "badge": "Gloxad Certified",
+      "userId": { "firstName": "Alice", "lastName": "Student", "email": "alice.student@gloxad.com" },
+      "cohortId": { "name": "Cohort Alpha" },
+      "issuedAt": "2026-10-15T20:00:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -7663,6 +8570,33 @@ Accept: application/json</code></pre>
         <li><a href="#ep-lms-assignment-submit" class="toc-link">POST /api/lms/assignments/:id/submissions</a></li>
         <li><a href="#ep-lms-instructor-grading-queue" class="toc-link">GET /api/lms/instructor/grading-queue</a></li>
         <li><a href="#ep-lms-submission-grade" class="toc-link">PUT /api/lms/submissions/:id/grade</a></li>
+        <li><a href="#lms-live-community-certificates" class="toc-link">LMS Live, Community & Certificates</a></li>
+        <li><a href="#ep-lms-live-sessions-get" class="toc-link">GET /api/lms/live-sessions</a></li>
+        <li><a href="#ep-lms-live-sessions-post" class="toc-link">POST /api/lms/live-sessions</a></li>
+        <li><a href="#ep-lms-live-sessions-put" class="toc-link">PUT /api/lms/live-sessions/:id</a></li>
+        <li><a href="#ep-lms-live-sessions-delete" class="toc-link">DELETE /api/lms/live-sessions/:id</a></li>
+        <li><a href="#ep-lms-live-sessions-join" class="toc-link">POST /api/lms/live-sessions/:id/join</a></li>
+        <li><a href="#ep-lms-live-sessions-chat" class="toc-link">GET /api/lms/live-sessions/:id/chat</a></li>
+        <li><a href="#ep-lms-live-sessions-polls" class="toc-link">POST /api/lms/live-sessions/:id/polls</a></li>
+        <li><a href="#ep-lms-polls-vote" class="toc-link">POST /api/lms/polls/:pollId/votes</a></li>
+        <li><a href="#ep-lms-live-sessions-attendance-get" class="toc-link">GET /api/lms/live-sessions/:id/attendance</a></li>
+        <li><a href="#ep-lms-live-sessions-attendance-put" class="toc-link">PUT /api/lms/live-sessions/:id/attendance</a></li>
+        <li><a href="#ep-lms-channels-get" class="toc-link">GET /api/lms/channels</a></li>
+        <li><a href="#ep-lms-posts-get" class="toc-link">GET /api/lms/posts</a></li>
+        <li><a href="#ep-lms-posts-post" class="toc-link">POST /api/lms/posts</a></li>
+        <li><a href="#ep-lms-posts-like" class="toc-link">POST /api/lms/posts/:id/like</a></li>
+        <li><a href="#ep-lms-posts-replies-get" class="toc-link">GET /api/lms/posts/:id/replies</a></li>
+        <li><a href="#ep-lms-posts-replies-post" class="toc-link">POST /api/lms/posts/:id/replies</a></li>
+        <li><a href="#ep-lms-posts-delete" class="toc-link">DELETE /api/lms/posts/:id</a></li>
+        <li><a href="#ep-lms-posts-report" class="toc-link">POST /api/lms/posts/:id/report</a></li>
+        <li><a href="#ep-lms-certificates-me" class="toc-link">GET /api/lms/certificates/me</a></li>
+        <li><a href="#ep-lms-certificates-pdf" class="toc-link">GET /api/lms/certificates/:id/pdf</a></li>
+        <li><a href="#ep-lms-certificates-verify" class="toc-link">GET /api/learning/verify-certificate/:certificateId</a></li>
+        <li><a href="#ep-lms-instructor-cohorts" class="toc-link">GET /api/lms/instructor/cohorts</a></li>
+        <li><a href="#ep-lms-instructor-overview" class="toc-link">GET /api/lms/instructor/cohorts/:id/overview</a></li>
+        <li><a href="#ep-lms-instructor-roster" class="toc-link">GET /api/lms/instructor/cohorts/:id/roster</a></li>
+        <li><a href="#ep-lms-admin-analytics" class="toc-link">GET /api/lms/admin/analytics</a></li>
+        <li><a href="#ep-lms-admin-certificates-recent" class="toc-link">GET /api/lms/admin/certificates/recent</a></li>
       </ul>
     </aside>
 

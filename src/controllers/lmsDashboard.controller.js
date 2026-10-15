@@ -1,5 +1,6 @@
 import { Cohort } from "../models/Cohort.model.js";
 import { Course } from "../models/Course.model.js";
+import { Trimester } from "../models/Trimester.model.js";
 import { LmsLessonProgress } from "../models/LmsLessonProgress.model.js";
 import { LmsQuizAttempt } from "../models/LmsQuizAttempt.model.js";
 import { LmsAssignment } from "../models/LmsAssignment.model.js";

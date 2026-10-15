@@ -35,6 +35,9 @@ export const env = {
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || "",
   AWS_S3_BUCKET: process.env.AWS_S3_BUCKET || "gloxad-media-bucket",
   PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY || "sk_test_mock_paystack_secret_key_12345",
+  LIVEKIT_URL: process.env.LIVEKIT_URL || "https://livekit.gloxad.com",
+  LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || "devkey",
+  LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || "secret_mock_livekit_key_for_testing_1234567890",
 };
 
 export default env;

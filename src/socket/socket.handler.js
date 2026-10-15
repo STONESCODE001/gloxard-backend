@@ -3,6 +3,7 @@ import { verifyToken } from "../utils/jwt.js";
 import { User } from "../models/User.model.js";
 import { Conversation } from "../models/Conversation.model.js";
 import { env } from "../config/env.js";
+import { initLiveNamespace } from "./live.handler.js";
 
 let io = null;
 
@@ -13,6 +14,9 @@ export const initSocket = (httpServer) => {
       credentials: true,
     },
   });
+
+  // Initialize LMS live classroom namespace
+  initLiveNamespace(io);
 
   // Authentication Middleware
   io.use(async (socket, next) => {

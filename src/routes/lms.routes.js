@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { authGuard } from "../middlewares/auth.middleware.js";
+import { roleGuard } from "../middlewares/role.middleware.js";
 import { cohortGuard } from "../middlewares/cohort.middleware.js";
+
+// Unit 19 Controllers
 import {
   getLmsMe,
   getStudentDashboard,
@@ -29,7 +32,50 @@ import {
   gradeSubmission,
 } from "../controllers/lmsAssignment.controller.js";
 
+// Unit 20 Controllers
+import {
+  getLiveSessions,
+  createLiveSession,
+  updateLiveSession,
+  deleteLiveSession,
+  joinLiveSession,
+  getSessionChatHistory,
+  createSessionPoll,
+  votePoll,
+  getSessionAttendance,
+  updateSessionAttendance,
+} from "../controllers/lmsLive.controller.js";
+import {
+  getChannels,
+  getPosts,
+  createPost,
+  likePost,
+  unlikePost,
+  getPostReplies,
+  createPostReply,
+  deletePost,
+  reportPost,
+} from "../controllers/lmsCommunity.controller.js";
+import {
+  getMyCertificates,
+  getCertificatePdf,
+  verifyCertificate,
+} from "../controllers/lmsCertificate.controller.js";
+import {
+  getInstructorCohorts,
+  getCohortOverview,
+  getCohortRoster,
+} from "../controllers/lmsInstructor.controller.js";
+import {
+  getAdminAnalytics,
+  getRecentCertificates,
+} from "../controllers/lmsAdmin.controller.js";
+
 const router = Router();
+
+// ==========================================
+// Unit 19: Trimester LMS Core
+// ==========================================
 
 // 1. Context & Unified Dashboard
 router.get("/me", authGuard, getLmsMe);
@@ -59,5 +105,48 @@ router.get("/assignments/:id", authGuard, cohortGuard, getAssignment);
 router.post("/assignments/:id/submissions", authGuard, cohortGuard, submitAssignment);
 router.get("/instructor/grading-queue", authGuard, cohortGuard, getGradingQueue);
 router.put("/submissions/:id/grade", authGuard, cohortGuard, gradeSubmission);
+
+// ==========================================
+// Unit 20: LMS Live Classrooms & WebRTC
+// ==========================================
+router.get("/live-sessions", authGuard, getLiveSessions);
+router.post("/live-sessions", authGuard, roleGuard("instructor"), createLiveSession);
+router.put("/live-sessions/:id", authGuard, roleGuard("instructor"), updateLiveSession);
+router.delete("/live-sessions/:id", authGuard, roleGuard("instructor"), deleteLiveSession);
+router.post("/live-sessions/:id/join", authGuard, joinLiveSession);
+router.get("/live-sessions/:id/chat", authGuard, getSessionChatHistory);
+router.post("/live-sessions/:id/polls", authGuard, roleGuard("instructor"), createSessionPoll);
+router.post("/polls/:pollId/votes", authGuard, votePoll);
+router.get("/live-sessions/:id/attendance", authGuard, roleGuard("instructor"), getSessionAttendance);
+router.put("/live-sessions/:id/attendance", authGuard, roleGuard("instructor"), updateSessionAttendance);
+
+// ==========================================
+// Unit 20: Community Discussion Forum
+// ==========================================
+router.get("/channels", authGuard, getChannels);
+router.get("/posts", authGuard, getPosts);
+router.post("/posts", authGuard, createPost);
+router.post("/posts/:id/like", authGuard, likePost);
+router.delete("/posts/:id/like", authGuard, unlikePost);
+router.get("/posts/:id/replies", authGuard, getPostReplies);
+router.post("/posts/:id/replies", authGuard, createPostReply);
+router.delete("/posts/:id", authGuard, deletePost);
+router.post("/posts/:id/report", authGuard, reportPost);
+
+// ==========================================
+// Unit 20: Certificates Engine
+// ==========================================
+router.get("/certificates/me", authGuard, getMyCertificates);
+router.get("/certificates/:id/pdf", authGuard, getCertificatePdf);
+router.get("/certificates/verify/:certificateId", verifyCertificate);
+
+// ==========================================
+// Unit 20: Instructor & Admin Analytics
+// ==========================================
+router.get("/instructor/cohorts", authGuard, roleGuard("instructor"), getInstructorCohorts);
+router.get("/instructor/cohorts/:id/overview", authGuard, roleGuard("instructor"), getCohortOverview);
+router.get("/instructor/cohorts/:id/roster", authGuard, roleGuard("instructor"), getCohortRoster);
+router.get("/admin/analytics", authGuard, roleGuard("admin"), getAdminAnalytics);
+router.get("/admin/certificates/recent", authGuard, roleGuard("admin"), getRecentCertificates);
 
 export default router;

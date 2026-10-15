@@ -30,6 +30,14 @@ import { LmsQuizAttempt } from './models/LmsQuizAttempt.model.js';
 import { LmsAssignment } from './models/LmsAssignment.model.js';
 import { LmsSubmission } from './models/LmsSubmission.model.js';
 import { LmsLessonComment } from './models/LmsLessonComment.model.js';
+import { LmsLiveSession } from './models/LmsLiveSession.model.js';
+import { LmsAttendance } from './models/LmsAttendance.model.js';
+import { LmsPoll } from './models/LmsPoll.model.js';
+import { LmsChatMessage } from './models/LmsChatMessage.model.js';
+import { LmsChannel } from './models/LmsChannel.model.js';
+import { LmsPost } from './models/LmsPost.model.js';
+import { LmsReply } from './models/LmsReply.model.js';
+import { LmsCertificate } from './models/LmsCertificate.model.js';
 
 async function seedDatabase() {
   console.log('\x1b[36m==================================================\x1b[0m');
@@ -76,6 +84,14 @@ async function seedDatabase() {
     await LmsAssignment.deleteMany({});
     await LmsSubmission.deleteMany({});
     await LmsLessonComment.deleteMany({});
+    await LmsLiveSession.deleteMany({});
+    await LmsAttendance.deleteMany({});
+    await LmsPoll.deleteMany({});
+    await LmsChatMessage.deleteMany({});
+    await LmsChannel.deleteMany({});
+    await LmsPost.deleteMany({});
+    await LmsReply.deleteMany({});
+    await LmsCertificate.deleteMany({});
     console.log('\x1b[32m✔ Collections purged\x1b[0m');
 
     // 3. Pre-hash password for performance
@@ -1054,7 +1070,121 @@ async function seedDatabase() {
       parentId: comment1._id
     });
 
-    // 15. Print Visual Summary Table
+    // 15. LMS Live Sessions, Attendance & Real-Time Classroom
+    const liveSession1 = await LmsLiveSession.create({
+      cohortId: cohortAlpha._id,
+      title: "Architecture Deep Dive & Live Q&A",
+      description: "Comprehensive live review of microservices, WebRTC streaming, and event loop architecture.",
+      instructorId: jane._id,
+      startsAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
+      endsAt: new Date(Date.now() + 4 * 60 * 60 * 1000),
+      status: "scheduled",
+      provider: "livekit",
+      roomName: `cohort-${cohortAlpha._id}-session-1`,
+    });
+
+    const liveSessionPast = await LmsLiveSession.create({
+      cohortId: cohortAlpha._id,
+      title: "Cohort Kickoff & Live Orientation",
+      description: "Welcome to Trimester 1! Setting up dev environment and cohort expectations.",
+      instructorId: jane._id,
+      startsAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      endsAt: new Date(Date.now() - 22 * 60 * 60 * 1000),
+      status: "ended",
+      provider: "livekit",
+      roomName: `cohort-${cohortAlpha._id}-session-0`,
+    });
+
+    await LmsAttendance.create({
+      sessionId: liveSessionPast._id,
+      cohortId: cohortAlpha._id,
+      userId: alice._id,
+      status: "present",
+      joinedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      leftAt: new Date(Date.now() - 22 * 60 * 60 * 1000),
+      durationMinutes: 120,
+    });
+
+    await LmsPoll.create({
+      sessionId: liveSession1._id,
+      question: "Which state management pattern do you prefer for WebRTC signaling?",
+      options: ["Socket.io Namespaces", "Server-Sent Events (SSE)", "Peer-to-peer Data Channels"],
+      status: "open",
+      votes: [{ userId: alice._id, optionIndex: 0 }],
+    });
+
+    await LmsChatMessage.create({
+      sessionId: liveSession1._id,
+      authorId: jane._id,
+      authorName: "Jane Doe",
+      authorRole: "instructor",
+      text: "Welcome everyone! Please verify your mic and webcam before we begin.",
+    });
+
+    // 16. LMS Community Channels, Posts & Replies
+    const channelGeneral = await LmsChannel.create({
+      cohortId: cohortAlpha._id,
+      name: "General",
+      slug: "general",
+      postCount: 1,
+      isNew: false,
+    });
+    await LmsChannel.create({
+      cohortId: cohortAlpha._id,
+      name: "Q&A",
+      slug: "qa",
+      postCount: 0,
+      isNew: false,
+    });
+    await LmsChannel.create({
+      cohortId: cohortAlpha._id,
+      name: "Project Showcase",
+      slug: "project-showcase",
+      postCount: 0,
+      isNew: false,
+    });
+    await LmsChannel.create({
+      cohortId: cohortAlpha._id,
+      name: "Study Groups",
+      slug: "study-groups",
+      postCount: 0,
+      isNew: false,
+    });
+
+    const post1 = await LmsPost.create({
+      cohortId: cohortAlpha._id,
+      channelId: channelGeneral._id,
+      authorId: alice._id,
+      tag: "Discussion",
+      title: "Excited to collaborate with everyone in Cohort Alpha!",
+      body: "Hey everyone! I just finished the week 1 assignments and look forward to the live lecture today.",
+      likes: [jane._id],
+      likesCount: 1,
+      repliesCount: 1,
+      isReported: false,
+      isDeleted: false,
+    });
+
+    await LmsReply.create({
+      postId: post1._id,
+      authorId: jane._id,
+      body: "Welcome Alice! Don't hesitate to post any questions here.",
+    });
+
+    // 17. LMS Verifiable Certificate
+    await LmsCertificate.create({
+      certificateId: "GLX-CERT-9A8B7C6D5E4F",
+      userId: alice._id,
+      cohortId: cohortAlpha._id,
+      courseId: course1._id,
+      title: course1.title || "Full-Stack Web Development Mastery",
+      subtitle: "Full-Stack Web Development",
+      badge: "Gloxad Certified",
+      pdfKey: "certificates/GLX-CERT-9A8B7C6D5E4F.pdf",
+      issuedAt: new Date(),
+    });
+
+    // 18. Print Visual Summary Table
     console.log('\x1b[32m✔ Seed data generated & inserted successfully!\x1b[0m\n');
     console.log('+--------------------------+-------+');
     console.log('| Entity                   | Count |');
@@ -1082,6 +1212,12 @@ async function seedDatabase() {
     console.log(`| LMS Assignments          | 2     |`);
     console.log(`| LMS Submissions          | 1     |`);
     console.log(`| LMS Comments & Replies   | 2     |`);
+    console.log(`| LMS Live Sessions        | 2     |`);
+    console.log(`| LMS Attendance           | 1     |`);
+    console.log(`| LMS Polls & Chat         | 2     |`);
+    console.log(`| LMS Community Channels   | 4     |`);
+    console.log(`| LMS Posts & Replies      | 2     |`);
+    console.log(`| LMS Certificates         | 1     |`);
     console.log('+--------------------------+-------+\n');
 
     console.log('\x1b[32m[SEED SUCCESS] Database seeding completed cleanly!\x1b[0m');

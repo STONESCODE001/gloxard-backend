@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Course } from '../models/Course.model.js';
 import { Enrollment } from '../models/Enrollment.model.js';
 import { Question, Note, Announcement } from '../models/QuestionNoteMisc.model.js';
+import { LmsCertificate } from '../models/LmsCertificate.model.js';
 
 /**
  * Update student playback position and lesson completion status
@@ -523,6 +524,36 @@ export const getCertificateController = async (req, res, next) => {
 export const verifyCertificateController = async (req, res, next) => {
   try {
     const { certificateId } = req.params;
+
+    // Check LMS Certificate collection first
+    const lmsCert = await LmsCertificate.findOne({ certificateId })
+      .populate('userId', 'firstName lastName email')
+      .populate('courseId', 'title instructor')
+      .populate('cohortId', 'name');
+
+    if (lmsCert) {
+      const studentName = lmsCert.userId
+        ? `${lmsCert.userId.firstName || ''} ${lmsCert.userId.lastName || ''}`.trim()
+        : 'Student';
+      const courseTitle = lmsCert.courseId?.title || lmsCert.title;
+      const isValid = !lmsCert.revokedAt;
+
+      return res.status(200).json({
+        valid: isValid,
+        message: isValid
+          ? 'Certificate verified successfully'
+          : 'Certificate has been revoked',
+        certificate: {
+          certificateId: lmsCert.certificateId,
+          studentName,
+          courseTitle,
+          cohortName: lmsCert.cohortId?.name || '',
+          badge: lmsCert.badge,
+          issuedAt: lmsCert.issuedAt,
+          isRevoked: Boolean(lmsCert.revokedAt),
+        },
+      });
+    }
 
     const enrollment = await Enrollment.findOne({ certificateId })
       .populate('user', 'firstName lastName')

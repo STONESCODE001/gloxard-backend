@@ -269,6 +269,32 @@ export const checkS3Readiness = async () => {
   }
 };
 
+/**
+ * Directly upload in-memory buffer to S3 (used for server-generated certificate PDFs)
+ * @param {Object} params
+ * @param {string} params.key S3 key
+ * @param {Buffer} params.buffer File data
+ * @param {string} [params.contentType='application/pdf']
+ * @returns {Promise<{ key: string }>}
+ */
+export const uploadBuffer = async ({ key, buffer, contentType = "application/pdf" }) => {
+  if (!hasAwsCredentials()) {
+    console.warn(`[S3 DEV NOTICE] AWS credentials missing. Mocked direct upload for ${key}`);
+    return { key };
+  }
+
+  const s3Client = getS3Client();
+  const command = new PutObjectCommand({
+    Bucket: env.AWS_S3_BUCKET,
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+  });
+
+  await s3Client.send(command);
+  return { key };
+};
+
 export default {
   generatePresignedPutUrl,
   generateSignedGetUrl,
@@ -277,4 +303,5 @@ export default {
   completeMultipartUpload,
   abortMultipartUpload,
   checkS3Readiness,
+  uploadBuffer,
 };
