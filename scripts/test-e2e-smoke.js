@@ -1539,6 +1539,401 @@ async function runSmokeTests() {
     assert(false, 'Flow 10 exception', err.response?.data?.error || err.message);
   }
 
+  // ==========================================
+  // FLOW 11: LMS COHORT GATING, CURRICULUM PROGRESS, SERVER-TIMED QUIZ & ASSIGNMENT FLOW
+  // ==========================================
+  logHeader('FLOW 11: LMS Cohort Gating, Curriculum Progress, Server-Timed Quiz & Assignment Flow');
+
+  try {
+    logSuite('LMS Cohort Gating & Membership Resolution Safeguard');
+
+    // 1. Non-enrolled user receives 403 COHORT_ACCESS_DENIED on any /api/lms/* call
+    // Create/login a student who is not enrolled in any cohort
+    const unEnrolledSignupRes = await axios.post(`${API_URL}/auth/signup`, {
+      firstName: 'Charlie',
+      lastName: 'Unenrolled',
+      email: `charlie.${Date.now()}@example.com`,
+      password: 'Password123!',
+      role: 'student'
+    });
+    const unEnrolledToken = unEnrolledSignupRes.data.token;
+
+    let nonEnrolledRes;
+    try {
+      await axios.get(`${API_URL}/lms/dashboard/student`, {
+        headers: { Authorization: `Bearer ${unEnrolledToken}` }
+      });
+    } catch (err) {
+      nonEnrolledRes = err.response;
+    }
+    assert(
+      nonEnrolledRes &&
+      nonEnrolledRes.status === 403 &&
+      nonEnrolledRes.data.error === 'You are not enrolled in this cohort' &&
+      nonEnrolledRes.data.code === 'COHORT_ACCESS_DENIED',
+      'GET /api/lms/dashboard/student strictly returns 403 COHORT_ACCESS_DENIED for non-enrolled users'
+    );
+
+    // 2. Context & Cohort Listing (GET /api/lms/me)
+    const lmsMeRes = await axios.get(`${API_URL}/lms/me`, {
+      headers: { Authorization: `Bearer ${aliceToken}` }
+    });
+    assert(
+      lmsMeRes.status === 200 &&
+      lmsMeRes.data.role === 'student' &&
+      Array.isArray(lmsMeRes.data.cohorts) &&
+      lmsMeRes.data.cohorts.length >= 1 &&
+      lmsMeRes.data.activeCohortId,
+      'GET /api/lms/me returns user cohorts list, trimester details, and active cohort ID'
+    );
+
+    const activeCohort = lmsMeRes.data.cohorts.find(c => c.name.includes('Alpha')) || lmsMeRes.data.cohorts[0];
+    const activeCohortId = activeCohort._id;
+
+    // 3. Student Dashboard (GET /api/lms/dashboard/student)
+    const studentDashRes = await axios.get(`${API_URL}/lms/dashboard/student?cohortId=${activeCohortId}`, {
+      headers: { Authorization: `Bearer ${aliceToken}` }
+    });
+    assert(
+      studentDashRes.status === 200 &&
+      studentDashRes.data.cohort?._id === activeCohortId &&
+      typeof studentDashRes.data.progress?.overall === 'number' &&
+      typeof studentDashRes.data.progress?.week === 'number' &&
+      typeof studentDashRes.data.progress?.assignments?.total === 'number' &&
+      Array.isArray(studentDashRes.data.upcoming),
+      'GET /api/lms/dashboard/student aggregates overall/week progress, assignments, and upcoming deliverables'
+    );
+
+    // 4. Curriculum Modules Tree (GET /api/lms/cohorts/:cohortId/curriculum)
+    const curriculumRes = await axios.get(`${API_URL}/lms/cohorts/${activeCohortId}/curriculum`, {
+      headers: { Authorization: `Bearer ${aliceToken}` }
+    });
+    assert(
+      curriculumRes.status === 200 &&
+      Array.isArray(curriculumRes.data.modules) &&
+      curriculumRes.data.modules.length > 0 &&
+      Array.isArray(curriculumRes.data.modules[0].lessons),
+      'GET /api/lms/cohorts/:cohortId/curriculum returns full module tree with per-lesson status'
+    );
+
+    const module1 = curriculumRes.data.modules[0];
+    const module2 = curriculumRes.data.modules[1];
+    const lesson1Id = module1.lessons[0]._id;
+    const lesson2Id = module1.lessons[1]._id;
+    const quiz1Id = module2?.quizzes[0]?._id;
+
+    // 5. Lesson Detail View & Content Protection (GET /api/lms/lessons/:lessonId)
+    const lessonRes = await axios.get(`${API_URL}/lms/lessons/${lesson1Id}?cohortId=${activeCohortId}`, {
+      headers: { Authorization: `Bearer ${aliceToken}` }
+    });
+    assert(
+      lessonRes.status === 200 &&
+      lessonRes.data.video &&
+      typeof lessonRes.data.video.playbackUrl === 'string' &&
+      typeof lessonRes.data.video.durationSec === 'number' &&
+      Array.isArray(lessonRes.data.objectives) &&
+      lessonRes.data.module?._id === module1._id,
+      'GET /api/lms/lessons/:lessonId returns unshielded lesson content with video playback & navigation for enrolled students'
+    );
+
+    // 6. Idempotent Lesson Progress Update (PUT /api/lms/lessons/:lessonId/progress)
+    const progressPutRes = await axios.put(
+      `${API_URL}/lms/lessons/${lesson2Id}/progress?cohortId=${activeCohortId}`,
+      {
+        watchedSeconds: 600,
+        completed: true,
+        objectivesDone: ['Node setup complete']
+      },
+      { headers: { Authorization: `Bearer ${aliceToken}` } }
+    );
+    assert(
+      progressPutRes.status === 200 &&
+      progressPutRes.data.progress?.status === 'completed' &&
+      progressPutRes.data.progress?.watchedSeconds >= 600 &&
+      typeof progressPutRes.data.overallPercent === 'number',
+      'PUT /api/lms/lessons/:lessonId/progress idempotently updates watchedSeconds & completion, recalculating dashboard percentages'
+    );
+
+    // 7. Threaded Lesson Discussions, Replies & Likes
+    const commentPostRes = await axios.post(
+      `${API_URL}/lms/lessons/${lesson1Id}/comments?cohortId=${activeCohortId}`,
+      { body: 'Does Node.js use libuv for all asynchronous I/O operations?' },
+      { headers: { Authorization: `Bearer ${aliceToken}` } }
+    );
+    assert(
+      commentPostRes.status === 201 &&
+      commentPostRes.data.comment?.body === 'Does Node.js use libuv for all asynchronous I/O operations?' &&
+      commentPostRes.data.comment?.authorRole === 'student',
+      'POST /api/lms/lessons/:lessonId/comments creates top-level discussion comment'
+    );
+    const commentId = commentPostRes.data.comment._id;
+
+    const replyPostRes = await axios.post(
+      `${API_URL}/lms/comments/${commentId}/replies`,
+      { body: 'Yes, Alice! Libuv handles thread pooling and OS non-blocking primitives.' },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      replyPostRes.status === 201 &&
+      replyPostRes.data.reply?.authorRole === 'instructor' &&
+      replyPostRes.data.reply?.parentId === commentId,
+      'POST /api/lms/comments/:id/replies posts threaded reply with instructor role badge'
+    );
+
+    const likeRes = await axios.post(
+      `${API_URL}/lms/comments/${commentId}/like`,
+      {},
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      likeRes.status === 200 &&
+      likeRes.data.liked === true &&
+      likeRes.data.likesCount >= 1,
+      'POST /api/lms/comments/:id/like toggles like on discussion comment'
+    );
+
+    const unlikeRes = await axios.delete(
+      `${API_URL}/lms/comments/${commentId}/like`,
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      unlikeRes.status === 200 &&
+      unlikeRes.data.liked === false,
+      'DELETE /api/lms/comments/:id/like removes like from discussion comment'
+    );
+
+    // 8. Quizzes Engine - Overview & Server Content Protection (GET /api/lms/quizzes/:quizId)
+    const quizOverviewRes = await axios.get(
+      `${API_URL}/lms/quizzes/${quiz1Id}?cohortId=${activeCohortId}`,
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      quizOverviewRes.status === 200 &&
+      quizOverviewRes.data.title &&
+      quizOverviewRes.data.questionCount === 2 &&
+      quizOverviewRes.data.passMarkPercent === 70 &&
+      quizOverviewRes.data.correctOptionIndex === undefined,
+      'GET /api/lms/quizzes/:quizId returns quiz metadata while strictly omitting answer keys (Rule 3)'
+    );
+
+    // 9. Start Timed Quiz Attempt (POST /api/lms/quizzes/:quizId/attempts)
+    const startAttemptRes = await axios.post(
+      `${API_URL}/lms/quizzes/${quiz1Id}/attempts?cohortId=${activeCohortId}`,
+      {},
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      startAttemptRes.status === 201 &&
+      startAttemptRes.data.attemptId &&
+      startAttemptRes.data.expiresAt &&
+      Array.isArray(startAttemptRes.data.questions) &&
+      startAttemptRes.data.questions.length === 2 &&
+      startAttemptRes.data.questions[0].correctOptionIndex === undefined,
+      'POST /api/lms/quizzes/:quizId/attempts sets server countdown timer with expiresAt and sanitizes questions'
+    );
+    const bobAttemptId = startAttemptRes.data.attemptId;
+    const q1 = startAttemptRes.data.questions[0];
+    const q2 = startAttemptRes.data.questions[1];
+
+    // 10. Instant Answer Check & Question Locking (POST /api/lms/quiz-attempts/:attemptId/answers)
+    const answerCheckRes = await axios.post(
+      `${API_URL}/lms/quiz-attempts/${bobAttemptId}/answers`,
+      {
+        questionId: q1._id,
+        optionId: '0',
+        check: true
+      },
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      answerCheckRes.status === 200 &&
+      answerCheckRes.data.correct === true &&
+      typeof answerCheckRes.data.explanation === 'string',
+      'POST /api/lms/quiz-attempts/:attemptId/answers with check: true verifies correctness server-side and returns explanation'
+    );
+
+    // Re-answering locked question must fail with 400
+    let lockedAnswerRes;
+    try {
+      await axios.post(
+        `${API_URL}/lms/quiz-attempts/${bobAttemptId}/answers`,
+        { questionId: q1._id, optionId: '1', check: true },
+        { headers: { Authorization: `Bearer ${bobToken}` } }
+      );
+    } catch (err) {
+      lockedAnswerRes = err.response;
+    }
+    assert(
+      lockedAnswerRes &&
+      lockedAnswerRes.status === 400 &&
+      lockedAnswerRes.data.code === 'QUESTION_LOCKED',
+      'Re-answering an already-checked question returns 400 QUESTION_LOCKED'
+    );
+
+    // Answer second question without check
+    const answer2Res = await axios.post(
+      `${API_URL}/lms/quiz-attempts/${bobAttemptId}/answers`,
+      {
+        questionId: q2._id,
+        optionId: '1',
+        check: false
+      },
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      answer2Res.status === 200 &&
+      answer2Res.data.saved === true,
+      'POST /api/lms/quiz-attempts/:attemptId/answers saves answer choice without immediate reveal when check: false'
+    );
+
+    // 11. Submit Quiz Attempt & Grace Window (POST /api/lms/quiz-attempts/:attemptId/submit)
+    const submitQuizRes = await axios.post(
+      `${API_URL}/lms/quiz-attempts/${bobAttemptId}/submit`,
+      {},
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      submitQuizRes.status === 200 &&
+      submitQuizRes.data.status === 'submitted' &&
+      submitQuizRes.data.score === 2 &&
+      submitQuizRes.data.percent === 100 &&
+      submitQuizRes.data.passed === true &&
+      submitQuizRes.data.bestScore === 2,
+      'POST /api/lms/quiz-attempts/:attemptId/submit grades attempt, enforces timer grace window, and records best score'
+    );
+
+    // 12. Assignments Listing & Details (GET /api/lms/assignments)
+    const assignmentsRes = await axios.get(
+      `${API_URL}/lms/assignments?cohortId=${activeCohortId}`,
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      assignmentsRes.status === 200 &&
+      Array.isArray(assignmentsRes.data.assignments) &&
+      assignmentsRes.data.assignments.length >= 1,
+      'GET /api/lms/assignments lists cohort deliverables with submission status'
+    );
+    const assignment1Item = assignmentsRes.data.assignments[0];
+
+    const assignmentDetailRes = await axios.get(
+      `${API_URL}/lms/assignments/${assignment1Item._id}?cohortId=${activeCohortId}`,
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      assignmentDetailRes.status === 200 &&
+      assignmentDetailRes.data.title &&
+      Array.isArray(assignmentDetailRes.data.rubric) &&
+      assignmentDetailRes.data.maxFileMB === 50,
+      'GET /api/lms/assignments/:id returns full assignment detail, rubric breakdown, and file restrictions'
+    );
+
+    // 13. Student Assignment Submission & Validation (POST /api/lms/assignments/:id/submissions)
+    // Invalid repo URL rejection
+    let invalidRepoRes;
+    try {
+      await axios.post(
+        `${API_URL}/lms/assignments/${assignment1Item._id}/submissions?cohortId=${activeCohortId}`,
+        { repoUrl: 'https://not-github.com/bad/repo' },
+        { headers: { Authorization: `Bearer ${bobToken}` } }
+      );
+    } catch (err) {
+      invalidRepoRes = err.response;
+    }
+    assert(
+      invalidRepoRes &&
+      invalidRepoRes.status === 400 &&
+      invalidRepoRes.data.code === 'INVALID_REPO_URL',
+      'POST /api/lms/assignments/:id/submissions rejects invalid GitHub URL format with 400 INVALID_REPO_URL'
+    );
+
+    // Valid initial submission
+    const submitAssignmentRes = await axios.post(
+      `${API_URL}/lms/assignments/${assignment1Item._id}/submissions?cohortId=${activeCohortId}`,
+      {
+        repoUrl: 'https://github.com/bob-student/express-backend-capstone',
+        comment: 'Initial capstone submission for grading'
+      },
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      submitAssignmentRes.status === 201 &&
+      submitAssignmentRes.data.submission?.status === 'pending_review' &&
+      submitAssignmentRes.data.submission?.repoUrl === 'https://github.com/bob-student/express-backend-capstone',
+      'POST /api/lms/assignments/:id/submissions successfully records student assignment submission'
+    );
+    const bobSubmissionId = submitAssignmentRes.data.submission._id;
+
+    // Resubmission before grading is permitted
+    const resubmitRes = await axios.post(
+      `${API_URL}/lms/assignments/${assignment1Item._id}/submissions?cohortId=${activeCohortId}`,
+      {
+        repoUrl: 'https://github.com/bob-student/express-backend-capstone-v2',
+        comment: 'Updated capstone with additional unit tests'
+      },
+      { headers: { Authorization: `Bearer ${bobToken}` } }
+    );
+    assert(
+      resubmitRes.status === 200 &&
+      resubmitRes.data.submission?.repoUrl === 'https://github.com/bob-student/express-backend-capstone-v2',
+      'POST /api/lms/assignments/:id/submissions allows students to update/resubmit work before instructor grading'
+    );
+
+    // 14. Instructor Grading Queue (GET /api/lms/instructor/grading-queue)
+    const queueRes = await axios.get(
+      `${API_URL}/lms/instructor/grading-queue?cohortId=${activeCohortId}`,
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      queueRes.status === 200 &&
+      queueRes.data.pending >= 1 &&
+      queueRes.data.items.some(item => String(item.submissionId) === String(bobSubmissionId)),
+      'GET /api/lms/instructor/grading-queue returns pending submissions with student details and overdue indicators'
+    );
+
+    // 15. Grade Submission & Rubric Breakdown (PUT /api/lms/submissions/:id/grade)
+    const gradeRes = await axios.put(
+      `${API_URL}/lms/submissions/${bobSubmissionId}/grade`,
+      {
+        score: 96,
+        max: 100,
+        feedback: 'Outstanding modular architecture and comprehensive error handling suite!',
+        rubricScores: [
+          { criterion: 'Architecture & Clean Code', pointsAwarded: 48 },
+          { criterion: 'Error Handling & Tests', pointsAwarded: 48 }
+        ]
+      },
+      { headers: { Authorization: `Bearer ${janeToken}` } }
+    );
+    assert(
+      gradeRes.status === 200 &&
+      gradeRes.data.submission?.status === 'graded' &&
+      gradeRes.data.submission?.grade?.score === 96 &&
+      gradeRes.data.submission?.grade?.rubricScores?.length === 2,
+      'PUT /api/lms/submissions/:id/grade records score, rubric points, instructor feedback, and triggers student notification'
+    );
+
+    // Resubmission after grading is locked
+    let lockedResubmitRes;
+    try {
+      await axios.post(
+        `${API_URL}/lms/assignments/${assignment1Item._id}/submissions?cohortId=${activeCohortId}`,
+        { repoUrl: 'https://github.com/bob-student/too-late' },
+        { headers: { Authorization: `Bearer ${bobToken}` } }
+      );
+    } catch (err) {
+      lockedResubmitRes = err.response;
+    }
+    assert(
+      lockedResubmitRes &&
+      lockedResubmitRes.status === 400 &&
+      lockedResubmitRes.data.code === 'SUBMISSION_LOCKED',
+      'Resubmitting an already-graded assignment is locked and returns 400 SUBMISSION_LOCKED'
+    );
+
+  } catch (err) {
+    assert(false, 'Flow 11 exception', err.response?.data?.error || err.message);
+  }
+
   // Print Summary Table
   const durationMs = Date.now() - startTime;
   console.log(`\n\x1b[36m==================================================\x1b[0m`);

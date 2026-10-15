@@ -1,15 +1,15 @@
 # Progress Tracker - Gloxad Academy Backend API
 
 > Master Build Plan: [`00-build-plan.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/00-build-plan.md)  
-> Current Active Spec: [`18-institution-onboarding-workspace-billing.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/18-institution-onboarding-workspace-billing.md)
+> Current Active Spec: [`19-trimester-lms-core.md`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/context/specs/19-trimester-lms-core.md)
 
 ---
 
 ## Current Phase
-- **Phase 2**: Institution Partnerships, Workspaces & Infrastructure Unblock
+- **Phase 3**: Trimester Cohort LMS Core
 
 ## Current Goal
-- [x] Milestone 14 (Unit 18: Institution Onboarding, Workspace Management & Subscriptions) [COMPLETED & VERIFIED].
+- [x] Milestone 15 (Unit 19: Trimester LMS Core — Cohorts, Curriculum, Quizzes & Assignments) [COMPLETED & VERIFIED].
 
 ---
 
@@ -50,6 +50,8 @@
 - [x] **Unit 16**: Frontend Integration Gap Remediation & System Synchronization [COMPLETED & VERIFIED]
 - [x] **Unit 17**: Infrastructure Unblock & Partner Applications (Phase 1) [COMPLETED & VERIFIED]
 - [x] **Unit 18**: Institution Onboarding, Workspace Setup & Multi-Currency Billing [COMPLETED & VERIFIED]
+- [x] **Unit 19**: Trimester LMS Core — Cohorts, Curriculum, Quizzes & Assignments [COMPLETED & VERIFIED]
+- [ ] **Unit 20**: Live Classrooms, Community & Certificates [NOT STARTED]
 
 ---
 
@@ -321,8 +323,52 @@
 
 ---
 
+### Unit 19 (`19-trimester-lms-core.md`) [COMPLETED & VERIFIED]
+1. **Data Models**:
+   - [`src/models/Trimester.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Trimester.model.js): Schema for academic terms (`name`, `code`, `year`, `termNumber`, `startDate`, `endDate`, `status: 'upcoming' | 'active' | 'completed'`).
+   - [`src/models/Cohort.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/Cohort.model.js): Multi-cohort student group model (`courseId`, `trimesterId`, `institutionId`, `studentIds`, `instructorIds`, `syllabusOverrides`, `curriculumModules`).
+   - [`src/models/LmsLessonProgress.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/LmsLessonProgress.model.js): Compound-indexed (`{ cohortId: 1, userId: 1, lessonId: 1 }`) progress tracking (`isCompleted`, `watchedSeconds`, `lastPositionSeconds`, `completedAt`).
+   - [`src/models/LmsQuizAttempt.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/LmsQuizAttempt.model.js): Server-authoritative timed attempts (`quizId`, `cohortId`, `userId`, `attemptNumber`, `startedAt`, `expiresAt`, `status`, `score`, `percentage`, `answers: [{ questionId, selectedOption, isCorrect, isLocked }]`).
+   - [`src/models/LmsAssignment.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/LmsAssignment.model.js): Cohort assignment specification (`courseId`, `cohortId`, `title`, `instructions`, `dueDate`, `totalPoints`, `rubric`, `starterFiles`).
+   - [`src/models/LmsSubmission.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/LmsSubmission.model.js): Unique student assignment submission (`{ assignmentId: 1, userId: 1 }`) with GitHub validation, `submissions/` S3 key check, late flagging (`isLate`), pre-grading resubmission, and instructor grading with rubric points.
+   - [`src/models/LmsLessonComment.model.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/models/LmsLessonComment.model.js): Threaded discussion board with parent-child hierarchy (`parentId`), author roles, likes counter, and `likedBy` array.
+2. **Access Control & Cohort Guards**:
+   - [`src/middlewares/cohort.middleware.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/middlewares/cohort.middleware.js): Implemented `cohortGuard` resolving `cohortId` dynamically across route parameters, query strings, request bodies, or indirect object IDs (attempt, submission, assignment, comment). Enforces strict multi-cohort isolation, rejecting non-members with `403 {"error": "You are not enrolled in this cohort", "code": "COHORT_ACCESS_DENIED"}`.
+3. **Controllers & Endpoints Implemented (`src/routes/lms.routes.js`)**:
+   - [`src/controllers/lmsDashboard.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/lmsDashboard.controller.js):
+     - `GET /api/lms/me`: Returns active and enrolled cohorts, current trimester context, and user role.
+     - `GET /api/lms/dashboard/student`: Progress metrics calculation (overall completion %, week progress, assignments, upcoming deadlines).
+   - [`src/controllers/lmsCurriculum.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/lmsCurriculum.controller.js):
+     - `GET /api/lms/cohorts/:cohortId/curriculum`: Module hierarchy with lock/unlock status and per-lesson completion tags.
+     - `GET /api/lms/lessons/:lessonId`: Lesson detail with 1-hour AWS S3 pre-signed video playback URL for enrolled students.
+     - `PUT /api/lms/lessons/:lessonId/progress`: Heartbeat and lesson completion updater.
+     - `GET /api/lms/lessons/:lessonId/comments`: Threaded comments with author roles and nested replies.
+     - `POST /api/lms/lessons/:lessonId/comments`: Posts new discussion topic.
+     - `POST /api/lms/comments/:id/replies`: Posts threaded reply.
+     - `POST /api/lms/comments/:id/like` & `DELETE /api/lms/comments/:id/like`: Toggles upvotes.
+   - [`src/controllers/lmsQuiz.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/lmsQuiz.controller.js):
+     - `GET /api/lms/quizzes/:quizId`: Quiz overview with correct answers shielded per Rule 3.
+     - `POST /api/lms/quizzes/:quizId/attempts`: Starts 15-minute server-timed attempt (max 3 attempts).
+     - `POST /api/lms/quiz-attempts/:attemptId/answers`: Instant verification and question locking (`check: true`).
+     - `POST /api/lms/quiz-attempts/:attemptId/submit`: 15-second grace window, auto-grading, and best score preservation.
+   - [`src/controllers/lmsAssignment.controller.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/controllers/lmsAssignment.controller.js):
+     - `GET /api/lms/assignments`: Lists cohort deliverables with submission status.
+     - `GET /api/lms/assignments/:id`: Detailed assignment specifications, rubric, and user submission.
+     - `POST /api/lms/assignments/:id/submissions`: GitHub repository validation, `submissions/` S3 key check, late flagging, and pre-grading resubmission.
+     - `GET /api/lms/instructor/grading-queue`: Instructor queue of submissions awaiting grading.
+     - `PUT /api/lms/submissions/:id/grade`: Records score, rubric scores, feedback, and notifies student.
+4. **Interactive API Documentation Portal Sync**:
+   - [`src/views/docs.html`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/views/docs.html): Added Section 15 ("Trimester LMS Core"), sidebar navigation group, right-hand TOC anchors, and dynamic "Try It Out" live sandbox drawers for all 19 endpoints (104 REST endpoints documented).
+5. **Seed Engine & E2E Smoke Tests**:
+   - [`src/seed.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/src/seed.js): Seeded `trimesters`, `cohorts`, `lmslessonprogress`, `lmsquizattempts`, `lmsassignments`, `lmssubmissions`, and threaded `lmslessoncomments` across 23 database collections.
+   - [`scripts/test-e2e-smoke.js`](file:///c:/Users/THE%20LAPTOP%20STORE/Desktop/gloxard/scripts/test-e2e-smoke.js): Added `FLOW 11` covering cohort gating, student dashboard metrics, unshielded video presigning, lesson heartbeat, comments/replies/likes, quiz server timer and instant answer check, assignment GitHub validation, instructor queue, and rubric grading.
+   - **Verification**: 16 test suites, 121 assertions passing with 100% compliance.
+   - **Build**: 87 files verified with zero syntax errors (`npm run build`).
+
+---
+
 ## Next Up
-- **Unit 19**: Institution Classroom, Multi-Tenant LMS & Live Sessions
+- **Unit 20**: Live Classrooms, Community & Certificates (Phase 3 completion)
 
 
 ---

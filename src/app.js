@@ -17,6 +17,7 @@ import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import institutionRoutes from "./routes/institution.routes.js";
 import institutionAdminRoutes from "./routes/institutionAdmin.routes.js";
+import lmsRouter from "./routes/lms.routes.js";
 import { authGuard } from "./middlewares/auth.middleware.js";
 import { roleGuard } from "./middlewares/role.middleware.js";
 import { institutionContext } from "./middlewares/institution.middleware.js";
@@ -127,6 +128,9 @@ app.use("/api/webhooks", webhookRoutes);
 
 // Mount learning engine routes under /api/learning
 app.use("/api/learning", learningRouter);
+
+// Mount Trimester LMS Core routes under /api/lms
+app.use("/api/lms", lmsRouter);
 
 // Mount messaging routes under /api/messages
 app.use("/api/messages", messageRoutes);

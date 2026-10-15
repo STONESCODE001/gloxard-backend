@@ -1471,6 +1471,107 @@
           </li>
         </ul>
       </div>
+
+      <div class="nav-group">
+        <div class="nav-heading">Trimester LMS Core</div>
+        <ul class="nav-list">
+          <li>
+            <a href="#ep-lms-me" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> LMS State & Cohorts
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-dashboard-student" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Student Dashboard Metrics
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-cohort-curriculum" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Cohort Curriculum
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-lesson-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Lesson Details & Video
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-lesson-progress" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Update Lesson Progress
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-lesson-comments-get" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Lesson Comments
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-lesson-comments-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Create Comment
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-comment-replies" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Reply to Comment
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-comment-like" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Like Comment
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-comment-unlike" class="nav-link">
+              <span class="nav-method-pill pill-del">DEL</span> Unlike Comment
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-quiz-overview" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Quiz Overview
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-quiz-attempts-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Start Quiz Attempt
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-quiz-answers-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Answer Quiz Question
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-quiz-submit-post" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Quiz Attempt
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-assignments-list" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> List Assignments
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-assignment-detail" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Assignment Details
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-assignment-submit" class="nav-link">
+              <span class="nav-method-pill pill-post">POST</span> Submit Assignment
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-instructor-grading-queue" class="nav-link">
+              <span class="nav-method-pill pill-get">GET</span> Instructor Grading Queue
+            </a>
+          </li>
+          <li>
+            <a href="#ep-lms-submission-grade" class="nav-link">
+              <span class="nav-method-pill pill-put">PUT</span> Grade Submission
+            </a>
+          </li>
+        </ul>
+      </div>
     </aside>
 
 
@@ -6625,6 +6726,782 @@ Accept: application/json</code></pre>
         </div>
       </div>
 
+      <!-- SECTION: Trimester LMS Core (Phase 3) -->
+      <section class="doc-section" id="trimester-lms-core">
+        <div class="section-header">
+          <h2 class="doc-title">Trimester LMS Core (Phase 3)</h2>
+        </div>
+        <p>
+          Powers multi-cohort trimester learning, academic calendar progression, lesson video streaming with dynamic 1-hour AWS S3 pre-signed URLs, nested lesson discussions, server-timed quizzes with strict anti-cheat answer shielding, assignment submissions with GitHub repository validation, and an instructor grading queue.
+        </p>
+      </section>
+
+      <!-- GET /api/lms/me -->
+      <div class="endpoint-card" id="ep-lms-me" data-search="lms me user cohorts enrolled active trimester">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/me</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">authenticated</span>
+          </div>
+          <p class="endpoint-desc">Retrieves the current user's profile and active/enrolled cohorts and trimesters, indicating whether the user is enrolled as a student, assigned as an instructor, or an institution administrator.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "user": {
+    "_id": "67b0981a2f4c9a0012bc8901",
+    "name": "Jane Student",
+    "email": "jane@example.com",
+    "role": "student"
+  },
+  "activeCohortId": "650000000000000000000002",
+  "cohorts": [
+    {
+      "_id": "650000000000000000000002",
+      "name": "Cohort Alpha - Summer 2026",
+      "slug": "cohort-alpha-2026",
+      "courseId": "650000000000000000000001",
+      "trimester": {
+        "_id": "650000000000000000000000",
+        "name": "Trimester 1 - 2026",
+        "status": "active"
+      },
+      "role": "student"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/dashboard/student -->
+      <div class="endpoint-card" id="ep-lms-dashboard-student" data-search="student dashboard metrics progress completion weekly deadlines">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/dashboard/student</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">student / cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Computes progress analytics for the student: overall percentage completion, completed vs total lessons, week-by-week curriculum progress, quiz attempt stats, and upcoming assignment deadlines.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="table-container" style="margin-bottom: 12px;">
+            <table class="data-table">
+              <thead><tr><th>Query Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>cohortId</code></td><td>string</td><td>No</td><td>Target cohort ObjectId. Defaults to user's most recent active cohort.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohort": {
+    "_id": "650000000000000000000002",
+    "name": "Cohort Alpha - Summer 2026"
+  },
+  "metrics": {
+    "overallProgressPercent": 66.7,
+    "completedLessons": 2,
+    "totalLessons": 3,
+    "quizzesCompleted": 1,
+    "assignmentsSubmitted": 1
+  },
+  "weeklyProgress": [
+    {
+      "weekNumber": 1,
+      "title": "Week 1: Fundamentals of Machine Learning",
+      "totalLessons": 2,
+      "completedLessons": 2,
+      "progressPercent": 100
+    },
+    {
+      "weekNumber": 2,
+      "title": "Week 2: Deep Neural Architectures",
+      "totalLessons": 1,
+      "completedLessons": 0,
+      "progressPercent": 0
+    }
+  ],
+  "upcomingDeadlines": [
+    {
+      "assignmentId": "650000000000000000000050",
+      "title": "Project 1: Building a Gradient Descent Pipeline",
+      "dueDate": "2026-11-01T23:59:59.000Z",
+      "status": "pending"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/cohorts/:cohortId/curriculum -->
+      <div class="endpoint-card" id="ep-lms-cohort-curriculum" data-search="curriculum cohort weekly modules lessons quizzes assignments unlock">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/cohorts/:cohortId/curriculum</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Retrieves the full syllabus for the cohort arranged by weekly modules, indicating unlocked status, user completion indicators, lesson counts, quizzes, and assignment references.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000002",
+  "cohortName": "Cohort Alpha - Summer 2026",
+  "modules": [
+    {
+      "_id": "650000000000000000000010",
+      "weekNumber": 1,
+      "title": "Week 1: Fundamentals of Machine Learning",
+      "isUnlocked": true,
+      "lessons": [
+        {
+          "_id": "650000000000000000000020",
+          "title": "Introduction to Supervised Learning",
+          "type": "video",
+          "durationMinutes": 45,
+          "isCompleted": true
+        }
+      ],
+      "quiz": {
+        "_id": "650000000000000000000040",
+        "title": "Week 1 Checkpoint Quiz",
+        "timeLimitMinutes": 15
+      },
+      "assignment": {
+        "_id": "650000000000000000000050",
+        "title": "Project 1: Building a Gradient Descent Pipeline"
+      }
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/lessons/:lessonId -->
+      <div class="endpoint-card" id="ep-lms-lesson-detail" data-search="lesson detail video presigned streaming s3 resources completion">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/lessons/:lessonId</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Fetches lesson content and metadata. For enrolled students, dynamically exchanges internal video keys for signed AWS S3 pre-signed playback URLs (1-hour expiration) adhering to Zero Video Buffering & Content Shielding invariants.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "lesson": {
+    "_id": "650000000000000000000020",
+    "title": "Introduction to Supervised Learning",
+    "content": "Supervised machine learning algorithms learn mapping functions from input features to target labels...",
+    "videoUrl": "https://gloxard-dev-bucket.s3.eu-west-1.amazonaws.com/courses/videos/lesson1.mp4?X-Amz-Expires=3600&...",
+    "durationMinutes": 45,
+    "resources": [
+      {
+        "title": "Lecture Slides PDF",
+        "url": "https://gloxard-dev-bucket.s3.eu-west-1.amazonaws.com/courses/resources/slides-w1.pdf"
+      }
+    ],
+    "isCompleted": true,
+    "watchedSeconds": 1800,
+    "nextLessonId": "650000000000000000000021",
+    "prevLessonId": null
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PUT /api/lms/lessons/:lessonId/progress -->
+      <div class="endpoint-card" id="ep-lms-lesson-progress" data-search="lesson progress heartbeat watched seconds isCompleted update">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/lms/lessons/:lessonId/progress</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Updates a student's heartbeat progress for the specified lesson. Tracks watched duration, last playback timestamp, and completion status. Upserts LmsLessonProgress atomically.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000002",
+  "isCompleted": true,
+  "watchedSeconds": 1800,
+  "lastPositionSeconds": 1800
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Lesson progress updated successfully",
+  "progress": {
+    "cohortId": "650000000000000000000002",
+    "lessonId": "650000000000000000000020",
+    "userId": "67b0981a2f4c9a0012bc8901",
+    "isCompleted": true,
+    "watchedSeconds": 1800,
+    "lastPositionSeconds": 1800,
+    "completedAt": "2026-10-15T19:30:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/lessons/:lessonId/comments -->
+      <div class="endpoint-card" id="ep-lms-lesson-comments-get" data-search="lesson comments list threaded replies discussion q&a">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/lessons/:lessonId/comments</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Fetches threaded discussion comments and student/instructor replies for the lesson within the cohort.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "comments": [
+    {
+      "_id": "650000000000000000000080",
+      "lessonId": "650000000000000000000020",
+      "author": {
+        "_id": "67b0981a2f4c9a0012bc8901",
+        "name": "Jane Student",
+        "role": "student"
+      },
+      "content": "Can someone clarify how the learning rate influences cost function convergence?",
+      "likesCount": 2,
+      "replies": [
+        {
+          "_id": "650000000000000000000081",
+          "author": {
+            "_id": "67b0981a2f4c9a0012bc8999",
+            "name": "Jane Instructor",
+            "role": "instructor"
+          },
+          "content": "A high learning rate may overshoot the minimum, while a rate that is too small leads to slow convergence.",
+          "likesCount": 5,
+          "createdAt": "2026-10-15T18:45:00.000Z"
+        }
+      ],
+      "createdAt": "2026-10-15T18:30:00.000Z"
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/lessons/:lessonId/comments -->
+      <div class="endpoint-card" id="ep-lms-lesson-comments-post" data-search="create comment lesson post question discussion">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/lessons/:lessonId/comments</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Posts a new top-level comment or question to the lesson discussion thread.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000002",
+  "content": "How does batch gradient descent differ from stochastic gradient descent in practice?"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Comment posted successfully",
+  "comment": {
+    "_id": "650000000000000000000082",
+    "lessonId": "650000000000000000000020",
+    "cohortId": "650000000000000000000002",
+    "content": "How does batch gradient descent differ from stochastic gradient descent in practice?",
+    "author": "67b0981a2f4c9a0012bc8901",
+    "likesCount": 0,
+    "createdAt": "2026-10-15T19:40:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/comments/:id/replies -->
+      <div class="endpoint-card" id="ep-lms-comment-replies" data-search="reply comment threaded discussion answer">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/comments/:id/replies</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Posts a threaded reply to an existing comment. Resolves cohort membership automatically from the parent comment.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "content": "Batch GD computes gradients across all samples per update, whereas SGD updates weights on each individual example."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Reply posted successfully",
+  "reply": {
+    "_id": "650000000000000000000083",
+    "content": "Batch GD computes gradients across all samples per update, whereas SGD updates weights on each individual example.",
+    "author": {
+      "_id": "67b0981a2f4c9a0012bc8999",
+      "name": "Jane Instructor",
+      "role": "instructor"
+    },
+    "createdAt": "2026-10-15T19:42:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/comments/:id/like -->
+      <div class="endpoint-card" id="ep-lms-comment-like" data-search="like upvote comment helpful">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/comments/:id/like</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Upvotes/likes a discussion comment or reply. Prevents duplicate likes from the same user.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Comment liked",
+  "likesCount": 3
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELETE /api/lms/comments/:id/like -->
+      <div class="endpoint-card" id="ep-lms-comment-unlike" data-search="unlike remove upvote comment">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-delete" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">DELETE</span>
+            <span class="endpoint-path">/api/lms/comments/:id/like</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Removes an upvote/like from a comment or reply.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Comment unliked",
+  "likesCount": 2
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/quizzes/:quizId -->
+      <div class="endpoint-card" id="ep-lms-quiz-overview" data-search="quiz overview questions answers shielded instructions timer rules">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/quizzes/:quizId</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Fetches quiz metadata, rules, and question choices. Answer keys and rationales are strictly shielded on the server to prevent student browser inspection (Rule 3).</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "quiz": {
+    "_id": "650000000000000000000040",
+    "title": "Week 1 Checkpoint Quiz",
+    "description": "Assess core concepts in linear regression, cost functions, and optimization.",
+    "timeLimitMinutes": 15,
+    "maxAttempts": 3,
+    "totalQuestions": 2,
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Which loss function is most commonly used for Linear Regression?",
+        "options": [
+          "Cross-Entropy Loss",
+          "Mean Squared Error (MSE)",
+          "Hinge Loss",
+          "Kullback-Leibler Divergence"
+        ],
+        "points": 50
+      },
+      {
+        "id": "q2",
+        "question": "What is the primary role of the learning rate in Gradient Descent?",
+        "options": [
+          "It defines step size towards the loss minimum",
+          "It determines the number of layers in a neural network",
+          "It normalizes dataset features to zero variance",
+          "It prevents model parameters from updating"
+        ],
+        "points": 50
+      }
+    ]
+  },
+  "previousAttempts": 1,
+  "bestScore": 100
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/quizzes/:quizId/attempts -->
+      <div class="endpoint-card" id="ep-lms-quiz-attempts-post" data-search="start quiz attempt server-timed countdown max attempts">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/quizzes/:quizId/attempts</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">student / cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Starts a server-timed quiz attempt. Enforces max 3 attempts limit per student. Creates a server-authoritative expiration timestamp (`expiresAt` = startedAt + timeLimitMinutes). Answer keys remain strictly shielded.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000002"
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Quiz attempt started",
+  "attempt": {
+    "_id": "650000000000000000000090",
+    "quizId": "650000000000000000000040",
+    "attemptNumber": 2,
+    "startedAt": "2026-10-15T19:45:00.000Z",
+    "expiresAt": "2026-10-15T20:00:00.000Z",
+    "status": "in_progress",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Which loss function is most commonly used for Linear Regression?",
+        "options": [
+          "Cross-Entropy Loss",
+          "Mean Squared Error (MSE)",
+          "Hinge Loss",
+          "Kullback-Leibler Divergence"
+        ],
+        "points": 50
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/quiz-attempts/:attemptId/answers -->
+      <div class="endpoint-card" id="ep-lms-quiz-answers-post" data-search="answer quiz question check feedback lock instantaneous validation">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/quiz-attempts/:attemptId/answers</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">student / cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Records the student's answer for a question in an active attempt. When `check: true` is sent, validates the answer against the server answer key, permanently locks the question, and returns instant feedback.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "questionId": "q1",
+  "selectedOption": 1,
+  "check": true
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "questionId": "q1",
+  "selectedOption": 1,
+  "isLocked": true,
+  "isCorrect": true,
+  "explanation": "Correct! Mean Squared Error penalizes larger errors quadratically."
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/quiz-attempts/:attemptId/submit -->
+      <div class="endpoint-card" id="ep-lms-quiz-submit-post" data-search="submit finalize quiz attempt grading grace period best score review">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/quiz-attempts/:attemptId/submit</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">student / cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Finalizes and grades the quiz attempt. Grants a 15-second grace window beyond `expiresAt` for latency. Auto-grades all answers, preserves best score on retakes, marks the attempt completed, and releases the full review with explanations.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Quiz attempt submitted and graded successfully",
+  "attempt": {
+    "_id": "650000000000000000000090",
+    "score": 100,
+    "totalPossible": 100,
+    "percentage": 100,
+    "passed": true,
+    "status": "completed",
+    "submittedAt": "2026-10-15T19:55:00.000Z",
+    "review": [
+      {
+        "questionId": "q1",
+        "question": "Which loss function is most commonly used for Linear Regression?",
+        "selectedOption": 1,
+        "correctOption": 1,
+        "isCorrect": true,
+        "explanation": "Mean Squared Error is standard for continuous regression optimization."
+      }
+    ]
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/assignments -->
+      <div class="endpoint-card" id="ep-lms-assignments-list" data-search="assignments list cohort student deadlines status submitted pending">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/assignments</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Lists all assignments in the cohort curriculum, showing due dates, total points, and the student's submission status.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "assignments": [
+    {
+      "_id": "650000000000000000000050",
+      "title": "Project 1: Building a Gradient Descent Pipeline",
+      "dueDate": "2026-11-01T23:59:59.000Z",
+      "totalPoints": 100,
+      "submission": {
+        "_id": "650000000000000000000070",
+        "status": "submitted",
+        "submittedAt": "2026-10-15T19:00:00.000Z",
+        "isLate": false
+      }
+    }
+  ]
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/assignments/:id -->
+      <div class="endpoint-card" id="ep-lms-assignment-detail" data-search="assignment detail rubric starter template submission grade feedback">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/assignments/:id</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Retrieves detailed assignment requirements, grading rubric criteria, starter materials, and the requesting student's submission history and instructor feedback.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "assignment": {
+    "_id": "650000000000000000000050",
+    "title": "Project 1: Building a Gradient Descent Pipeline",
+    "description": "Implement linear regression from scratch in Python using vectorized NumPy operations.",
+    "dueDate": "2026-11-01T23:59:59.000Z",
+    "totalPoints": 100,
+    "rubric": [
+      {
+        "criterion": "Vectorized Gradient Computation",
+        "maxPoints": 50,
+        "description": "Efficient implementation avoiding explicit loops over samples."
+      },
+      {
+        "criterion": "Convergence Visualization & Report",
+        "maxPoints": 50,
+        "description": "Plot cost curve across iterations and discuss learning rate behavior."
+      }
+    ]
+  },
+  "mySubmission": {
+    "_id": "650000000000000000000070",
+    "githubUrl": "https://github.com/alice-dev/lms-ml-pipeline",
+    "fileKey": "submissions/pipeline-report.pdf",
+    "status": "graded",
+    "score": 95,
+    "feedback": "Outstanding implementation and analysis!"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST /api/lms/assignments/:id/submissions -->
+      <div class="endpoint-card" id="ep-lms-assignment-submit" data-search="submit assignment github url s3 key late resubmission">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/api/lms/assignments/:id/submissions</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">student / cohortGuard</span>
+          </div>
+          <p class="endpoint-desc">Submits or updates an assignment solution. Validates GitHub URL with strict regex, ensures attached file key resides in `submissions/`, auto-flags submissions as late if past `dueDate`, and permits resubmissions prior to grading.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "cohortId": "650000000000000000000002",
+  "githubUrl": "https://github.com/alice-dev/lms-ml-pipeline",
+  "fileKey": "submissions/1718293-notebook.ipynb",
+  "comments": "Implemented learning rate decay schedule in section 3."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>201 CREATED RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Assignment submitted successfully",
+  "submission": {
+    "_id": "650000000000000000000071",
+    "assignmentId": "650000000000000000000050",
+    "studentId": "67b0981a2f4c9a0012bc8901",
+    "githubUrl": "https://github.com/alice-dev/lms-ml-pipeline",
+    "status": "submitted",
+    "isLate": false,
+    "submittedAt": "2026-10-15T19:50:00.000Z"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- GET /api/lms/instructor/grading-queue -->
+      <div class="endpoint-card" id="ep-lms-instructor-grading-queue" data-search="grading queue instructor pending submissions evaluate">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/api/lms/instructor/grading-queue</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Retrieves the instructor's queue of student assignment submissions awaiting evaluation across assigned cohorts.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="table-container" style="margin-bottom: 12px;">
+            <table class="data-table">
+              <thead><tr><th>Query Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>cohortId</code></td><td>string</td><td>No</td><td>Filter queue by specific cohort.</td></tr>
+                <tr><td><code>status</code></td><td>string</td><td>No</td><td>Filter by status (default: <code>submitted</code>).</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "queue": [
+    {
+      "_id": "650000000000000000000071",
+      "assignment": {
+        "_id": "650000000000000000000050",
+        "title": "Project 1: Building a Gradient Descent Pipeline",
+        "totalPoints": 100
+      },
+      "student": {
+        "_id": "67b0981a2f4c9a0012bc8901",
+        "name": "Jane Student",
+        "email": "jane@example.com"
+      },
+      "cohortId": "650000000000000000000002",
+      "githubUrl": "https://github.com/alice-dev/lms-ml-pipeline",
+      "fileKey": "submissions/1718293-notebook.ipynb",
+      "submittedAt": "2026-10-15T19:50:00.000Z",
+      "isLate": false,
+      "status": "submitted"
+    }
+  ],
+  "totalPending": 1
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- PUT /api/lms/submissions/:id/grade -->
+      <div class="endpoint-card" id="ep-lms-submission-grade" data-search="grade submission rubric score feedback instructor notification">
+        <div class="endpoint-header">
+          <div class="endpoint-title-row">
+            <span class="method-badge method-put">PUT</span>
+            <span class="endpoint-path">/api/lms/submissions/:id/grade</span>
+            <span class="badge-guard" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">instructor / admin</span>
+          </div>
+          <p class="endpoint-desc">Evaluates a student assignment submission. Records score, rubric breakdown, and feedback. Automatically transitions submission status to `graded` and notifies the student.</p>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-header"><span>REQUEST PAYLOAD (JSON)</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "score": 95,
+  "rubricScores": [
+    {
+      "criterion": "Vectorized Gradient Computation",
+      "points": 48
+    },
+    {
+      "criterion": "Convergence Visualization & Report",
+      "points": 47
+    }
+  ],
+  "feedback": "Outstanding work! The learning rate analysis was insightful and clearly explained."
+}</code></pre>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span>200 OK RESPONSE</span><button class="copy-code-btn" onclick="copySnippet(this)">Copy</button></div>
+            <pre><code>{
+  "message": "Submission graded successfully",
+  "submission": {
+    "_id": "650000000000000000000071",
+    "score": 95,
+    "status": "graded",
+    "feedback": "Outstanding work! The learning rate analysis was insightful and clearly explained.",
+    "gradedAt": "2026-10-15T20:10:00.000Z",
+    "gradedBy": "67b0981a2f4c9a0012bc8999"
+  }
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Footer with High Contrast -->
       <footer class="doc-footer">
         <div>
@@ -6766,6 +7643,26 @@ Accept: application/json</code></pre>
         <li><a href="#ep-inst-sub-checkout" class="toc-link">POST /api/institutions/me/subscription/checkout</a></li>
         <li><a href="#ep-inst-sub-get" class="toc-link">GET /api/institutions/me/subscription</a></li>
         <li><a href="#ep-inst-dashboard" class="toc-link">GET /api/institutions/me/dashboard</a></li>
+        <li><a href="#trimester-lms-core" class="toc-link">Trimester LMS Core</a></li>
+        <li><a href="#ep-lms-me" class="toc-link">GET /api/lms/me</a></li>
+        <li><a href="#ep-lms-dashboard-student" class="toc-link">GET /api/lms/dashboard/student</a></li>
+        <li><a href="#ep-lms-cohort-curriculum" class="toc-link">GET /api/lms/cohorts/:cohortId/curriculum</a></li>
+        <li><a href="#ep-lms-lesson-detail" class="toc-link">GET /api/lms/lessons/:lessonId</a></li>
+        <li><a href="#ep-lms-lesson-progress" class="toc-link">PUT /api/lms/lessons/:lessonId/progress</a></li>
+        <li><a href="#ep-lms-lesson-comments-get" class="toc-link">GET /api/lms/lessons/:lessonId/comments</a></li>
+        <li><a href="#ep-lms-lesson-comments-post" class="toc-link">POST /api/lms/lessons/:lessonId/comments</a></li>
+        <li><a href="#ep-lms-comment-replies" class="toc-link">POST /api/lms/comments/:id/replies</a></li>
+        <li><a href="#ep-lms-comment-like" class="toc-link">POST /api/lms/comments/:id/like</a></li>
+        <li><a href="#ep-lms-comment-unlike" class="toc-link">DELETE /api/lms/comments/:id/like</a></li>
+        <li><a href="#ep-lms-quiz-overview" class="toc-link">GET /api/lms/quizzes/:quizId</a></li>
+        <li><a href="#ep-lms-quiz-attempts-post" class="toc-link">POST /api/lms/quizzes/:quizId/attempts</a></li>
+        <li><a href="#ep-lms-quiz-answers-post" class="toc-link">POST /api/lms/quiz-attempts/:attemptId/answers</a></li>
+        <li><a href="#ep-lms-quiz-submit-post" class="toc-link">POST /api/lms/quiz-attempts/:attemptId/submit</a></li>
+        <li><a href="#ep-lms-assignments-list" class="toc-link">GET /api/lms/assignments</a></li>
+        <li><a href="#ep-lms-assignment-detail" class="toc-link">GET /api/lms/assignments/:id</a></li>
+        <li><a href="#ep-lms-assignment-submit" class="toc-link">POST /api/lms/assignments/:id/submissions</a></li>
+        <li><a href="#ep-lms-instructor-grading-queue" class="toc-link">GET /api/lms/instructor/grading-queue</a></li>
+        <li><a href="#ep-lms-submission-grade" class="toc-link">PUT /api/lms/submissions/:id/grade</a></li>
       </ul>
     </aside>
 

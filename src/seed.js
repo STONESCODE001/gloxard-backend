@@ -23,6 +23,13 @@ import { Institution } from './models/Institution.model.js';
 import { Department } from './models/Department.model.js';
 import { InstitutionMember } from './models/InstitutionMember.model.js';
 import { Subscription } from './models/Subscription.model.js';
+import { Trimester } from './models/Trimester.model.js';
+import { Cohort } from './models/Cohort.model.js';
+import { LmsLessonProgress } from './models/LmsLessonProgress.model.js';
+import { LmsQuizAttempt } from './models/LmsQuizAttempt.model.js';
+import { LmsAssignment } from './models/LmsAssignment.model.js';
+import { LmsSubmission } from './models/LmsSubmission.model.js';
+import { LmsLessonComment } from './models/LmsLessonComment.model.js';
 
 async function seedDatabase() {
   console.log('\x1b[36m==================================================\x1b[0m');
@@ -62,6 +69,13 @@ async function seedDatabase() {
     await Department.deleteMany({});
     await InstitutionMember.deleteMany({});
     await Subscription.deleteMany({});
+    await Trimester.deleteMany({});
+    await Cohort.deleteMany({});
+    await LmsLessonProgress.deleteMany({});
+    await LmsQuizAttempt.deleteMany({});
+    await LmsAssignment.deleteMany({});
+    await LmsSubmission.deleteMany({});
+    await LmsLessonComment.deleteMany({});
     console.log('\x1b[32m✔ Collections purged\x1b[0m');
 
     // 3. Pre-hash password for performance
@@ -890,7 +904,157 @@ async function seedDatabase() {
 
     const insertedEvents = await ReviewEvent.insertMany(reviewEvents);
 
-    // 14. Print Visual Summary Table
+    // 14. Seed Trimester LMS Core (Cohorts, Curriculum, Quizzes & Assignments)
+    const activeTrimester = await Trimester.create({
+      number: 1,
+      title: "Trimester 1 - 2026",
+      startDate: new Date("2026-01-15"),
+      endDate: new Date("2026-04-15"),
+      weeks: 12,
+      enrollmentClosesAt: new Date("2026-01-30"),
+      status: "active"
+    });
+
+    const upcomingTrimester = await Trimester.create({
+      number: 2,
+      title: "Trimester 2 - 2026",
+      startDate: new Date("2026-05-01"),
+      endDate: new Date("2026-08-01"),
+      weeks: 12,
+      enrollmentClosesAt: new Date("2026-05-15"),
+      status: "upcoming"
+    });
+
+    const cohortAlpha = await Cohort.create({
+      name: "Cohort Alpha - Fullstack JS",
+      courseId: course1._id,
+      trimesterId: activeTrimester._id,
+      instructorIds: [jane._id],
+      studentIds: [alice._id, bob._id],
+      capacity: 50,
+      timezone: "Africa/Lagos",
+      currentWeek: 1,
+      status: "active"
+    });
+
+    const cohortBeta = await Cohort.create({
+      name: "Cohort Beta - Data Science",
+      courseId: course2._id,
+      trimesterId: upcomingTrimester._id,
+      instructorIds: [jane._id],
+      studentIds: [alice._id, bob._id],
+      capacity: 50,
+      timezone: "Africa/Lagos",
+      currentWeek: 1,
+      status: "enrolling"
+    });
+
+    const seedLessonProgress = await LmsLessonProgress.create({
+      cohortId: cohortAlpha._id,
+      userId: alice._id,
+      lessonId: c1Lesson1Id,
+      moduleId: course1.modules[0]._id,
+      status: "completed",
+      watchedSeconds: 300,
+      objectivesDone: ["Master fundamental concepts of Welcome & Setup"],
+      completedAt: new Date()
+    });
+
+    const quiz1 = course1.modules[1]?.quizzes[0];
+    let seedQuizAttempt = null;
+    if (quiz1) {
+      seedQuizAttempt = await LmsQuizAttempt.create({
+        cohortId: cohortAlpha._id,
+        quizId: quiz1._id,
+        userId: alice._id,
+        attemptNumber: 1,
+        startedAt: new Date(Date.now() - 3600000),
+        expiresAt: new Date(Date.now() - 2700000),
+        status: "submitted",
+        score: 2,
+        total: 2,
+        percent: 100,
+        passed: true,
+        submittedAt: new Date(Date.now() - 3000000),
+        answers: [
+          {
+            questionId: quiz1.questions[0]._id,
+            optionId: "0",
+            flagged: false,
+            checkedAt: new Date(),
+            isCorrect: true
+          },
+          {
+            questionId: quiz1.questions[1]._id,
+            optionId: "1",
+            flagged: false,
+            checkedAt: new Date(),
+            isCorrect: true
+          }
+        ]
+      });
+    }
+
+    const assignment1 = await LmsAssignment.create({
+      cohortId: cohortAlpha._id,
+      moduleId: course1.modules[0]._id,
+      title: "Week 1 Project: Node.js Backend Server",
+      summary: "Build an Express REST server with health checks",
+      description: "Implement a fully functional Node.js server with routes and error handling. Submit GitHub URL or ZIP archive.",
+      dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      rubric: [
+        { criterion: "Architecture & Clean Code", points: 50 },
+        { criterion: "Error Handling & Tests", points: 50 }
+      ],
+      maxFileMB: 50,
+      allowedTypes: ["zip", "pdf"],
+      allowRepoLink: true,
+      allowLate: true,
+      latePenaltyPercent: 5
+    });
+
+    const assignment2 = await LmsAssignment.create({
+      cohortId: cohortAlpha._id,
+      moduleId: course1.modules[1]._id,
+      title: "Week 2 Project: Express Middleware Pipeline",
+      summary: "Build custom middleware stack with auth and logging",
+      description: "Implement JWT auth middleware and custom rate limiter.",
+      dueAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+      rubric: [{ criterion: "Middleware Design", points: 100 }],
+      allowRepoLink: true,
+      allowLate: true
+    });
+
+    const submission1 = await LmsSubmission.create({
+      assignmentId: assignment1._id,
+      cohortId: cohortAlpha._id,
+      userId: alice._id,
+      repoUrl: "https://github.com/alice-student/express-backend-project",
+      comment: "Here is my week 1 project repository",
+      submittedAt: new Date(),
+      isLate: false,
+      status: "pending_review"
+    });
+
+    const comment1 = await LmsLessonComment.create({
+      lessonId: c1Lesson1Id,
+      cohortId: cohortAlpha._id,
+      userId: alice._id,
+      authorRole: "student",
+      body: "Loved the breakdown of asynchronous event loops in this lesson!",
+      likes: [jane._id]
+    });
+
+    const reply1 = await LmsLessonComment.create({
+      lessonId: c1Lesson1Id,
+      cohortId: cohortAlpha._id,
+      userId: jane._id,
+      authorRole: "instructor",
+      body: "Glad to hear that, Alice! Let me know if you have questions on promises.",
+      parentId: comment1._id
+    });
+
+    // 15. Print Visual Summary Table
     console.log('\x1b[32m✔ Seed data generated & inserted successfully!\x1b[0m\n');
     console.log('+--------------------------+-------+');
     console.log('| Entity                   | Count |');
@@ -911,6 +1075,13 @@ async function seedDatabase() {
     console.log(`| Departments              | 2     |`);
     console.log(`| Institution Members      | 2     |`);
     console.log(`| Subscriptions            | 1     |`);
+    console.log(`| Trimesters               | 2     |`);
+    console.log(`| Cohorts                  | 2     |`);
+    console.log(`| LMS Lesson Progress      | 1     |`);
+    console.log(`| LMS Quiz Attempts        | 1     |`);
+    console.log(`| LMS Assignments          | 2     |`);
+    console.log(`| LMS Submissions          | 1     |`);
+    console.log(`| LMS Comments & Replies   | 2     |`);
     console.log('+--------------------------+-------+\n');
 
     console.log('\x1b[32m[SEED SUCCESS] Database seeding completed cleanly!\x1b[0m');
